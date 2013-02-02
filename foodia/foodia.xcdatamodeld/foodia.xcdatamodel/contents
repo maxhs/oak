@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model name="" userDefinedModelVersionIdentifier="" type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="1171" systemVersion="11E53" minimumToolsVersion="Automatic" macOSVersion="Automatic" iOSVersion="Automatic">
+    <entity name="FDPost" representedClassName="FDPost" parentEntity="FDRecord" syncable="YES">
+        <attribute name="caption" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="category" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="detailImageURLString" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="epochTime" optional="YES" attributeType="Integer 16" defaultValueString="0" syncable="YES"/>
+        <attribute name="featured" optional="YES" attributeType="Boolean" syncable="YES"/>
+        <attribute name="feed" optional="YES" attributeType="Boolean" syncable="YES"/>
+        <attribute name="feedImageURLString" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="foodiaObject" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="latitude" optional="YES" attributeType="Float" defaultValueString="0.0" syncable="YES"/>
+        <attribute name="locationID" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="locationName" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="longitude" optional="YES" attributeType="Float" defaultValueString="0.0" syncable="YES"/>
+        <relationship name="likers" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="FDUser" inverseName="likedPosts" inverseEntity="FDUser" syncable="YES"/>
+        <relationship name="user" optional="YES" minCount="1" maxCount="1" deletionRule="Nullify" destinationEntity="FDUser" inverseName="posts" inverseEntity="FDUser" syncable="YES"/>
+        <relationship name="withFriends" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="FDUser" inverseName="withPosts" inverseEntity="FDUser" syncable="YES"/>
+    </entity>
+    <entity name="FDRecord" representedClassName="FDRecord" syncable="YES">
+        <attribute name="identifier" optional="YES" attributeType="String" syncable="YES"/>
+    </entity>
+    <entity name="FDUser" representedClassName="FDUser" parentEntity="FDRecord" syncable="YES">
+        <attribute name="facebookID" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="name" optional="YES" attributeType="String" syncable="YES"/>
+        <relationship name="likedPosts" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="FDPost" inverseName="likers" inverseEntity="FDPost" syncable="YES"/>
+        <relationship name="posts" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="FDPost" inverseName="user" inverseEntity="FDPost" syncable="YES"/>
+        <relationship name="withPosts" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="FDPost" inverseName="withFriends" inverseEntity="FDPost" syncable="YES"/>
+    </entity>
+    <elements>
+        <element name="FDPost" positionX="160" positionY="192" width="128" height="240"/>
+        <element name="FDRecord" positionX="160" positionY="192" width="128" height="60"/>
+        <element name="FDUser" positionX="160" positionY="192" width="128" height="120"/>
+    </elements>
+</model>

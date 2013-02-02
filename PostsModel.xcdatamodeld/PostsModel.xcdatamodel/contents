@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model name="" userDefinedModelVersionIdentifier="" type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="1810" systemVersion="12C2034" minimumToolsVersion="Xcode 4.3" macOSVersion="Automatic" iOSVersion="Automatic">
+    <entity name="Post" representedClassName="Post" syncable="YES">
+        <attribute name="caption" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="category" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="comments" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="detailImageURL" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="epochTime" optional="YES" attributeType="Integer 64" defaultValueString="0" syncable="YES"/>
+        <attribute name="featured" optional="YES" attributeType="Boolean" syncable="YES"/>
+        <attribute name="featuredEpochTime" optional="YES" attributeType="Integer 64" defaultValueString="0" syncable="YES"/>
+        <attribute name="feedImageURL" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="foursquareid" optional="YES" attributeType="Integer 64" defaultValueString="0" syncable="YES"/>
+        <attribute name="identifier" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="latitude" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="likeCount" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="likers" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="locationName" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="longitude" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="photoImage" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="postId" optional="YES" attributeType="Integer 64" defaultValueString="0" syncable="YES"/>
+        <attribute name="recommendedTo" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="userId" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="withFriends" optional="YES" attributeType="String" syncable="YES"/>
+    </entity>
+    <entity name="User" syncable="YES">
+        <attribute name="name" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="user_id" optional="YES" attributeType="String" syncable="YES"/>
+    </entity>
+    <elements>
+        <element name="Post" positionX="160" positionY="192" width="128" height="345"/>
+        <element name="User" positionX="162" positionY="333" width="128" height="75"/>
+    </elements>
+</model>
