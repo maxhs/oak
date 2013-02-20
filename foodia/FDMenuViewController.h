@@ -11,7 +11,5 @@
 @interface FDMenuViewController : UITableViewController
 @property (nonatomic,strong) NSMutableArray *notifications;
 @property (nonatomic,strong) AFJSONRequestOperation *feedRequestOperation;
-
 - (void)refresh;
-
 @end

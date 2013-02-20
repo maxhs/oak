@@ -10,7 +10,7 @@
 #import "ECSlidingViewController.h"
 #import <MessageUI/MessageUI.h>
 #import "FDCache.h"
-#import <FacebookSDK/FacebookSDK.h>
+#import "Facebook.h"
 #import "FDAPIClient.h"
 #import "FDProfileViewController.h"
 #import "FDProfileNavigationController.h"
@@ -29,9 +29,6 @@
 @property (nonatomic, strong) NSArray *activityItems;
 @property (weak, nonatomic) UIView *titleView;
 @property (weak, nonatomic) UILabel *activityLabel;
-
-- (void)configureForNotification:(FDNotification *)notification;
-
 @end
 
 @implementation FDMenuViewController
@@ -40,7 +37,7 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    
+    [self refresh];
     [self.slidingViewController setAnchorRightRevealAmount:264.0f];
     self.slidingViewController.underLeftWidthLayout = ECFullWidth;
     self.tableView.separatorColor = [UIColor colorWithWhite:.1 alpha:.1];
@@ -50,12 +47,6 @@
     self.tableView.delegate = self;
     self.tableView.dataSource = self;
     self.tableView.scrollEnabled = YES;
-}
-
-- (void)viewDidAppear:(BOOL)animated
-{
-    [self refresh];
-    [super viewDidAppear:YES];
 }
 
 - (void)viewDidUnload
@@ -121,7 +112,11 @@
         profileImageView.layer.rasterizationScale = [UIScreen mainScreen].scale;
         UILabel *messageLabel = [[UILabel alloc] initWithFrame:CGRectMake(50,4,180,40)];
         [messageLabel setTextColor:[UIColor darkGrayColor]];
-        [messageLabel setFont:[UIFont fontWithName:@"AvenirNextCondensed-Medium" size:14]];
+        if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 6) {
+            [messageLabel setFont:[UIFont fontWithName:@"AvenirNextCondensed-Medium" size:14]];
+        } else {
+            [messageLabel setFont:[UIFont fontWithName:@"Futura-CondensedMedium" size:16]];
+        }
         messageLabel.numberOfLines = 2;
         messageLabel.backgroundColor = [UIColor clearColor];
         [messageLabel setText:notification.message];
@@ -129,7 +124,7 @@
         // show the time stamp
         UILabel *timeLabel = [[UILabel alloc] initWithFrame:CGRectMake(220,14,30,21)];
         [timeLabel setTextColor:[UIColor lightGrayColor]];
-        timeLabel.textAlignment = UITextAlignmentRight;
+        timeLabel.textAlignment = NSTextAlignmentRight;
         [timeLabel setFont:[UIFont fontWithName:@"AvenirNextCondensed-Medium" size:14]];
         timeLabel.backgroundColor = [UIColor clearColor];
         if([notification.postedAt timeIntervalSinceNow] > 0) {
@@ -165,13 +160,9 @@
     if (indexPath.section == 1) {
         FDNotification *notification = [self.notifications objectAtIndex:indexPath.row];
         if (notification.targetPostId != nil) {
-            NSLog(@"targetPostId: %@",notification.targetPostId);
             [self showPost:[NSString stringWithFormat:@"%@",notification.targetPostId]];
-            //[nav performSegueWithIdentifier:@"ShowPost" sender:notification];
         } else if (notification.targetUserId != nil) {
-            NSLog(@"should be sending you to a profile");
             [self showProfile:[NSString stringWithFormat:@"%@", notification.targetUserId]];
-            //[self performSegueWithIdentifier:@"ViewProfileFromActivity" sender:notification];
         }
     } else {
     switch (indexPath.row) {
@@ -184,15 +175,11 @@
         case 2:
             [self leaveFeedback:nil];
             break;
-        /*case 4:
-            //[TestFlight openFeedbackView];
-            [self showTopViewControllerWithIdentifier:@"SettingsNavigation"];
-            break;*/
         case 3:
             [FDCache clearCache];
             [FBSession.activeSession closeAndClearTokenInformation];
             [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
-            [self.slidingViewController dismissModalViewControllerAnimated:YES];
+            [self.slidingViewController dismissViewControllerAnimated:YES completion:nil];
             
             break;
         default:
@@ -205,11 +192,9 @@
     UIViewController *newTopViewController = [[UIViewController alloc] init];
         //tests whether the device has a 4-inch display for the above view controllers
     if (([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone && [UIScreen mainScreen].bounds.size.height == 568.0)){
-        NSLog(@"Loading iPhone 5 Storyboard");
         UIStoryboard *storyboard5 = [UIStoryboard storyboardWithName:@"iPhone5" bundle:nil];
         newTopViewController = [storyboard5 instantiateViewControllerWithIdentifier:identifier];
     } else {
-        NSLog(@"Loading Normal Storyboard");
         UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"iPhone" bundle:nil];
         newTopViewController = [storyboard instantiateViewControllerWithIdentifier:identifier];
     }
@@ -224,19 +209,15 @@
 
 - (void)showProfile:(id)sender{
     FDProfileViewController *newTopViewController = [[FDProfileViewController alloc] init];
-    
     //tests whether the device has a 4-inch display for the above view controllers
     if (([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone && [UIScreen mainScreen].bounds.size.height == 568.0)){
-        NSLog(@"Loading iPhone 5 Storyboard");
         UIStoryboard *storyboard5 = [UIStoryboard storyboardWithName:@"iPhone5" bundle:nil];
         newTopViewController = [storyboard5 instantiateViewControllerWithIdentifier:@"ProfileView"];
     } else {
-        NSLog(@"Loading Normal Storyboard");
         UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"iPhone" bundle:nil];
         newTopViewController = [storyboard instantiateViewControllerWithIdentifier:@"ProfileView"];
     }
     if ([sender isMemberOfClass:[UIButton class]]) {
-        NSLog(@"button class");
         UIButton *button = (UIButton*)sender;
         [newTopViewController initWithUserId:button.titleLabel.text];
     } else {
@@ -253,16 +234,13 @@
     FDPostViewController *vc = [[FDPostViewController alloc] init];
     //tests whether the device has a 4-inch display for the above view controllers
     if (([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone && [UIScreen mainScreen].bounds.size.height == 568.0)){
-        NSLog(@"Loading iPhone 5 Storyboard");
         UIStoryboard *storyboard5 = [UIStoryboard storyboardWithName:@"iPhone5" bundle:nil];
         vc = [storyboard5 instantiateViewControllerWithIdentifier:@"PostView"];
     } else {
-        NSLog(@"Loading Normal Storyboard");
         UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"iPhone" bundle:nil];
         vc = [storyboard instantiateViewControllerWithIdentifier:@"PostView"];
     }
     NSString *postId = (NSString *) sender;
-    NSLog(@"postId from menu view: %@", postId);
     [vc setPostIdentifier:postId];
     [(UINavigationController*)self.slidingViewController.topViewController pushViewController:vc animated:YES];
     [self.slidingViewController anchorTopViewOffScreenTo:ECRight animations:nil onComplete:^{
@@ -278,7 +256,7 @@
         controller.mailComposeDelegate = self;
         [controller setSubject:@"FOODIA Feedback"];
         [controller setToRecipients:[NSArray arrayWithObjects:@"feedback@foodia.org", nil]];
-        if (controller) [self presentModalViewController:controller animated:YES];
+        if (controller) [self presentViewController:controller animated:YES completion:nil];
     } else {
         UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Thanks" message:@"Please send feedback to feedback@foodia.org" delegate:self cancelButtonTitle:@"" otherButtonTitles:nil];
         [alert show];
@@ -289,7 +267,7 @@
                         error:(NSError*)error;
 {
     if (result == MFMailComposeResultSent) {}
-    [self dismissModalViewControllerAnimated:YES];
+    [self dismissViewControllerAnimated:YES completion:nil];
 }
 
 - (void)refresh

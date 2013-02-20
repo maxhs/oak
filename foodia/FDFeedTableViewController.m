@@ -13,8 +13,8 @@
 #import "ECSlidingViewController.h"
 #import "Utilities.h"
 #import "FDAPIClient.h"
-#import <FacebookSDK/FacebookSDK.h>
-
+#import "Facebook.h"
+#import "FDAppDelegate.h"
 
 @interface FDFeedTableViewController ()
 @end
@@ -113,11 +113,18 @@
     //if([self.posts count] != 0) [self refresh];
     //else [self loadFromCache];
     [self refresh];
-    [super.tableView reloadData];
+    //[super.tableView reloadData];
+}
+
+-(void) tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    if([indexPath row] == ((NSIndexPath*)[[tableView indexPathsForVisibleRows] lastObject]).row){
+        //end of loading
+        [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
+    }
 }
 
 - (void)loadAdditionalPosts {
-    if(!self.isLoading) {
         self.feedRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getFeedBeforePost:self.posts.lastObject success:^(NSMutableArray *posts) {
             if (posts.count == 0) {
                 self.canLoadAdditionalPosts = NO;
@@ -130,7 +137,6 @@
             self.feedRequestOperation = nil;
             [self reloadData];
         }];
-    }
 }
 
 - (void)didShowLastRow {

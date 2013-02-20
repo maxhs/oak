@@ -7,7 +7,7 @@
 //
 
 #import "FDLoginViewController.h"
-#import <FacebookSDK/FacebookSDK.h>
+#import "Facebook.h"
 #import "FDAPIClient.h"
 #import "Utilities.h"
 #import "FDAPIClient.h"
@@ -18,6 +18,7 @@ static NSArray *tagLines;
 
 @interface FDLoginViewController () <UIScrollViewDelegate, UIAlertViewDelegate>
 @property (weak, nonatomic) IBOutlet UIButton *loginButton;
+@property (weak, nonatomic) IBOutlet UIPageControl *pageControl;
 @property (weak, nonatomic) IBOutlet UIScrollView *previewScrollView;
 @property (nonatomic, retain) NSArray *previewPosts;
 @property (nonatomic, retain) NSTimer *previewTimer;
@@ -42,6 +43,7 @@ static NSArray *tagLines;
 {
     [super viewDidLoad];
 	// Do any additional setup after loading the view.
+
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -51,7 +53,12 @@ static NSArray *tagLines;
     if (self.previewPosts.count == 0) [self loadPreviewPosts];
     [UIView animateWithDuration:0.5f animations:^{
         self.loginButton.alpha = 1.f;
+        self.loginButton.layer.shadowColor = [UIColor blackColor].CGColor;
+        self.loginButton.layer.shadowOffset = CGSizeMake(0,0);
+        self.loginButton.layer.shadowOpacity = .4;
+        self.loginButton.layer.shadowRadius = 1.0;
     }];
+    
 }
 
 - (void)viewDidAppear:(BOOL)animated {
@@ -59,7 +66,7 @@ static NSArray *tagLines;
     if (FBSession.activeSession.state == FBSessionStateOpen) {
         [self performSegueWithIdentifier:@"ShowFeed" sender:self];
     } else {
-        [UIView animateWithDuration:0.75f animations:^{
+        [UIView animateWithDuration:0.5f animations:^{
             self.loginButton.alpha = 1.f;
         }];
     [FBSession.activeSession close]; // so we close our session and start over
@@ -91,8 +98,11 @@ static NSArray *tagLines;
         view.taglineLabel.alpha = opacity;
         view.timeLabel.alpha = opacity;
         view.locationLabel.alpha = opacity;
-        view.backgroundView.alpha = opacity;
     }
+    
+    CGFloat pageWidth = scrollView.frame.size.width;
+    int page = floor((scrollView.contentOffset.x - pageWidth / 2) / pageWidth) + 1;
+    self.pageControl.currentPage = page;
 }
 
 - (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView {
@@ -141,7 +151,7 @@ static NSArray *tagLines;
         view.photoView.layer.shadowRadius = 5.0;
         view.photoView.clipsToBounds = NO;
 
-        CGPathRef path2 = [UIBezierPath bezierPathWithRect:view.taglineLabel.bounds].CGPath;
+        /*CGPathRef path2 = [UIBezierPath bezierPathWithRect:view.taglineLabel.bounds].CGPath;
         [view.taglineLabel.layer setShadowPath:path2];
         view.taglineLabel.layer.shouldRasterize = YES;
         view.taglineLabel.layer.rasterizationScale = [UIScreen mainScreen].scale;
@@ -149,26 +159,17 @@ static NSArray *tagLines;
         view.taglineLabel.layer.shadowOffset = CGSizeMake(0, -2);
         view.taglineLabel.layer.shadowOpacity = .7;
         view.taglineLabel.layer.shadowRadius = 10.0;
-        view.taglineLabel.clipsToBounds = NO;
+        view.taglineLabel.clipsToBounds = NO;*/
 
-        CGPathRef path3 = [UIBezierPath bezierPathWithRect:view.backgroundView.bounds].CGPath;
-        [view.backgroundView.layer setShadowPath:path3];
-        view.backgroundView.layer.shouldRasterize = YES;
-        view.backgroundView.layer.rasterizationScale = [UIScreen mainScreen].scale;
-        view.backgroundView.layer.shadowColor = [UIColor whiteColor].CGColor;
-        view.backgroundView.layer.shadowOffset = CGSizeMake(0, 0);
-        view.backgroundView.layer.shadowOpacity = 1;
-        view.backgroundView.layer.shadowRadius = 10.0;
-        view.backgroundView.clipsToBounds = NO;
-        
         [view.taglineLabel setText:[tagLines objectAtIndex:index]];
         [view.timeLabel setText:[Utilities timeIntervalSinceStartDate:post.postedAt]];
         if (post.locationName.length)
             view.locationLabel.text = [NSString stringWithFormat:@"At %@", post.locationName];
         else
             view.locationLabel.text = nil;
-        
+        [view setBackgroundColor:[UIColor clearColor]];
         [self.previewScrollView addSubview:view];
+        [self.previewScrollView setBackgroundColor:[UIColor clearColor]];
     }
     
     self.previewScrollView.contentSize = CGSizeMake(self.previewPosts.count * self.previewScrollView.frame.size.width, self.previewScrollView.frame.size.height);
@@ -219,7 +220,7 @@ static NSArray *tagLines;
     [UIView animateWithDuration:0.3f animations:^{
         self.loginButton.alpha = 0.f;
     }];
-    [(FDAppDelegate *)[UIApplication sharedApplication].delegate openSession];
+    [(FDAppDelegate *)[UIApplication sharedApplication].delegate openSessionWithAllowLoginUI:YES];
 }
 
 - (void)loginFailed {

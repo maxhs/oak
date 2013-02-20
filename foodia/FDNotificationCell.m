@@ -8,7 +8,7 @@
 
 #import "FDNotificationCell.h"
 #import "Utilities.h"
-#import <FacebookSDK/FacebookSDK.h>
+#import "Facebook.h"
 #import "UIImageView+WebCache.h"
 #import "Utilities.h"
 

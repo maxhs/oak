@@ -12,7 +12,7 @@
 #import "Utilities.h"
 #import "FDUser.h"
 #import "FDProfileViewController.h"
-#import <FacebookSDK/FacebookSDK.h>
+#import "Facebook.h"
 
 @interface FDPeopleTableViewController ()
 @end
@@ -85,12 +85,10 @@
 }
 
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
-    NSLog(@"segue.identifier: %@",segue.identifier);
     if ([segue.identifier isEqualToString:@"ViewProfile"]) {
         UIButton *button = sender;
         FDProfileViewController *vc = segue.destinationViewController;
         [vc initWithUserId:button.titleLabel.text];
-        NSLog(@"preparing for segue to person: %@", button.titleLabel.text);
     }
 }
 

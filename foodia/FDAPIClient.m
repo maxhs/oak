@@ -248,7 +248,6 @@ return [self requestOperationWithMethod:@"GET"
                                          failure:(RequestFailure)failure
 {
     NSString *moreProfile = [NSString stringWithFormat:@"%@,%@", uid, beforePost.epochTime];
-    NSLog(@"moreProfile: %@",moreProfile);
     NSDictionary *parameters = [NSDictionary dictionaryWithObjectsAndKeys:moreProfile,@"for_more_profile", nil];
     
     OperationSuccess opSuccess = ^(AFHTTPRequestOperation *operation, id responseObject) {
@@ -584,7 +583,7 @@ return [self requestOperationWithMethod:@"GET"
 
 #pragma mark - Nearby Posts
 
-- (AFHTTPRequestOperation *)getPostsNearLocation:(CLLocation *)location
+- (AFJSONRequestOperation *)getPostsNearLocation:(CLLocation *)location
                                           success:(RequestSuccess)success
                                             failure:(RequestFailure)failure
 {
@@ -667,7 +666,6 @@ return [self requestOperationWithMethod:@"GET"
     if (post.caption){[parameters setObject:post.caption
                                      forKey:@"post[message]"];}
     if (post.location){
-        NSLog(@"post has coordinates. here's latitutde: %@",post.latitude);
         [parameters setObject:[NSString stringWithFormat:@"%f",post.location.coordinate.latitude]
                        forKey:@"post[latitude]"];
         [parameters setObject:[NSString stringWithFormat:@"%f",post.location.coordinate.longitude]
@@ -677,13 +675,9 @@ return [self requestOperationWithMethod:@"GET"
         [parameters setObject:post.locationName
                        forKey:@"post[location_name]"];
     }
-    NSLog(@"post.FDVenueid: %@",post.FDVenueId);
     if (post.FDVenueId){
         [parameters setObject:post.FDVenueId forKey:@"post[foursquareid]"];
     }
-    /*if (post.address){
-        [parameters setObject:post.address forKey:@"post[address]"];
-    }*/
     OperationSuccess opSuccess = ^(AFHTTPRequestOperation *operation, id result) {
         success(result);
     };
@@ -717,6 +711,28 @@ return [self requestOperationWithMethod:@"GET"
     return op;
 }
 
+#pragma mark - DELETE Post
+- (AFJSONRequestOperation *)deletePost:(FDPost *)post
+                             success:(RequestSuccess)success
+                             failure:(RequestFailure)failure {
+    
+    OperationSuccess opSuccess = ^(AFHTTPRequestOperation *operation, id result) {
+        success(result);
+        NSLog(@"result from delete post method");
+    };
+    
+    OperationFailure opFailure = ^(AFHTTPRequestOperation *operation, NSError *error) {
+        failure(error);
+        NSLog(@"failure from delete post method: %@", error.description);
+    };
+    
+    return [self requestOperationWithMethod:@"DELETE"
+                                       path:[NSString stringWithFormat:@"posts/%@",post.identifier]
+                                 parameters:nil
+                                    success:opSuccess
+                                    failure:opFailure];
+}
+
 #pragma mark - EDIT Post
 
 - (AFJSONRequestOperation *)editPost:(FDPost *)post
@@ -725,11 +741,6 @@ return [self requestOperationWithMethod:@"GET"
     
     
     NSMutableDictionary * parameters = [NSMutableDictionary dictionaryWithObjectsAndKeys:[NSDate date], @"post[posted_at]",post.foodiaObject,@"post[object_string]",post.category,@"post[category_name]",post.identifier, @"post[identifier]",self.facebookID,@"facebook_id",self.facebookAccessToken,@"facebook_access_token", nil];
-    /*if ([[NSUserDefaults standardUserDefaults] boolForKey:@"OpenGraph"]) {
-        NSLog(@"should be sharing via OG");
-        [parameters setObject:post.foodiaObject
-                       forKey:@"post[og]"];
-    }*/
     if (post.withFriends) {
         NSMutableArray *mutableArray = [NSMutableArray arrayWithCapacity:post.withFriends.count];
         for (FDUser *user in post.withFriends) {
@@ -738,18 +749,17 @@ return [self requestOperationWithMethod:@"GET"
         [parameters setObject:[mutableArray componentsJoinedByString:@","]
                        forKey:@"post[with_friends]"];
     }
-    if (post.recommendedTo) {
+    /*if (post.recommendedTo) {
         NSMutableArray *mutableArray = [NSMutableArray arrayWithCapacity:post.recommendedTo.count];
         for (FDUser *user in post.recommendedTo) {
             [mutableArray addObject:[NSString stringWithFormat:@"%@|%@", user.facebookId, user.name]];
         }
         [parameters setObject:[mutableArray componentsJoinedByString:@","]
                        forKey:@"post[recommend_friends]"];
-    }
+    }*/
     if (post.caption){[parameters setObject:post.caption
                                      forKey:@"post[message]"];}
     if (post.location){
-        NSLog(@"post has coordinates. here's latitutde: %@",post.latitude);
         [parameters setObject:[NSString stringWithFormat:@"%f",post.location.coordinate.latitude]
                        forKey:@"post[latitude]"];
         [parameters setObject:[NSString stringWithFormat:@"%f",post.location.coordinate.longitude]
@@ -759,9 +769,10 @@ return [self requestOperationWithMethod:@"GET"
         [parameters setObject:post.locationName
                        forKey:@"post[location_name]"];
     }
-    NSLog(@"post.FDVenueid: %@",post.FDVenueId);
     if (post.FDVenueId){
         [parameters setObject:post.FDVenueId forKey:@"post[foursquareid]"];
+    } else if (post.foursquareid){
+        [parameters setObject:post.foursquareid forKey:@"post[foursquareid]"];
     }
 
     OperationSuccess opSuccess = ^(AFHTTPRequestOperation *operation, id result) {
@@ -885,7 +896,6 @@ return [self requestOperationWithMethod:@"GET"
         [dict addObject:obj.facebookId];
     }
     NSDictionary *parameters = [NSDictionary dictionaryWithObjectsAndKeys:dict,@"recommendees",post.identifier,@"post_id", message, @"message", nil];
-    NSLog(@"recommendation parameters: %@", parameters);
     return [self requestOperationWithMethod:@"POST" path:RECOMMEND_PATH parameters:parameters success:^(AFHTTPRequestOperation *operation, id result) {
         FDPost *post = [[FDPost alloc] initWithDictionary:[result objectForKey:@"post"]];
         success(post);
@@ -938,7 +948,7 @@ return [self requestOperationWithMethod:@"GET"
         FDPost *post = [[FDPost alloc] initWithDictionary:postDictionary];
         [posts addObject:post];
     }
-    NSLog(@"this is how many posts are being fetched: %u", posts.count);
+    
     return posts;
 }
 

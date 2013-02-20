@@ -84,7 +84,7 @@ static void *AVCamFocusModeObserverContext = &AVCamFocusModeObserverContext;
     [pvc setSourceType:UIImagePickerControllerSourceTypePhotoLibrary];
     [pvc setDelegate:self];
     selectingImageFromLibrary = YES;
-    [self presentModalViewController:pvc animated:YES];
+    [self presentViewController:pvc animated:YES completion:nil];
 }
 
 - (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info {
@@ -96,11 +96,11 @@ static void *AVCamFocusModeObserverContext = &AVCamFocusModeObserverContext;
     reviewButtons.hidden = NO;
     captureButtons.hidden = YES;
     videoPreviewView.hidden = YES;
-    [picker dismissModalViewControllerAnimated:YES];
+    [picker dismissViewControllerAnimated:YES completion:nil];
 }
 
 - (void)imagePickerControllerDidCancel:(UIImagePickerController *)picker {
-    [picker dismissModalViewControllerAnimated:YES];
+    [picker dismissViewControllerAnimated:YES completion:nil];
 }
 
 - (void)dealloc

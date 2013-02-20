@@ -15,7 +15,7 @@
 #import "FDPlacesViewController.h"
 #import "FDCache.h"
 #import "FDPostNearbyCell.h"
-#import "FDMapViewController.h"
+#import "FDPlaceViewController.h"
 #import <CoreLocation/CoreLocation.h>
 #import "FDFeedViewController.h"
 #import "FDGoogleAPIClient.h"
@@ -23,41 +23,45 @@
 #import "FDVenue.h"
 #import "FDVenueLocation.h"
 #import "FDPlacesCell.h"
+#import "UIImageView+AFNetworking.h"
 #import "FDFeedViewController.h"
+#import "FoursquareCategory.h"
 
 @interface FDPlacesViewController () <CLLocationManagerDelegate, UISearchBarDelegate, UISearchDisplayDelegate, UITableViewDelegate>
 @property (nonatomic, retain) CLLocationManager *locationManager;
 @property (nonatomic, strong) UISearchBar *locationSearchBar;
-@property (nonatomic, strong) UISearchBar *foodSearchBar;
+@property (nonatomic, strong) UISearchBar *objectSearchBar;
 @property (nonatomic, strong) UISearchDisplayController *locationSearch;
-//@property (nonatomic, strong) UISearchDisplayController *foodSearch;
+@property (nonatomic, strong) UISearchDisplayController *objectSearch;
 @property (nonatomic, retain) NSMutableArray *locations;
 @property (nonatomic, strong) CLLocation *current;
 @property (nonatomic, retain) NSMutableArray *filteredLocations;
-@property (nonatomic, retain) FDFeedViewController *parentFeedVC;
 @property (weak, nonatomic) IBOutlet UIImageView *foursquareLogoView;
+@property (retain , nonatomic) CLLocation *lastLocation;
 
 @end
 
 @implementation FDPlacesViewController
 @synthesize current;
+@synthesize lastLocation = _lastLocation;
 
 - (void)viewDidLoad {
-    [TestFlight passCheckpoint:@"Viewing Places View"];
     [super viewDidLoad];
+    [TestFlight passCheckpoint:@"Viewing Places View"];
     [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
     /*[[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(updatePostNotification:)
                                                  name:@"UpdatePostNotification"
-                                               object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(activateSearch) name:@"ActivateSearch" object:nil];*/
+                                               object:nil];*/
     self.locationManager = [[CLLocationManager alloc] init];
     self.locationManager.desiredAccuracy = kCLLocationAccuracyBest;
     self.locationManager.delegate = self;
+    [self refresh];
     self.locations = [NSMutableArray array];
     //visual setup
     self.locationSearchBar = [[UISearchBar alloc] initWithFrame:CGRectMake(self.tableView.frame.origin.x,self.tableView.frame.origin.y-44,320,44)];
-    self.foodSearchBar = [[UISearchBar alloc] initWithFrame:CGRectMake(self.tableView.frame.origin.x,self.tableView.frame.origin.y-44,320,44)];
+    self.objectSearchBar = [[UISearchBar alloc] initWithFrame:CGRectMake(self.tableView.frame.origin.x,self.tableView.frame.origin.y-44,320,44)];
+    [self.locationSearch.searchResultsTableView addSubview:self.objectSearchBar];
     //set custom font in searchBar
     for(UIView *subView in self.locationSearchBar.subviews) {
         if ([subView isKindOfClass:[UITextField class]]) {
@@ -66,18 +70,15 @@
         }
     }
     
-    //setting the global feedview searchbar delegate to places right now.
-    self.parentFeedVC = [[FDFeedViewController alloc] init];
-    self.parentFeedVC = (FDFeedViewController*) self.parentViewController;
-    
     self.locationSearch = [[UISearchDisplayController alloc] initWithSearchBar:self.locationSearchBar contentsController:self];
     self.locationSearch.searchResultsDataSource = self;
     self.locationSearch.searchResultsDelegate = self;
     self.locationSearch.delegate = self;
+    self.objectSearchBar.delegate = self;
     self.locationSearchBar.delegate = self;
+    [self.locationSearchBar setTintColor:[UIColor whiteColor]];
     self.locationSearchBar.placeholder = @"Current Location";
     self.tableView.tableHeaderView = self.locationSearchBar;
-    
     for (UIView *view in self.locationSearchBar.subviews) {
         if ([view isKindOfClass:NSClassFromString(@"UISearchBarBackground")]){
             UIImageView *header = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"newFoodiaHeader.png"]];
@@ -86,19 +87,17 @@
         }
     }
     
-    self.filteredLocations = [NSMutableArray array];
 }
 
 -(void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:YES];
-    [self refresh];
+    self.locationManager.delegate = self;
 }
 
 - (void)viewWillDisappear:(BOOL)animated {
     [super viewWillDisappear:animated];
-    [self.locationManager stopUpdatingLocation];
     self.locationManager.delegate = nil;
-    [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
+    [self.locationManager stopUpdatingLocation];
 }
 
 /*- (void)loadFromCache {
@@ -118,50 +117,56 @@
 }
 
 - (void)refresh {
+    NSLog(@"testing when refresh is called");
     [self.locationManager startUpdatingLocation];
+    //[self.refreshHeaderView egoRefreshScrollViewDataSourceDidFinishedLoading:self.tableView];
 }
 
 - (void)locationManager:(CLLocationManager *)manager didFailWithError:(NSError *)error {
     [[[UIAlertView alloc] initWithTitle:@"Merde!" message:@"Couldn't find your location. Refresh to try again." delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil] show];
 }
 
--(void)locationManager:(CLLocationManager *)manager didUpdateToLocation:(CLLocation *)newLocation fromLocation:(CLLocation *)oldLocation {
-    [manager stopUpdatingLocation];
-    self.current = newLocation;
-    
-    [self requestPlacesNearLocation:newLocation];
-    NSLog(@"new location: %@",newLocation);
-    
-    /*[[FDGoogleAPIClient sharedClient] getVenuesNearLocation:newLocation success:^(NSArray *results){
-        NSLog(@"google results from nearby controller: %@",results);
-    }failure:^(NSError *error){
-        NSLog(@"error: %@", error.description);
-    }];*/
-    [self reloadData];
+-(void)locationManager:(CLLocationManager *)manager didUpdateLocations:(NSArray *)locations {
+    if ([[locations lastObject] horizontalAccuracy] < 0) return;
+    [self requestPlacesNearLocation:locations.lastObject];
+    [self.locationManager stopUpdatingLocation];
 }
 
 - (void)requestPlacesNearLocation:(CLLocation *)location {
-    // if the cached venues are from the same location, just use them
-    CLLocation *lastLocation = [[FDFoursquareAPIClient sharedClient] lastLocation];
-    CGFloat comparisonThreshold = 0.001;
-    
-    if (fabsf(location.coordinate.latitude - lastLocation.coordinate.latitude) < comparisonThreshold
-        && fabsf(location.coordinate.longitude - lastLocation.coordinate.longitude) < comparisonThreshold) {
-        self.locations = [NSMutableArray arrayWithArray:[[FDFoursquareAPIClient sharedClient] venues]];
-        //[self showVenuesOnMap];
-        NSLog(@"using old data");
-        [self.tableView reloadData];
-    } else {
-        NSLog(@"gotta get new data");
-        // otherwise, request new ones
-        [[FDFoursquareAPIClient sharedClient] getVenuesNearLocation:location success:^(NSArray *results) {
-            self.locations = [NSMutableArray arrayWithArray:results];
-            //[self showVenuesOnMap];
-            [self.tableView reloadData];
-        } failure:^(NSError *error) {
-            [[[UIAlertView alloc] initWithTitle:@"Error" message:@"Couldn't connect to Foursquare!" delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil] show];
+    self.current = location;
+    [[FDFoursquareAPIClient sharedClient] getVenuesNearLocation:location success:^(NSArray *results) {
+        self.locations = [NSMutableArray arrayWithArray:results];
+        [self loadPlaceDetails:^(BOOL finished){
+            if (finished){
+                NSLog(@"should be reloading");
+                [self reloadData];
+            }
         }];
+        //[self showVenuesOnMap];
+        
+    } failure:^(NSError *error) {
+        [[[UIAlertView alloc] initWithTitle:@"Error" message:@"Couldn't connect to Foursquare!" delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil] show];
+    }];
+}
+
+- (void) loadPlaceDetails:(void (^)(BOOL finished))completion {
+    for (FDVenue *location in self.locations) {
+        [[FDFoursquareAPIClient sharedClient] getDetailsForPlace:location.FDVenueId success:^(NSDictionary *results){
+            [location setAttributesFromDictionary:results];
+            [[FDAPIClient sharedClient] getPostsForPlace:location success:^(NSMutableArray *result){
+                if ([result count]) {
+                    FDPost *post = (FDPost *)[result objectAtIndex:0];
+                    [location setImageViewUrl:post.featuredImageUrlString];
+                }
+            } failure:^(NSError *error){
+                    NSLog(@"error.description: %@",error.description);
+            }];
+         completion(YES);   
+         }failure:^(NSError *error) {
+             NSLog(@"places error. here's the description: %@",error.description);
+         }];
     }
+    
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -173,7 +178,7 @@
             currentCell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:currentLocation];
             currentCell.textLabel.text = @"Current Location";
             currentCell.selectionStyle = UITableViewCellSelectionStyleGray;
-            [currentCell.textLabel setFont:[UIFont fontWithName:@"AvenirNextCondensed-Medium" size:18]];
+            [currentCell.textLabel setFont:[UIFont fontWithName:@"AvenirNextCondensed-Medium" size:15]];
             [currentCell.textLabel setTextColor:[UIColor blueColor]];
         }
         return currentCell;
@@ -182,7 +187,7 @@
         UITableViewCell *addSearchLocation = [self.locationSearch.searchResultsTableView dequeueReusableCellWithIdentifier:@"addSearchLocation"];
         if (addSearchLocation == nil) {
             addSearchLocation = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"addSearchLocation"];
-            [addSearchLocation.textLabel setFont:[UIFont fontWithName:@"AvenirNextCondensed-Medium" size:18]];
+            [addSearchLocation.textLabel setFont:[UIFont fontWithName:@"AvenirNextCondensed-Medium" size:15]];
             [addSearchLocation.textLabel setTextColor:[UIColor darkGrayColor]];
             addSearchLocation.selectionStyle = UITableViewCellSelectionStyleGray;
         }
@@ -195,40 +200,20 @@
             cell = (FDPlacesCell *)[nib objectAtIndex:0];
         }
         FDVenue *location = [self.locations objectAtIndex:indexPath.row];
-        NSLog(@"trying to draw cell for this location: %@",location.name);
-        [[FDFoursquareAPIClient sharedClient] getDetailsForPlace:location.FDVenueId success:^(NSDictionary *results){
-            NSLog(@"results from API call in vc: %@",results);
-            [location setAttributesFromDictionary:results];
-            cell.placeName.text = location.name;
-            cell.placeAddress.text = location.location.locality;
-            cell.likes.text = [NSString stringWithFormat:@"Likes: %@",[location.likes valueForKey:@"count"]];
-            cell.statusHours.text = location.statusHours;
-            CLLocation *venueLocation = [[CLLocation alloc] initWithLatitude:location.coordinate.latitude longitude:location.coordinate.longitude];
-            CLLocationDistance distance = [venueLocation distanceFromLocation:self.current];
-            [cell.distance setText:[NSString stringWithFormat:@"%@", [self stringWithDistance:distance]]];
-            [[FDAPIClient sharedClient] getPostsForPlace:location success:^(NSMutableArray *result){
-                NSLog(@"first result: %@",[result objectAtIndex:0]);
-                
-                if ([result count]) {
-                    FDPost *post = [result objectAtIndex:0];
-                    [cell.postImage setImageWithURL:[NSURL URLWithString:post.detailImageUrlString]];
-                    NSLog(@"found an image: %@",post.detailImageUrlString);
-                } else {
-                    NSLog(@"couldn't find a post image at: %@",location.name);
-                }
-                
-            }failure:^(NSError *error) {
-                NSLog(@"places error. here's the description: %@",error.description);
-            }];
-        } failure:^(NSError *error){
-            NSLog(@"error.description: %@",error.description);
-        }];
-        
+        cell.placeName.text = location.name;
+        cell.placeAddress.text = location.location.locality;
+        cell.likes.text = [NSString stringWithFormat:@"Likes: %@",[location.likes valueForKey:@"count"]];
+        cell.statusHours.text = location.statusHours;
+        [cell.postImage setImageWithURL:[NSURL URLWithString:location.imageViewUrl] placeholderImage:[UIImage imageNamed:@"icon.png"]];
+        cell.postImage.clipsToBounds = YES;
+        cell.postImage.layer.cornerRadius = 2.0f;
+        CLLocation *venueLocation = [[CLLocation alloc] initWithLatitude:location.coordinate.latitude longitude:location.coordinate.longitude];
+        CLLocationDistance distance = [venueLocation distanceFromLocation:self.current];
+        [cell.distance setText:[NSString stringWithFormat:@"%@", [self stringWithDistance:distance]]];
         /*if (location.hereNow) NSLog(@"hereNow: %@",location.hereNow);
         if (location.totalCheckins) NSLog(@"totalcheckins: %@",location.totalCheckins);
         if (location.menuUrl) NSLog(@"menuurl: %@",location.menuUrl);
-        if (location.reservationsUrl) NSLog(@"reservations: %@",location.reservationsUrl);
-        if (location.url) NSLog(@"url: %@",location.url);*/
+        if (location.reservationsUrl) NSLog(@"reservations: %@",location.reservationsUrl);*/
         return cell;
     }
 }
@@ -239,7 +224,6 @@
         //end of loading
         [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
     }
-    [self.locationManager stopUpdatingLocation];
 }
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
@@ -256,14 +240,16 @@
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    if (tableView == self.searchDisplayController.searchResultsTableView) return 44;
-    else return 100;
+    if (tableView == self.locationSearch.searchResultsTableView) return 44;
+    else return 110;
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
+    [self.navigationController setNavigationBarHidden:NO animated:YES];
     if(indexPath.section == 0 && tableView != self.locationSearch.searchResultsTableView) {
-        FDMapViewController *placeVC;
+        [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
+        FDPlaceViewController *placeVC;
         UIStoryboard *storyboard;
         if (([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone && [UIScreen mainScreen].bounds.size.height == 568.0)){
             storyboard = [UIStoryboard storyboardWithName:@"iPhone5" bundle:nil];
@@ -272,10 +258,10 @@
             storyboard = [UIStoryboard storyboardWithName:@"iPhone" bundle:nil];
             placeVC = [storyboard instantiateViewControllerWithIdentifier:@"PlaceView"];
         }
-        [placeVC setPlace:[self.locations objectAtIndex:indexPath.row]];
+        FDVenue *venue = [self.locations objectAtIndex:indexPath.row];
+        [placeVC setVenueId:venue.FDVenueId];
         [self.navigationController pushViewController:placeVC animated:YES];
     } else if (tableView == self.locationSearch.searchResultsTableView && indexPath.row == 0){
-        NSLog(@"find results for current location");
         [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
         [self.locationSearch setActive:NO animated:YES];
         [self.locationManager startUpdatingLocation];
@@ -306,7 +292,7 @@
  
  //Update the filtered array based on the search text and scope.
  
- [self.filteredLocations removeAllObjects]; // First clear the filtered array.
+ /*[self.filteredLocations removeAllObjects]; // First clear the filtered array.
  
  // Search the main list for products whose type matches the scope (if selected) and whose name matches searchText; add items that match to the filtered array.
      for (NSString *locationName in self.locations)
@@ -316,7 +302,7 @@
              [self.filteredLocations addObject:locationName];
          }
      }
-     NSLog(@"filteredLocations:%@",self.filteredLocations);
+     NSLog(@"filteredLocations:%@",self.filteredLocations);*/
 }
 
 #pragma mark - MKMapViewDelegate
@@ -343,28 +329,28 @@
 
 - (void)searchDisplayController:(UISearchDisplayController *)controller didLoadSearchResultsTableView:(UITableView *)tableView
 {
-    //[tableView setHidden:YES];
+    [tableView setBackgroundColor:[UIColor colorWithWhite:1 alpha:.8]];
 }
 
 -(void)searchDisplayControllerWillBeginSearch:(UISearchDisplayController *)controller {
-    //[self.delegate hideSlider];
-    [self.navigationController setNavigationBarHidden:YES animated:YES];
+    NSLog(@"will be beginning search now");
     // keep the cancel button enabled
-    /*for (id subview in controller.searchBar.subviews) {
+    for (id subview in self.locationSearch.searchBar.subviews) {
         if ([subview respondsToSelector:@selector(setEnabled:)]) {
             [subview setEnabled:YES];
         }
-    }*/
+    }
+    if (!self.navigationController.navigationBar.isHidden){
+
+        [self.delegate hideSlider];
+        [self.navigationController setNavigationBarHidden:YES animated:YES];
+        //[self.objectSearchBar setHidden:NO];
+    } else {
+        [self.navigationController setNavigationBarHidden:NO animated:YES];
+        //[self.objectSearchBar setHidden:YES];
+    }
     
-    [self.delegate activateSearch];
-    [UIView animateWithDuration:UINavigationControllerHideShowBarDuration animations:^{
-        if (([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone && [UIScreen mainScreen].bounds.size.height == 568.0)){
-            NSLog(@"activating places search");
-            [self.tableView setFrame:CGRectMake(0,0,320,self.view.bounds.size.height)];
-        } else {
-            [self.tableView setFrame:CGRectMake(0,-24,320,self.view.bounds.size.height)];
-        }
-    }];
+
 }
 
 - (void)searchBarSearchButtonClicked:(UISearchBar *)searchBar {
@@ -400,13 +386,13 @@
     [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
 }
 
-- (BOOL)searchDisplayController:(UISearchDisplayController *)controller shouldReloadTableForSearchString:(NSString *)searchString
-{
-    //[self filterContentForSearchText:searchString scope:
-    //[[self.searchDisplayController.searchBar scopeButtonTitles] objectAtIndex:[self.searchDisplayController.searchBar selectedScopeButtonIndex]]];
-    
-    // Return YES to cause the search result table view to be reloaded.
-    return YES;
+-(BOOL)searchDisplayController:(UISearchDisplayController *)controller shouldReloadTableForSearchString:(NSString *)searchString {
+    CLGeocoder *geocoder = [[CLGeocoder alloc] init];
+    [geocoder geocodeAddressString:searchString completionHandler:^(NSArray *placemarks, NSError *error) {
+        self.filteredLocations = [NSMutableArray arrayWithArray:[placemarks mutableCopy]];
+        [self.locationSearch.searchResultsTableView reloadData];
+    }];
+    return NO;
 }
 
 

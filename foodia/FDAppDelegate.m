@@ -7,7 +7,6 @@
 
 #import "FDAppDelegate.h"
 #import "FDLoginViewController.h"
-#import <FacebookSDK/FacebookSDK.h>
 #import "FDPost.h"
 #import "FDUser.h"
 #import "FDCache.h"
@@ -17,6 +16,8 @@
 #import "Flurry.h"
 #import "FDProfileViewController.h"
 #import "Utilities.h"
+#import "FBRequest.h"
+#import <MessageUI/MessageUI.h>
 
 @interface FDAppDelegate ()
 @property (strong,nonatomic) UILabel *wallPost;
@@ -27,6 +28,7 @@
 @implementation FDAppDelegate
 
 @synthesize wallPost, noConnection, tryReconnecting;
+@synthesize facebook;
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
@@ -34,13 +36,14 @@
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
     [self customizeAppearance];
     
+    self.facebook.sessionDelegate = self;
     [self performSetup];
     [[FDAPIClient sharedClient] setFacebookID:[[NSUserDefaults standardUserDefaults] objectForKey:@"FacebookID"]];
     [[FDAPIClient sharedClient] setFacebookAccessToken:[[NSUserDefaults standardUserDefaults] objectForKey:@"FacebookAccessToken"]];
     
     //[MagicalRecord setupCoreDataStackWithStoreNamed:@"FoodiaV2.sqlite"];
     [Flurry startSession:@"W5U7NXYMMQ8RJQR7WI9A"];
-    [TestFlight takeOff:(@"13a30f1fa03141084d0983b4e6f3e04f_NjQ4NDkyMDEyLTAyLTI0IDE1OjExOjM4LjE1Mjg3Mg")];
+    //[TestFlight takeOff:(@"13a30f1fa03141084d0983b4e6f3e04f_NjQ4NDkyMDEyLTAyLTI0IDE1OjExOjM4LjE1Mjg3Mg")];
     
     [FDCache clearCache];
     
@@ -92,21 +95,41 @@
     self.noConnection.font = [UIFont fontWithName:@"AvenirNextCondensed-Medium" size:18];
     self.noConnection.text = @"Sorry, but you'll need the internet to use FOODIA.";
     self.noConnection.textColor = [UIColor whiteColor];
-    self.noConnection.textAlignment = UITextAlignmentCenter;
+    self.noConnection.textAlignment = NSTextAlignmentCenter;
     self.noConnection.numberOfLines = 3;
     
     self.tryReconnecting = [UIButton buttonWithType:UIButtonTypeCustom];
     [self.tryReconnecting setBackgroundColor:[UIColor colorWithRed:255 green:0 blue:0 alpha:0.75]];
     self.tryReconnecting.layer.cornerRadius = 3.0f;
     [self.tryReconnecting setFrame:CGRectMake(screen.size.width*0.175,screen.size.height*0.55,screen.size.width*0.65,screen.size.height/16)];
-    [self.tryReconnecting addTarget:self action:@selector(openSession) forControlEvents:UIControlEventTouchUpInside];
-    self.tryReconnecting.titleLabel.textAlignment = UITextAlignmentCenter;
+    [self.tryReconnecting addTarget:self action:@selector(openSessionWithAllowLoginUI:) forControlEvents:UIControlEventTouchUpInside];
+    self.tryReconnecting.titleLabel.textAlignment = NSTextAlignmentCenter;
     [self.tryReconnecting.titleLabel setFont:[UIFont fontWithName:@"AvenirNextCondensed-Medium" size:20]];
     [self.tryReconnecting setTitle:@"TAP TO RETRY CONNECTION" forState:UIControlStateNormal];
     [self.window addSubview:background];
     [self.window addSubview:noConnection];
     [self.window addSubview:tryReconnecting];
     [self hideLoadingOverlay];
+}
+
+- (void)fbDidNotLogin:(BOOL)cancelled {
+    if (cancelled){
+        NSLog(@"user cancelled login process");
+    } else {
+        NSLog(@"didn't login for some reason");
+    }
+}
+
+- (void)fbDidLogin {
+    NSLog(@"user logged in");
+}
+
+- (void)fbDidLogout {
+    NSLog(@"user logged out");
+}
+
+- (void)fbSessionInvalidated {
+    NSLog(@"session was invalidated");
 }
 
 - (void)sessionStateChanged:(FBSession *)session
@@ -138,8 +161,8 @@
     
 }
 
--(void)openSession {
-    [FBSession openActiveSessionWithReadPermissions:[NSArray arrayWithObjects:@"email", nil] allowLoginUI:YES completionHandler:
+-(BOOL)openSessionWithAllowLoginUI:(BOOL)allowLoginUI {
+    return [FBSession openActiveSessionWithReadPermissions:[NSArray arrayWithObjects:@"email", nil] allowLoginUI:allowLoginUI completionHandler:
      ^(FBSession *session,
        FBSessionState state, NSError *error) {
          FBRequest *request = [[FBRequest alloc] initWithSession:session graphPath:@"me"];
@@ -153,9 +176,11 @@
                   [[NSUserDefaults standardUserDefaults] setObject:user.id forKey:@"FacebookID"];
                   [[NSUserDefaults standardUserDefaults] setObject:session.accessToken forKey:@"FacebookAccessToken"];
                   [[NSUserDefaults standardUserDefaults] setObject:user.name forKey:@"userName"];
+                  
                   [Utilities cacheUserProfileImage];
+                  [self sessionStateChanged:session state:state error:error user:user];
               } 
-              [self sessionStateChanged:session state:state error:error user:user];
+              
           }];
      }];
 }
@@ -166,9 +191,14 @@
     }];
 }
 
+- (void)fbDidExtendToken:(NSString *)accessToken expiresAt:(NSDate *)expiresAt {
+    NSLog(@"Facebook extended the access token");
+    [[NSUserDefaults standardUserDefaults] setObject:accessToken forKey:@"FacebookAccessToken"];
+}
+
 - (void) alertView:(UIAlertView *)alertView didDismissWithButtonIndex:(NSInteger)buttonIndex {
     if ([[alertView buttonTitleAtIndex:buttonIndex] isEqualToString:@"Okay"]){
-        [self openSession];
+        [self openSessionWithAllowLoginUI:YES];
     }
 }
 
@@ -208,6 +238,9 @@
     }];
 }
 
+- (void)feedDialogWithParams:(NSMutableDictionary *)params {
+    [self.facebook dialog:@"feed" andParams:params andDelegate:self];
+}
 
 - (void)showUserProfile:(NSString *)facebookId
 {
@@ -225,7 +258,7 @@
     wallPost.font = [UIFont fontWithName:@"AvenirNextCondensed-Medium" size:14];
     wallPost.backgroundColor = [UIColor whiteColor];
     wallPost.textColor = [UIColor darkGrayColor];
-    wallPost.textAlignment = UITextAlignmentCenter;
+    wallPost.textAlignment = NSTextAlignmentCenter;
     [wallPost setAlpha:0];
     [self.window addSubview:wallPost];
     [UIView beginAnimations:nil context:nil];
@@ -284,27 +317,29 @@
     [[UINavigationBar appearance] setBackgroundImage:[UIImage imageNamed:@"newFoodiaHeader.png"] forBarMetrics:UIBarMetricsDefault];
     [[UIToolbar appearance] setBackgroundImage:[UIImage imageNamed:@"newFoodiaHeader.png"] forToolbarPosition:UIToolbarPositionAny barMetrics:UIBarMetricsDefault];
     
-    [[UINavigationBar appearance] setTitleTextAttributes: [NSDictionary dictionaryWithObjectsAndKeys: [UIColor blackColor], UITextAttributeTextColor, [UIFont fontWithName:@"AvenirNextCondensed-Medium" size:25], UITextAttributeFont, nil]];
+    [[UINavigationBar appearance] setTitleTextAttributes: [NSDictionary dictionaryWithObjectsAndKeys: [UIColor blackColor], UITextAttributeTextColor, [UIFont fontWithName:@"AvenirNextCondensed-Medium" size:21], UITextAttributeFont, [UIColor clearColor], UITextAttributeTextShadowColor, nil]];
     
     UIImage *emptyBarButton = [UIImage imageNamed:@"emptyBarButton.png"];
     [[UIBarButtonItem appearance] setBackButtonTitlePositionAdjustment:UIOffsetMake(0, -2.0f) forBarMetrics:UIBarMetricsDefault];
     [[UIBarButtonItem appearance] setTintColor:[UIColor whiteColor]];
-    [[UIBarButtonItem appearance] setTitleTextAttributes:@{UITextAttributeFont : [UIFont fontWithName:@"AvenirNextCondensed-Medium" size:15],
-                                                UITextAttributeTextShadowColor : [UIColor clearColor],
-                                                    UITextAttributeTextColor : [UIColor blackColor],
-    } forState:UIControlStateNormal];
+    if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 6) {
+        [[UIBarButtonItem appearance] setTitleTextAttributes:@{UITextAttributeFont : [UIFont fontWithName:@"AvenirNextCondensed-Medium" size:15],
+                             UITextAttributeTextShadowColor : [UIColor clearColor],
+                                   UITextAttributeTextColor : [UIColor blackColor],
+         } forState:UIControlStateNormal];
+    } else {
+        [[UIBarButtonItem appearance] setTitleTextAttributes:@{
+                                   UITextAttributeTextColor : [UIColor blackColor],
+         } forState:UIControlStateNormal];
+    }
     [[UIBarButtonItem appearance] setTitlePositionAdjustment:UIOffsetMake(0.0f, 0.0f) forBarMetrics:UIBarMetricsDefault];
     
     [[UIBarButtonItem appearance] setBackgroundImage:emptyBarButton forState:UIControlStateNormal barMetrics:UIBarMetricsDefault];
     
     [[UISearchBar appearance] setSearchFieldBackgroundImage:[UIImage imageNamed:@"textField.png"]forState:UIControlStateNormal];
      
-    /*TODO:: iOS 6 Future Code
-    if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 6) {
-       
-    } else {
-        
-    }*/
+    
+    
 
 }
 

@@ -43,10 +43,10 @@
                                     <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
                             </button>
-                            <button opaque="NO" alpha="0.0" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="OB7-aS-HpG">
-                                <rect key="frame" x="38" y="347" width="245" height="59"/>
+                            <button opaque="NO" alpha="0.0" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" showsTouchWhenHighlighted="YES" lineBreakMode="middleTruncation" id="OB7-aS-HpG">
+                                <rect key="frame" x="38" y="356" width="245" height="59"/>
                                 <fontDescription key="fontDescription" type="boldSystem" pointSize="15"/>
-                                <state key="normal" image="connectbutton.png">
+                                <state key="normal" image="connect.png">
                                     <color key="titleColor" red="0.19607843459999999" green="0.30980393290000002" blue="0.52156865600000002" alpha="1" colorSpace="calibratedRGB"/>
                                     <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
@@ -58,14 +58,20 @@
                                 </connections>
                             </button>
                             <scrollView multipleTouchEnabled="YES" contentMode="scaleToFill" pagingEnabled="YES" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" id="SjT-kA-eCU">
-                                <rect key="frame" x="20" y="115" width="280" height="180"/>
+                                <rect key="frame" x="20" y="108" width="280" height="268"/>
                                 <color key="backgroundColor" white="0.75" alpha="0.0" colorSpace="custom" customColorSpace="calibratedWhite"/>
                                 <connections>
                                     <outlet property="delegate" destination="gE2-gg-n0F" id="xFu-FM-bI6"/>
                                 </connections>
                             </scrollView>
-                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" image="loginLogo.png" id="SzX-KC-jWE">
-                                <rect key="frame" x="80" y="27" width="166" height="62"/>
+                            <pageControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" numberOfPages="6" id="SNF-wD-dBg">
+                                <rect key="frame" x="100" y="306" width="120" height="36"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <color key="pageIndicatorTintColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
+                                <color key="currentPageIndicatorTintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
+                            </pageControl>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" image="FOODIA-black.png" id="SzX-KC-jWE">
+                                <rect key="frame" x="64" y="29" width="192" height="75"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                             </imageView>
                         </subviews>
@@ -74,6 +80,7 @@
                     <navigationItem key="navigationItem" id="s1C-8S-JlY"/>
                     <connections>
                         <outlet property="loginButton" destination="OB7-aS-HpG" id="Mgl-BH-44j"/>
+                        <outlet property="pageControl" destination="SNF-wD-dBg" id="nJi-Zf-NUu"/>
                         <outlet property="previewScrollView" destination="SjT-kA-eCU" id="G09-Bx-7JF"/>
                         <segue destination="tPR-cP-OBq" kind="custom" identifier="ShowFeed" customClass="FDLoginSegue" id="hg6-Nx-W1N"/>
                     </connections>
@@ -141,7 +148,7 @@
                                         <label opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="left" text="FEED" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="5uf-Q2-IVD">
                                             <rect key="frame" x="10" y="0.0" width="300" height="59"/>
                                             <autoresizingMask key="autoresizingMask"/>
-                                            <fontDescription key="fontDescription" name="Futura-CondensedMedium" family="Futura" pointSize="24"/>
+                                            <fontDescription key="fontDescription" name="AvenirNextCondensed-DemiBold" family="Avenir Next Condensed" pointSize="21"/>
                                             <color key="textColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
                                             <color key="highlightedColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                                         </label>
@@ -218,7 +225,7 @@
                             <subviews>
                                 <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="HKy-dY-JMa">
                                     <rect key="frame" x="59" y="10" width="42" height="21"/>
-                                    <fontDescription key="fontDescription" name="Futura-CondensedMedium" family="Futura" pointSize="24"/>
+                                    <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="21"/>
                                     <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="calibratedRGB"/>
                                     <nil key="highlightedColor"/>
                                 </label>
@@ -432,16 +439,16 @@
                         <rect key="frame" x="0.0" y="64" width="320" height="416"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
-                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" image="foodiaHeader.png" id="cIs-3I-ncw">
+                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" image="newFoodiaHeader.png" id="cIs-3I-ncw">
                                 <rect key="frame" x="0.0" y="70" width="320" height="44"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                             </imageView>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="fFv-PM-t1f">
-                                <rect key="frame" x="240" y="70" width="80" height="44"/>
+                                <rect key="frame" x="240" y="74" width="80" height="34"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <fontDescription key="fontDescription" name="Futura-CondensedMedium" family="Futura" pointSize="17"/>
+                                <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="15"/>
                                 <state key="normal" title="Shopping" backgroundImage="emptyBarButton.png">
-                                    <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                    <color key="titleColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
                                     <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
                                 <state key="highlighted">
@@ -452,11 +459,11 @@
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="J3t-KS-n1z">
-                                <rect key="frame" x="160" y="70" width="80" height="44"/>
+                                <rect key="frame" x="160" y="74" width="80" height="34"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <fontDescription key="fontDescription" name="Futura-CondensedMedium" family="Futura" pointSize="17"/>
+                                <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="15"/>
                                 <state key="normal" title="Making" backgroundImage="emptyBarButton.png">
-                                    <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                    <color key="titleColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
                                     <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
                                 <state key="highlighted">
@@ -467,11 +474,11 @@
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="Abx-R2-A3b">
-                                <rect key="frame" x="80" y="70" width="80" height="44"/>
+                                <rect key="frame" x="80" y="74" width="80" height="34"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <fontDescription key="fontDescription" name="Futura-CondensedMedium" family="Futura" pointSize="17"/>
+                                <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="15"/>
                                 <state key="normal" title="Drinking" backgroundImage="emptyBarButton.png">
-                                    <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                    <color key="titleColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
                                     <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
                                 <state key="highlighted">
@@ -482,11 +489,11 @@
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="2rz-O8-hoA">
-                                <rect key="frame" x="0.0" y="70" width="80" height="44"/>
+                                <rect key="frame" x="0.0" y="74" width="80" height="34"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <fontDescription key="fontDescription" name="Futura-CondensedMedium" family="Futura" pointSize="17"/>
+                                <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="15"/>
                                 <state key="normal" title="Eating" backgroundImage="emptyBarButton.png">
-                                    <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                    <color key="titleColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
                                     <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
                                 <state key="highlighted">
@@ -506,37 +513,37 @@
                                         <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                     </view>
                                     <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="Posts" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumFontSize="10" id="laX-qE-KLn">
-                                        <rect key="frame" x="56" y="48" width="80" height="22"/>
-                                        <fontDescription key="fontDescription" name="Futura-CondensedMedium" family="Futura" pointSize="17"/>
+                                        <rect key="frame" x="54" y="48" width="80" height="22"/>
+                                        <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="15"/>
                                         <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
                                         <nil key="highlightedColor"/>
                                     </label>
                                     <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="0" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumFontSize="10" id="uab-cy-F1S">
-                                        <rect key="frame" x="56" y="34" width="80" height="21"/>
-                                        <fontDescription key="fontDescription" name="Futura-CondensedMedium" family="Futura" pointSize="17"/>
+                                        <rect key="frame" x="54" y="34" width="80" height="21"/>
+                                        <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="15"/>
                                         <color key="textColor" white="0.5" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                                         <nil key="highlightedColor"/>
                                     </label>
                                     <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="Followers" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumFontSize="10" id="Ona-0O-nAY">
-                                        <rect key="frame" x="188" y="48" width="80" height="22"/>
-                                        <fontDescription key="fontDescription" name="Futura-CondensedMedium" family="Futura" pointSize="17"/>
+                                        <rect key="frame" x="186" y="48" width="80" height="22"/>
+                                        <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="15"/>
                                         <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
                                         <nil key="highlightedColor"/>
                                     </label>
                                     <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="0" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumFontSize="10" id="EJw-5w-zKk">
-                                        <rect key="frame" x="187" y="34" width="80" height="21"/>
-                                        <fontDescription key="fontDescription" name="Futura-CondensedMedium" family="Futura" pointSize="17"/>
+                                        <rect key="frame" x="185" y="34" width="80" height="21"/>
+                                        <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="15"/>
                                         <color key="textColor" white="0.5" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                                         <nil key="highlightedColor"/>
                                     </label>
                                     <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="0" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumFontSize="10" id="ImW-qC-YaO">
-                                        <rect key="frame" x="140" y="34" width="40" height="21"/>
-                                        <fontDescription key="fontDescription" name="Futura-CondensedMedium" family="Futura" pointSize="17"/>
+                                        <rect key="frame" x="138" y="34" width="40" height="21"/>
+                                        <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="15"/>
                                         <color key="textColor" white="0.5" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                                         <nil key="highlightedColor"/>
                                     </label>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="QDw-FT-7wz">
-                                        <rect key="frame" x="193" y="29" width="60" height="45"/>
+                                        <rect key="frame" x="191" y="29" width="60" height="45"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <fontDescription key="fontDescription" type="boldSystem" size="button"/>
                                         <state key="normal">
@@ -551,7 +558,7 @@
                                         </connections>
                                     </button>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="08G-N3-unq">
-                                        <rect key="frame" x="130" y="29" width="60" height="45"/>
+                                        <rect key="frame" x="128" y="29" width="60" height="45"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                         <fontDescription key="fontDescription" type="boldSystem" size="button"/>
@@ -567,7 +574,7 @@
                                         </connections>
                                     </button>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="KvZ-5l-pZw">
-                                        <rect key="frame" x="67" y="29" width="60" height="45"/>
+                                        <rect key="frame" x="65" y="29" width="60" height="45"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <fontDescription key="fontDescription" type="boldSystem" size="button"/>
                                         <state key="normal">
@@ -582,16 +589,16 @@
                                         </connections>
                                     </button>
                                     <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="Following" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumFontSize="10" id="ydd-gj-U4j">
-                                        <rect key="frame" x="120" y="48" width="80" height="22"/>
-                                        <fontDescription key="fontDescription" name="Futura-CondensedMedium" family="Futura" pointSize="17"/>
+                                        <rect key="frame" x="118" y="48" width="80" height="22"/>
+                                        <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="15"/>
                                         <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
                                         <nil key="highlightedColor"/>
                                     </label>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="tJS-ff-BnP">
                                         <rect key="frame" x="125" y="-6" width="70" height="32"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                        <fontDescription key="fontDescription" name="Futura-CondensedMedium" family="Futura" pointSize="17"/>
-                                        <state key="normal" title="SEARCH" image="magnifier.png">
+                                        <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="15"/>
+                                        <state key="normal" image="magnifier.png">
                                             <color key="titleColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
                                             <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                         </state>
@@ -629,7 +636,7 @@
                             </view>
                             <label hidden="YES" opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="Your friend hasn't joined FOODIA yet. Try sending them an invite!" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="3" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="0UV-E1-ue8">
                                 <rect key="frame" x="20" y="119" width="280" height="90"/>
-                                <fontDescription key="fontDescription" name="Futura-CondensedMedium" family="Futura" pointSize="25"/>
+                                <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="22"/>
                                 <color key="textColor" white="0.5" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                                 <nil key="highlightedColor"/>
                             </label>
@@ -673,7 +680,7 @@
                             <subviews>
                                 <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumFontSize="10" id="8tj-fP-aJK">
                                     <rect key="frame" x="0.0" y="0.0" width="130" height="44"/>
-                                    <fontDescription key="fontDescription" name="Futura-CondensedMedium" family="Futura" pointSize="24"/>
+                                    <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="22"/>
                                     <color key="textColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                     <nil key="highlightedColor"/>
                                 </label>
@@ -711,6 +718,7 @@
                         <outlet property="shoppingButton" destination="fFv-PM-t1f" id="AGV-G1-z3l"/>
                         <outlet property="userNameLabel" destination="8tj-fP-aJK" id="6cg-tv-orr"/>
                         <segue destination="LZE-XF-kth" kind="push" identifier="ShowPostFromProfile" id="ciL-Yp-aME"/>
+                        <segue destination="upL-Dx-g5n" kind="push" identifier="ShowPlace" id="EId-hy-XH0"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="diU-5o-2XJ" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -764,11 +772,15 @@
                     </navigationBar>
                     <connections>
                         <segue destination="Bvi-Le-G9O" kind="relationship" relationship="rootViewController" id="v3z-dZ-4Rk"/>
+                        <segue destination="vuk-kw-h1L" kind="push" identifier="Recommend" id="95a-PX-POf"/>
+                        <segue destination="LZE-XF-kth" kind="push" identifier="ShowPostFromNewProfile" id="9Ep-eX-PYt"/>
+                        <segue destination="LZE-XF-kth" kind="push" identifier="ShowPost" id="zfo-yQ-Bd0"/>
+                        <segue destination="upL-Dx-g5n" kind="push" identifier="ShowPlace" id="6RC-Oj-kBr"/>
                     </connections>
                 </navigationController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="rkd-XV-2Am" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-2312" y="63"/>
+            <point key="canvasLocation" x="-2265" y="-16"/>
         </scene>
         <!--Feed View Controller-->
         <scene sceneID="etT-eM-zCh">
@@ -778,14 +790,82 @@
                         <rect key="frame" x="0.0" y="64" width="320" height="416"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
-                            <view contentMode="scaleToFill" id="5vS-fq-lRb">
-                                <rect key="frame" x="0.0" y="0.0" width="320" height="416"/>
+                            <view contentMode="scaleToFill" id="CFF-SN-xuE">
+                                <rect key="frame" x="0.0" y="29" width="320" height="390"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                             </view>
-                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="bottom" showsTouchWhenHighlighted="YES" lineBreakMode="middleTruncation" id="VdG-MF-CZv">
-                                <rect key="frame" x="133" y="361" width="55" height="55"/>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" image="scrollView.png" id="iSf-M1-dCu">
+                                <rect key="frame" x="0.0" y="-59" width="320" height="88"/>
+                                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                            </imageView>
+                            <scrollView multipleTouchEnabled="YES" contentMode="scaleToFill" directionalLockEnabled="YES" pagingEnabled="YES" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" id="sZA-a5-Irv">
+                                <rect key="frame" x="116" y="-59" width="88" height="88"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <subviews>
+                                    <imageView userInteractionEnabled="NO" contentMode="scaleToFill" image="feedTypeMy.png" id="Svx-mx-D6B">
+                                        <rect key="frame" x="25" y="16" width="38" height="38"/>
+                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                    </imageView>
+                                    <imageView userInteractionEnabled="NO" contentMode="scaleToFill" image="feedTypeNearby.png" id="soS-U1-5bA">
+                                        <rect key="frame" x="117" y="16" width="30" height="38"/>
+                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                    </imageView>
+                                    <imageView userInteractionEnabled="NO" contentMode="scaleToFill" image="feedTypeFeatured.png" id="8OT-SB-B1B">
+                                        <rect key="frame" x="202" y="16" width="36" height="36"/>
+                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                    </imageView>
+                                    <imageView userInteractionEnabled="NO" contentMode="scaleToFill" image="feedTypeRecommended.png" id="bgS-is-6k6">
+                                        <rect key="frame" x="294" y="16" width="28" height="38"/>
+                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                    </imageView>
+                                    <imageView userInteractionEnabled="NO" contentMode="scaleToFill" image="myPosts.png" id="Syc-UC-sDL">
+                                        <rect key="frame" x="380" y="18" width="32" height="32"/>
+                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                    </imageView>
+                                    <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="FEED" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="0OP-MP-485">
+                                        <rect key="frame" x="24" y="63" width="42" height="21"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                        <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="15"/>
+                                        <color key="textColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                    <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="NEARBY" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="X8N-UW-QxT">
+                                        <rect key="frame" x="103" y="63" width="57" height="21"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                        <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="15"/>
+                                        <color key="textColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                    <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="FEATURED" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="D5G-BL-3cy">
+                                        <rect key="frame" x="190" y="63" width="61" height="21"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                        <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="15"/>
+                                        <color key="textColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                    <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="RECOMMENDED" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="y3G-Sv-PTw">
+                                        <rect key="frame" x="262" y="63" width="93" height="21"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                        <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="15"/>
+                                        <color key="textColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                    <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="MY POSTS" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="CmC-QK-Npb">
+                                        <rect key="frame" x="367" y="63" width="59" height="21"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                        <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="15"/>
+                                        <color key="textColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                </subviews>
+                            </scrollView>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" showsTouchWhenHighlighted="YES" lineBreakMode="middleTruncation" id="jbz-eC-npE">
+                                <rect key="frame" x="132" y="361" width="55" height="55"/>
                                 <fontDescription key="fontDescription" type="boldSystem" pointSize="15"/>
-                                <state key="normal" image="addPostButton.png">
+                                <color key="tintColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <size key="titleShadowOffset" width="8" height="8"/>
+                                <state key="normal" image="plusButtonv2.png">
                                     <color key="titleColor" red="0.19607843459999999" green="0.30980393290000002" blue="0.52156865600000002" alpha="1" colorSpace="calibratedRGB"/>
                                     <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
@@ -793,9 +873,17 @@
                                     <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
                                 <connections>
-                                    <segue destination="mYk-0k-wL3" kind="custom" identifier="AddPost" customClass="FDCategorySegue" id="Hz0-D3-tfg"/>
+                                    <segue destination="mYk-0k-wL3" kind="custom" customClass="FDCategorySegue" id="NBs-2N-ZX1"/>
                                 </connections>
                             </button>
+                            <view userInteractionEnabled="NO" contentMode="scaleToFill" id="Nji-XX-6jy" customClass="FDClipView">
+                                <rect key="frame" x="0.0" y="-59" width="320" height="88"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                <connections>
+                                    <outlet property="_scrollView" destination="sZA-a5-Irv" id="ZKJ-te-N0l"/>
+                                </connections>
+                            </view>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                     </view>
@@ -808,79 +896,26 @@
                         </barButtonItem>
                     </navigationItem>
                     <connections>
-                        <outlet property="feedContainerView" destination="5vS-fq-lRb" id="XGr-qe-T7I"/>
+                        <outlet property="_scrollView" destination="sZA-a5-Irv" id="Nco-bU-GMg"/>
+                        <outlet property="addPostButton" destination="jbz-eC-npE" id="1Y7-mV-Rzr"/>
+                        <outlet property="clipView" destination="Nji-XX-6jy" id="eLf-6Z-lfD"/>
+                        <outlet property="clipViewBackground" destination="iSf-M1-dCu" id="riX-tv-dt6"/>
+                        <outlet property="featuredLabel" destination="D5G-BL-3cy" id="JEJ-Tr-DPc"/>
+                        <outlet property="feedContainerView" destination="CFF-SN-xuE" id="Yjt-1O-A8z"/>
+                        <outlet property="feedLabel" destination="0OP-MP-485" id="qLp-Vc-3lA"/>
                         <outlet property="menuButtonItem" destination="xnL-lz-6lf" id="cyi-aY-KVV"/>
+                        <outlet property="myPostsLabel" destination="CmC-QK-Npb" id="zUQ-fY-zRY"/>
+                        <outlet property="nearbyLabel" destination="X8N-UW-QxT" id="vRJ-Vf-RTQ"/>
+                        <outlet property="recLabel" destination="y3G-Sv-PTw" id="qor-TD-V2E"/>
                         <segue destination="LZE-XF-kth" kind="push" identifier="ShowPost" id="xTD-uL-ChC"/>
-                        <segue destination="GGQ-8l-Gxg" kind="push" identifier="ShowMap" id="OmU-3W-fRG"/>
+                        <segue destination="upL-Dx-g5n" kind="push" identifier="ShowPlace" id="sed-cF-CZB"/>
+                        <segue destination="vuk-kw-h1L" kind="push" identifier="Recommend" id="ekX-Dm-YKS"/>
+                        <segue destination="MIu-0K-XDF" kind="push" identifier="ShowProfileFromLikers" id="OSl-mW-oKu"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="zLN-Dk-xH3" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="-1781" y="63"/>
-        </scene>
-        <!--Map View Controller-->
-        <scene sceneID="M4N-dP-6IC">
-            <objects>
-                <viewController id="GGQ-8l-Gxg" customClass="FDMapViewController" sceneMemberID="viewController">
-                    <view key="view" contentMode="scaleToFill" id="yDU-Od-etH">
-                        <rect key="frame" x="0.0" y="64" width="320" height="416"/>
-                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                        <subviews>
-                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" lineBreakMode="tailTruncation" numberOfLines="7" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="aoe-3l-ITS">
-                                <rect key="frame" x="0.0" y="270" width="160" height="146"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <string key="text">Monday: 12:00am-12:00pm
-Tuesday: 12:00am-12:00pm
-Wednesday: 12:00am-12:00pm
-Thursday: 12:00am-12:00pm
-Friday: 12:00am-12:00pm
-Saturday: 12:00am-12:00pm
-Sunday: 12:00am-12:00pm</string>
-                                <fontDescription key="fontDescription" name="Futura-CondensedMedium" family="Futura" pointSize="15"/>
-                                <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
-                                <nil key="highlightedColor"/>
-                            </label>
-                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" textAlignment="right" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="mPv-Yk-tk2">
-                                <rect key="frame" x="168" y="270" width="152" height="50"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <string key="text">1 Stockton St
-San Francisco, CA 94111</string>
-                                <fontDescription key="fontDescription" name="Futura-CondensedMedium" family="Futura" pointSize="17"/>
-                                <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
-                                <nil key="highlightedColor"/>
-                            </label>
-                            <mapView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" mapType="standard" id="6to-xX-Igf">
-                                <rect key="frame" x="0.0" y="0.0" width="320" height="416"/>
-                                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                            </mapView>
-                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" showsTouchWhenHighlighted="YES" lineBreakMode="middleTruncation" id="IDw-JS-bKo">
-                                <rect key="frame" x="220" y="372" width="100" height="44"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <fontDescription key="fontDescription" name="Futura-CondensedMedium" family="Futura" pointSize="18"/>
-                                <color key="tintColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                                <state key="normal" title="Directions">
-                                    <color key="titleColor" red="0.19607843459999999" green="0.30980393290000002" blue="0.52156865600000002" alpha="1" colorSpace="calibratedRGB"/>
-                                    <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
-                                </state>
-                                <state key="highlighted">
-                                    <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                                </state>
-                                <connections>
-                                    <action selector="getDirections:" destination="GGQ-8l-Gxg" eventType="touchUpInside" id="OY4-ct-2xQ"/>
-                                </connections>
-                            </button>
-                        </subviews>
-                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
-                    </view>
-                    <navigationItem key="navigationItem" id="ys6-i8-fWY"/>
-                    <connections>
-                        <outlet property="hours" destination="aoe-3l-ITS" id="QKr-er-xqn"/>
-                        <outlet property="mapView" destination="6to-xX-Igf" id="3k8-wl-qhm"/>
-                    </connections>
-                </viewController>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="7CA-B5-zL1" userLabel="First Responder" sceneMemberID="firstResponder"/>
-            </objects>
-            <point key="canvasLocation" x="-1174" y="-504"/>
         </scene>
         <!--Post View Controller-->
         <scene sceneID="AJu-Be-gW8">
@@ -890,11 +925,11 @@ San Francisco, CA 94111</string>
                         <rect key="frame" x="0.0" y="64" width="320" height="416"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
-                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" rowHeight="50" sectionHeaderHeight="22" sectionFooterHeight="22" id="MCp-hq-K2j">
+                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="MCp-hq-K2j">
                                 <rect key="frame" x="0.0" y="0.0" width="320" height="416"/>
                                 <color key="backgroundColor" white="1" alpha="0.0" colorSpace="calibratedWhite"/>
                                 <view key="tableHeaderView" contentMode="scaleToFill" id="ZoU-hS-xBf">
-                                    <rect key="frame" x="0.0" y="0.0" width="320" height="302"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="320" height="325"/>
                                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES" flexibleMaxY="YES"/>
                                     <subviews>
                                         <progressView opaque="NO" contentMode="scaleToFill" progressViewStyle="bar" id="5VC-vT-Hta">
@@ -903,82 +938,23 @@ San Francisco, CA 94111</string>
                                             <color key="progressTintColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                             <color key="trackTintColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
                                         </progressView>
-                                        <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" id="FIb-FL-3GD" userLabel="photo view">
-                                            <rect key="frame" x="8" y="3" width="250" height="250"/>
-                                        </imageView>
-                                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="DHq-Uy-Qsz" userLabel="Profile Button">
-                                            <rect key="frame" x="264" y="6" width="50" height="50"/>
-                                            <fontDescription key="fontDescription" type="boldSystem" pointSize="15"/>
-                                            <state key="normal">
-                                                <color key="titleColor" red="0.19607843459999999" green="0.30980393290000002" blue="0.52156865600000002" alpha="1" colorSpace="calibratedRGB"/>
-                                                <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
-                                            </state>
-                                            <state key="highlighted">
-                                                <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                                            </state>
-                                            <connections>
-                                                <segue destination="MIu-0K-XDF" kind="push" identifier="ShowProfile" id="z8s-ya-eJa"/>
-                                            </connections>
-                                        </button>
-                                        <label clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumFontSize="10" adjustsFontSizeToFit="NO" id="4OA-FI-PYa" userLabel="like count label">
-                                            <rect key="frame" x="270" y="96" width="39" height="21"/>
-                                            <color key="backgroundColor" white="1" alpha="0.0" colorSpace="custom" customColorSpace="calibratedWhite"/>
-                                            <fontDescription key="fontDescription" name="Futura-CondensedMedium" family="Futura" pointSize="15"/>
-                                            <color key="textColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
-                                            <color key="highlightedColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                                        </label>
-                                        <button contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="JGQ-AM-nVy" userLabel="like button">
-                                            <rect key="frame" x="268" y="65" width="44" height="44"/>
-                                            <color key="backgroundColor" white="0.90000000000000002" alpha="0.0" colorSpace="calibratedWhite"/>
-                                            <fontDescription key="fontDescription" type="boldSystem" pointSize="15"/>
-                                            <state key="normal" image="feedLikeButtonGray.png">
-                                                <color key="titleColor" red="0.19607843459999999" green="0.30980393290000002" blue="0.52156865600000002" alpha="1" colorSpace="calibratedRGB"/>
-                                            </state>
-                                            <state key="highlighted">
-                                                <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                                            </state>
-                                            <connections>
-                                                <action selector="likeButtonTapped:" destination="LZE-XF-kth" eventType="touchUpInside" id="RbF-lm-R6j"/>
-                                            </connections>
-                                        </button>
-                                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="2BN-iI-9xc" userLabel="Rec button">
-                                            <rect key="frame" x="269" y="122" width="44" height="44"/>
-                                            <fontDescription key="fontDescription" type="boldSystem" pointSize="15"/>
-                                            <state key="normal" image="postDetailRecGray.png">
-                                                <color key="titleColor" red="0.19607843459999999" green="0.30980393290000002" blue="0.52156865600000002" alpha="1" colorSpace="calibratedRGB"/>
-                                                <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
-                                            </state>
-                                            <state key="highlighted">
-                                                <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                                            </state>
-                                            <connections>
-                                                <action selector="recommend" destination="LZE-XF-kth" eventType="touchUpInside" id="B58-t2-ZfC"/>
-                                            </connections>
-                                        </button>
-                                        <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="Fei-Zu-QJN" userLabel="rec count label">
-                                            <rect key="frame" x="268" y="201" width="42" height="21"/>
-                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                            <fontDescription key="fontDescription" name="Futura-CondensedMedium" family="Futura" pointSize="15"/>
-                                            <color key="textColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
-                                            <color key="highlightedColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                                        </label>
-                                        <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" id="IWQ-X8-Ub9">
-                                            <rect key="frame" x="10" y="256" width="300" height="40"/>
+                                        <scrollView hidden="YES" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" id="IWQ-X8-Ub9">
+                                            <rect key="frame" x="10" y="279" width="300" height="40"/>
                                             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                         </scrollView>
                                         <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" editable="NO" id="VmA-yj-05f">
                                             <rect key="frame" x="0.0" y="258" width="320" height="28"/>
                                             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                             <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
-                                            <color key="textColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
+                                            <color key="textColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                             <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="14"/>
                                             <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
                                         </textView>
                                         <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" editable="NO" id="0FG-Af-rbK">
-                                            <rect key="frame" x="0.0" y="258" width="320" height="28"/>
+                                            <rect key="frame" x="0.0" y="258" width="320" height="30"/>
                                             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                             <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
-                                            <color key="textColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
+                                            <color key="textColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                             <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="14"/>
                                             <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
                                         </textView>
@@ -990,8 +966,11 @@ San Francisco, CA 94111</string>
                                             <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="14"/>
                                             <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
                                         </textView>
+                                        <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" id="FIb-FL-3GD" userLabel="photo view">
+                                            <rect key="frame" x="5" y="5" width="310" height="310"/>
+                                        </imageView>
                                         <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="HKZ-0U-mxo">
-                                            <rect key="frame" x="7" y="7" width="250" height="251"/>
+                                            <rect key="frame" x="5" y="5" width="310" height="310"/>
                                             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                             <fontDescription key="fontDescription" type="boldSystem" pointSize="15"/>
                                             <state key="normal">
@@ -1005,12 +984,26 @@ San Francisco, CA 94111</string>
                                                 <action selector="expandImage:" destination="LZE-XF-kth" eventType="touchUpInside" id="7yi-m1-qVf"/>
                                             </connections>
                                         </button>
+                                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="DHq-Uy-Qsz" userLabel="Profile Button">
+                                            <rect key="frame" x="267" y="3" width="50" height="50"/>
+                                            <fontDescription key="fontDescription" type="boldSystem" pointSize="15"/>
+                                            <state key="normal">
+                                                <color key="titleColor" red="0.19607843459999999" green="0.30980393290000002" blue="0.52156865600000002" alpha="1" colorSpace="calibratedRGB"/>
+                                                <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                                            </state>
+                                            <state key="highlighted">
+                                                <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                            </state>
+                                            <connections>
+                                                <segue destination="MIu-0K-XDF" kind="push" identifier="ShowProfile" id="z8s-ya-eJa"/>
+                                            </connections>
+                                        </button>
                                     </subviews>
                                     <color key="backgroundColor" white="1" alpha="0.0" colorSpace="custom" customColorSpace="calibratedWhite"/>
                                 </view>
                                 <prototypes>
                                     <tableViewCell contentMode="scaleToFill" selectionStyle="none" indentationWidth="10" reuseIdentifier="AddComment" rowHeight="50" id="ydf-UD-6fP">
-                                        <rect key="frame" x="0.0" y="324" width="320" height="50"/>
+                                        <rect key="frame" x="0.0" y="347" width="320" height="50"/>
                                         <view key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center">
                                             <rect key="frame" x="0.0" y="0.0" width="320" height="49"/>
                                             <autoresizingMask key="autoresizingMask"/>
@@ -1021,8 +1014,8 @@ San Francisco, CA 94111</string>
                                                 <imageView userInteractionEnabled="NO" contentMode="scaleToFill" image="commentField.png" id="eLp-ey-rZb">
                                                     <rect key="frame" x="62" y="3" width="251" height="34"/>
                                                 </imageView>
-                                                <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" text="Add a comment..." id="AX7-CG-gHf">
-                                                    <rect key="frame" x="65" y="3" width="246" height="34"/>
+                                                <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" text="Add your two cents..." id="AX7-CG-gHf">
+                                                    <rect key="frame" x="65" y="4" width="246" height="34"/>
                                                     <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                                     <color key="textColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
                                                     <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="15"/>
@@ -1042,6 +1035,62 @@ San Francisco, CA 94111</string>
                                     <outlet property="delegate" destination="LZE-XF-kth" id="uc4-Tk-4Ib"/>
                                 </connections>
                             </tableView>
+                            <button contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="JGQ-AM-nVy" userLabel="like button">
+                                <rect key="frame" x="130" y="429" width="44" height="44"/>
+                                <color key="backgroundColor" white="0.90000000000000002" alpha="0.0" colorSpace="calibratedWhite"/>
+                                <fontDescription key="fontDescription" type="boldSystem" pointSize="15"/>
+                                <state key="normal" image="feedLikeButtonGray.png">
+                                    <color key="titleColor" red="0.19607843459999999" green="0.30980393290000002" blue="0.52156865600000002" alpha="1" colorSpace="calibratedRGB"/>
+                                </state>
+                                <state key="highlighted">
+                                    <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                </state>
+                                <connections>
+                                    <action selector="likeButtonTapped:" destination="LZE-XF-kth" eventType="touchUpInside" id="RbF-lm-R6j"/>
+                                </connections>
+                            </button>
+                            <label clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumFontSize="10" adjustsFontSizeToFit="NO" id="4OA-FI-PYa" userLabel="like count label">
+                                <rect key="frame" x="130" y="432" width="39" height="21"/>
+                                <color key="backgroundColor" white="1" alpha="0.0" colorSpace="custom" customColorSpace="calibratedWhite"/>
+                                <fontDescription key="fontDescription" name="Futura-CondensedMedium" family="Futura" pointSize="15"/>
+                                <color key="textColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
+                                <color key="highlightedColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                            </label>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="2BN-iI-9xc" userLabel="Location button">
+                                <rect key="frame" x="138" y="429" width="44" height="44"/>
+                                <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="14"/>
+                                <state key="normal" title="Rec">
+                                    <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                    <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                                </state>
+                                <state key="highlighted">
+                                    <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                </state>
+                                <connections>
+                                    <action selector="showPlace" destination="LZE-XF-kth" eventType="touchUpInside" id="8HH-zT-N7L"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="pDK-mQ-fhx" userLabel="Rec button">
+                                <rect key="frame" x="138" y="429" width="44" height="44"/>
+                                <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="14"/>
+                                <state key="normal" title="Rec">
+                                    <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                    <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                                </state>
+                                <state key="highlighted">
+                                    <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                </state>
+                                <connections>
+                                    <action selector="recommend" destination="LZE-XF-kth" eventType="touchUpInside" id="vu5-0p-X2k"/>
+                                </connections>
+                            </button>
+                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="Fei-Zu-QJN" userLabel="rec count label">
+                                <rect key="frame" x="139" y="480" width="42" height="21"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" name="Futura-CondensedMedium" family="Futura" pointSize="15"/>
+                                <color key="textColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
+                                <color key="highlightedColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                            </label>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                     </view>
@@ -1055,7 +1104,6 @@ San Francisco, CA 94111</string>
                                 <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="muD-TK-Xmr">
                                     <rect key="frame" x="0.0" y="0.0" width="180" height="44"/>
                                     <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="18"/>
-                                    <color key="textColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                     <nil key="highlightedColor"/>
                                 </label>
                             </subviews>
@@ -1063,29 +1111,32 @@ San Francisco, CA 94111</string>
                         </view>
                     </navigationItem>
                     <connections>
-                        <outlet property="captionTextView" destination="0FG-Af-rbK" id="d5d-SY-4LO"/>
+                        <outlet property="captionTextView" destination="0FG-Af-rbK" id="am2-1M-aaM"/>
                         <outlet property="likeButton" destination="JGQ-AM-nVy" id="Szy-el-mFA"/>
                         <outlet property="likeCountLabel" destination="4OA-FI-PYa" id="uR2-UF-RYR"/>
                         <outlet property="likersScrollView" destination="IWQ-X8-Ub9" id="YpD-tb-TA1"/>
+                        <outlet property="locationButton" destination="2BN-iI-9xc" id="L8D-M5-4go"/>
                         <outlet property="photoButton" destination="HKZ-0U-mxo" id="07a-W6-T7g"/>
                         <outlet property="photoImageView" destination="FIb-FL-3GD" id="cn2-Cq-YTw"/>
                         <outlet property="postTitle" destination="muD-TK-Xmr" id="wof-0P-2RB"/>
                         <outlet property="posterButton" destination="DHq-Uy-Qsz" id="7XE-Nq-SUK"/>
                         <outlet property="progressView" destination="5VC-vT-Hta" id="6TS-y3-ub7"/>
-                        <outlet property="recButton" destination="2BN-iI-9xc" id="EO5-fs-Sb9"/>
+                        <outlet property="recButton" destination="pDK-mQ-fhx" id="Ot3-VL-NBQ"/>
                         <outlet property="recCountLabel" destination="Fei-Zu-QJN" id="MAp-re-4ff"/>
-                        <outlet property="socialLabel" destination="VmA-yj-05f" id="agb-S5-ltP"/>
+                        <outlet property="socialLabel" destination="VmA-yj-05f" id="kMg-Hr-GAF"/>
                         <outlet property="tableHeaderView" destination="ZoU-hS-xBf" id="aVI-GA-Rbi"/>
                         <outlet property="tableView" destination="MCp-hq-K2j" id="b2D-Al-wSz"/>
                         <outlet property="whiteCaption" destination="iCY-Ft-hA2" id="nD6-dI-Wrm"/>
                         <segue destination="MIu-0K-XDF" kind="push" identifier="ShowProfileFromLikers" id="mJf-lF-S37"/>
                         <segue destination="MIu-0K-XDF" kind="push" identifier="ShowProfileFromComment" id="uGJ-yf-g96"/>
-                        <segue destination="NDZ-xc-eaC" kind="modal" identifier="Recommend" id="e77-De-pII"/>
+                        <segue destination="upL-Dx-g5n" kind="push" identifier="ShowPlaceFromPost" id="uS6-Ln-RXv"/>
+                        <segue destination="vuk-kw-h1L" kind="push" identifier="Recommend" id="qXJ-nF-yFn"/>
+                        <segue destination="i81-4z-gaU" kind="push" identifier="UpdatePost" id="H0T-M3-DMm"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="9lS-tl-xui" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-1194" y="93"/>
+            <point key="canvasLocation" x="-1162" y="137"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="dKR-Np-HxO">
@@ -1105,7 +1156,7 @@ San Francisco, CA 94111</string>
         <!--Recommend View Controller-->
         <scene sceneID="1bq-xy-Qz2">
             <objects>
-                <tableViewController id="vuk-kw-h1L" customClass="FDRecommendViewController" sceneMemberID="viewController">
+                <tableViewController storyboardIdentifier="RecommendView" useStoryboardIdentifierAsRestorationIdentifier="YES" id="vuk-kw-h1L" customClass="FDRecommendViewController" sceneMemberID="viewController">
                     <tableView key="view" opaque="NO" clipsSubviews="YES" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="AcU-Qe-7ME">
                         <rect key="frame" x="0.0" y="64" width="320" height="416"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -1165,21 +1216,6 @@ San Francisco, CA 94111</string>
             </objects>
             <point key="canvasLocation" x="-181" y="27"/>
         </scene>
-        <!--Navigation Controller-->
-        <scene sceneID="hxG-A1-Exa">
-            <objects>
-                <navigationController definesPresentationContext="YES" id="NDZ-xc-eaC" sceneMemberID="viewController">
-                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="CmJ-FW-WLH">
-                        <autoresizingMask key="autoresizingMask"/>
-                    </navigationBar>
-                    <connections>
-                        <segue destination="vuk-kw-h1L" kind="relationship" relationship="rootViewController" id="htm-yw-QpQ"/>
-                    </connections>
-                </navigationController>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="V10-Kb-NPp" userLabel="First Responder" sceneMemberID="firstResponder"/>
-            </objects>
-            <point key="canvasLocation" x="-687" y="27"/>
-        </scene>
         <!--Post Category View Controller-->
         <scene sceneID="yqf-zs-gzr">
             <objects>
@@ -1197,7 +1233,7 @@ San Francisco, CA 94111</string>
                                     <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="  I'M EATING" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumFontSize="10" id="YEB-0b-5wn">
                                         <rect key="frame" x="0.0" y="10" width="98" height="30"/>
                                         <color key="backgroundColor" white="0.0" alpha="0.80000000000000004" colorSpace="custom" customColorSpace="calibratedWhite"/>
-                                        <fontDescription key="fontDescription" name="Futura-CondensedMedium" family="Futura" pointSize="23"/>
+                                        <fontDescription key="fontDescription" name="AvenirNextCondensed-DemiBold" family="Avenir Next Condensed" pointSize="19"/>
                                         <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                                         <nil key="highlightedColor"/>
                                     </label>
@@ -1210,7 +1246,7 @@ San Francisco, CA 94111</string>
                                     <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="  I'M DRINKING" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumFontSize="10" id="0jY-xI-SQh">
                                         <rect key="frame" x="0.0" y="10" width="118" height="30"/>
                                         <color key="backgroundColor" white="0.0" alpha="0.80000000000000004" colorSpace="custom" customColorSpace="calibratedWhite"/>
-                                        <fontDescription key="fontDescription" name="Futura-CondensedMedium" family="Futura" pointSize="23"/>
+                                        <fontDescription key="fontDescription" name="AvenirNextCondensed-DemiBold" family="Avenir Next Condensed" pointSize="19"/>
                                         <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                                         <nil key="highlightedColor"/>
                                     </label>
@@ -1223,7 +1259,7 @@ San Francisco, CA 94111</string>
                                     <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="  I'M MAKING" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumFontSize="10" id="bHn-T6-Ukn">
                                         <rect key="frame" x="0.0" y="10" width="112" height="30"/>
                                         <color key="backgroundColor" white="0.0" alpha="0.80000000000000004" colorSpace="custom" customColorSpace="calibratedWhite"/>
-                                        <fontDescription key="fontDescription" name="Futura-CondensedMedium" family="Futura" pointSize="23"/>
+                                        <fontDescription key="fontDescription" name="AvenirNextCondensed-DemiBold" family="Avenir Next Condensed" pointSize="19"/>
                                         <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                                         <nil key="highlightedColor"/>
                                     </label>
@@ -1236,7 +1272,7 @@ San Francisco, CA 94111</string>
                                     <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="  I'M SHOPPING" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumFontSize="10" id="BcZ-NY-Gph">
                                         <rect key="frame" x="0.0" y="10" width="121" height="30"/>
                                         <color key="backgroundColor" white="0.0" alpha="0.80000000000000004" colorSpace="custom" customColorSpace="calibratedWhite"/>
-                                        <fontDescription key="fontDescription" name="Futura-CondensedMedium" family="Futura" pointSize="23"/>
+                                        <fontDescription key="fontDescription" name="AvenirNextCondensed-DemiBold" family="Avenir Next Condensed" pointSize="19"/>
                                         <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                                         <nil key="highlightedColor"/>
                                     </label>
@@ -1270,7 +1306,7 @@ San Francisco, CA 94111</string>
                             </button>
                             <textField opaque="NO" clipsSubviews="YES" alpha="0.0" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" minimumFontSize="20" id="gc5-cG-rLk">
                                 <rect key="frame" x="30" y="56" width="235" height="31"/>
-                                <fontDescription key="fontDescription" name="Futura-CondensedMedium" family="Futura" pointSize="17"/>
+                                <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="16"/>
                                 <textInputTraits key="textInputTraits" autocorrectionType="yes" returnKeyType="search"/>
                                 <connections>
                                     <action selector="textFieldDidChange:" destination="ywJ-KN-kbC" eventType="editingChanged" id="MEN-UB-UEw"/>
@@ -1326,18 +1362,33 @@ San Francisco, CA 94111</string>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
                             <textView autoresizesSubviews="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="top" bounces="NO" bouncesZoom="NO" text="I'M THINKING..." id="Xcl-iC-d7C" userLabel="caption text view">
-                                <rect key="frame" x="2" y="119" width="316" height="32"/>
+                                <rect key="frame" x="4" y="124" width="312" height="54"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <accessibility key="accessibilityConfiguration">
                                     <accessibilityTraits key="traits" none="YES" image="YES"/>
                                 </accessibility>
                                 <color key="textColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
-                                <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="16"/>
+                                <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="15"/>
                                 <textInputTraits key="textInputTraits" autocapitalizationType="sentences" returnKeyType="done"/>
                                 <connections>
                                     <outlet property="delegate" destination="i81-4z-gaU" id="gm5-Uy-olT"/>
                                 </connections>
                             </textView>
+                            <button hidden="YES" opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="2Ma-aP-CCN">
+                                <rect key="frame" x="130" y="375" width="60" height="35"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="12"/>
+                                <state key="normal" title="Delete">
+                                    <color key="titleColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
+                                    <color key="titleShadowColor" cocoaTouchSystemColor="lightTextColor"/>
+                                </state>
+                                <state key="highlighted">
+                                    <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                </state>
+                                <connections>
+                                    <action selector="deletePost" destination="i81-4z-gaU" eventType="touchUpInside" id="NF9-dI-0Fv"/>
+                                </connections>
+                            </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="g94-SC-k1c" userLabel="camera button">
                                 <rect key="frame" x="130" y="44" width="60" height="44"/>
                                 <fontDescription key="fontDescription" type="boldSystem" pointSize="15"/>
@@ -1354,12 +1405,13 @@ San Francisco, CA 94111</string>
                             </button>
                             <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="ADD A PHOTO" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="ZW3-5X-Qb8">
                                 <rect key="frame" x="109" y="18" width="100" height="21"/>
-                                <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="1"/>
+                                <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="15"/>
                                 <color key="textColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="Y9d-Nd-8Ib" userLabel="photo button">
                                 <rect key="frame" x="3" y="2" width="264" height="115"/>
+                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                 <fontDescription key="fontDescription" type="boldSystem" pointSize="15"/>
                                 <state key="normal">
                                     <color key="titleColor" red="0.19607843459999999" green="0.30980393290000002" blue="0.52156865600000002" alpha="1" colorSpace="calibratedRGB"/>
@@ -1376,7 +1428,7 @@ San Francisco, CA 94111</string>
                                 <rect key="frame" x="272" y="3" width="45" height="45"/>
                             </imageView>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" id="f9f-Qv-MWf" userLabel="Instagram Button">
-                                <rect key="frame" x="117" y="377" width="34" height="35"/>
+                                <rect key="frame" x="118" y="377" width="34" height="35"/>
                                 <fontDescription key="fontDescription" type="boldSystem" pointSize="15"/>
                                 <state key="normal" image="instagramGray.png">
                                     <color key="titleColor" red="0.19607843459999999" green="0.30980393290000002" blue="0.52156865600000002" alpha="1" colorSpace="calibratedRGB"/>
@@ -1390,7 +1442,7 @@ San Francisco, CA 94111</string>
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="0VH-5X-bU3" userLabel="Twitter Button">
-                                <rect key="frame" x="167" y="377" width="34" height="34"/>
+                                <rect key="frame" x="168" y="377" width="34" height="34"/>
                                 <fontDescription key="fontDescription" type="boldSystem" pointSize="15"/>
                                 <state key="normal" image="twitterGray.png">
                                     <color key="titleColor" red="0.19607843459999999" green="0.30980393290000002" blue="0.52156865600000002" alpha="1" colorSpace="calibratedRGB"/>
@@ -1404,7 +1456,7 @@ San Francisco, CA 94111</string>
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="Rhb-vy-Kbv" userLabel="Tumblr Button">
-                                <rect key="frame" x="214" y="377" width="34" height="34"/>
+                                <rect key="frame" x="217" y="377" width="34" height="34"/>
                                 <fontDescription key="fontDescription" type="boldSystem" pointSize="15"/>
                                 <state key="normal" image="tumblrGray.png">
                                     <color key="titleColor" red="0.19607843459999999" green="0.30980393290000002" blue="0.52156865600000002" alpha="1" colorSpace="calibratedRGB"/>
@@ -1417,91 +1469,11 @@ San Francisco, CA 94111</string>
                                     <action selector="toggleFoursquare:" destination="i81-4z-gaU" eventType="touchUpInside" id="gO0-iz-zRA"/>
                                 </connections>
                             </button>
-                            <view contentMode="scaleToFill" id="irk-Rc-I5h" userLabel="No Recommendations Container">
-                                <rect key="frame" x="8" y="273" width="149" height="100"/>
-                                <subviews>
-                                    <imageView userInteractionEnabled="NO" contentMode="center" image="newPostNoRecs.png" id="hcc-dL-ZxE">
-                                        <rect key="frame" x="0.0" y="20" width="148" height="78"/>
-                                    </imageView>
-                                </subviews>
-                                <color key="backgroundColor" white="1" alpha="0.0" colorSpace="custom" customColorSpace="calibratedWhite"/>
-                            </view>
-                            <view contentMode="scaleToFill" id="2dS-Fc-Zoa" userLabel="No Friends Container">
-                                <rect key="frame" x="166" y="276" width="151" height="100"/>
-                                <subviews>
-                                    <imageView userInteractionEnabled="NO" contentMode="scaleToFill" image="newPostNoFriendsIcon.png" id="gi0-k4-Ubv">
-                                        <rect key="frame" x="50" y="33" width="50" height="37"/>
-                                        <color key="backgroundColor" white="1" alpha="0.0" colorSpace="custom" customColorSpace="calibratedWhite"/>
-                                    </imageView>
-                                </subviews>
-                                <color key="backgroundColor" white="1" alpha="0.0" colorSpace="custom" customColorSpace="calibratedWhite"/>
-                            </view>
-                            <view contentMode="scaleToFill" id="BCT-8p-lea" userLabel="Category Container View">
-                                <rect key="frame" x="4" y="154" width="150" height="122"/>
-                                <subviews>
-                                    <imageView userInteractionEnabled="NO" contentMode="scaleToFill" id="Cb8-Tu-rX3">
-                                        <rect key="frame" x="0.0" y="18" width="150" height="100"/>
-                                        <color key="backgroundColor" white="0.75" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
-                                    </imageView>
-                                    <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="I'M COOKING" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="c5D-9T-P1I">
-                                        <rect key="frame" x="3" y="-2" width="129" height="21"/>
-                                        <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="1"/>
-                                        <color key="textColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
-                                        <nil key="highlightedColor"/>
-                                    </label>
-                                    <view hidden="YES" contentMode="scaleToFill" id="RtA-9A-by1">
-                                        <rect key="frame" x="0.0" y="34" width="140" height="22"/>
-                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                        <color key="backgroundColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
-                                    </view>
-                                    <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="LITTLE GEM SALAD" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="4ou-XZ-OuS">
-                                        <rect key="frame" x="8" y="34" width="131" height="22"/>
-                                        <color key="backgroundColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
-                                        <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="1"/>
-                                        <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
-                                        <nil key="highlightedColor"/>
-                                    </label>
-                                </subviews>
-                                <color key="backgroundColor" white="0.75" alpha="0.0" colorSpace="custom" customColorSpace="calibratedWhite"/>
-                            </view>
-                            <view contentMode="scaleToFill" id="gRm-0s-UfG" userLabel="No Location Container View">
-                                <rect key="frame" x="167" y="153" width="150" height="122"/>
-                                <subviews>
-                                    <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="Finding your location…" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="VTp-49-4Xv">
-                                        <rect key="frame" x="0.0" y="0.0" width="149" height="21"/>
-                                        <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="1"/>
-                                        <color key="textColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
-                                        <nil key="highlightedColor"/>
-                                    </label>
-                                    <activityIndicatorView opaque="NO" contentMode="scaleToFill" hidesWhenStopped="YES" animating="YES" style="gray" id="EEO-DI-R79">
-                                        <rect key="frame" x="64" y="52" width="20" height="20"/>
-                                    </activityIndicatorView>
-                                    <imageView userInteractionEnabled="NO" contentMode="center" image="newPostBluePin.png" id="bT1-Wm-blw">
-                                        <rect key="frame" x="58" y="42" width="34" height="45"/>
-                                    </imageView>
-                                </subviews>
-                                <color key="backgroundColor" white="1" alpha="0.0" colorSpace="custom" customColorSpace="calibratedWhite"/>
-                            </view>
-                            <view contentMode="scaleToFill" id="TCU-KD-uJq" userLabel="Location Container View">
-                                <rect key="frame" x="165" y="153" width="150" height="122"/>
-                                <subviews>
-                                    <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="Confirm your location..." lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="CdO-Fa-1n4">
-                                        <rect key="frame" x="0.0" y="0.0" width="150" height="21"/>
-                                        <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="1"/>
-                                        <color key="textColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
-                                        <nil key="highlightedColor"/>
-                                    </label>
-                                    <mapView clipsSubviews="YES" multipleTouchEnabled="YES" userInteractionEnabled="NO" contentMode="scaleToFill" mapType="standard" id="my3-yw-soY">
-                                        <rect key="frame" x="0.0" y="19" width="150" height="100"/>
-                                    </mapView>
-                                </subviews>
-                                <color key="backgroundColor" white="1" alpha="0.0" colorSpace="custom" customColorSpace="calibratedWhite"/>
-                            </view>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="Fb1-gS-1L2" userLabel="Location Button">
-                                <rect key="frame" x="166" y="172" width="150" height="100"/>
-                                <fontDescription key="fontDescription" type="boldSystem" pointSize="15"/>
-                                <state key="normal">
-                                    <color key="titleColor" red="0.19607843459999999" green="0.30980393290000002" blue="0.52156865600000002" alpha="1" colorSpace="calibratedRGB"/>
+                                <rect key="frame" x="4" y="189" width="106" height="34"/>
+                                <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="15"/>
+                                <state key="normal" title="I'M AT">
+                                    <color key="titleColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
                                     <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
                                 <state key="highlighted">
@@ -1511,16 +1483,26 @@ San Francisco, CA 94111</string>
                                     <segue destination="2Qv-FQ-W8B" kind="push" identifier="AddLocation" id="0gE-BN-3hW"/>
                                 </connections>
                             </button>
-                            <view contentMode="scaleToFill" id="ZsO-VV-YdA" userLabel="Friends Container View">
-                                <rect key="frame" x="165" y="280" width="150" height="80"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="4ou-XZ-OuS">
+                                <rect key="frame" x="120" y="241" width="190" height="22"/>
                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
-                            </view>
+                                <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="15"/>
+                                <color key="textColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
+                                <nil key="highlightedColor"/>
+                                <size key="shadowOffset" width="0.0" height="0.0"/>
+                            </label>
+                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="Vxu-AJ-0Gk">
+                                <rect key="frame" x="120" y="194" width="190" height="22"/>
+                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="15"/>
+                                <color key="textColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="q5L-6T-knc" userLabel="Friends Button">
-                                <rect key="frame" x="163" y="280" width="153" height="90"/>
-                                <fontDescription key="fontDescription" type="boldSystem" pointSize="15"/>
-                                <state key="normal">
-                                    <color key="titleColor" red="0.19607843459999999" green="0.30980393290000002" blue="0.52156865600000002" alpha="1" colorSpace="calibratedRGB"/>
+                                <rect key="frame" x="4" y="284" width="106" height="34"/>
+                                <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="15"/>
+                                <state key="normal" title="I'M WITH">
+                                    <color key="titleColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
                                     <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
                                 <state key="highlighted">
@@ -1530,15 +1512,11 @@ San Francisco, CA 94111</string>
                                     <segue destination="p7Y-Uw-T4O" kind="push" id="p93-u0-fYI"/>
                                 </connections>
                             </button>
-                            <view contentMode="scaleToFill" id="RjS-BP-tQa" userLabel="Recommendations Container">
-                                <rect key="frame" x="4" y="280" width="150" height="80"/>
-                                <color key="backgroundColor" red="0.0" green="0.0" blue="0.0" alpha="0.0" colorSpace="calibratedRGB"/>
-                            </view>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="e2U-5L-gnD" userLabel="Recommend Button">
-                                <rect key="frame" x="3" y="280" width="152" height="90"/>
-                                <fontDescription key="fontDescription" type="boldSystem" pointSize="15"/>
-                                <state key="normal">
-                                    <color key="titleColor" red="0.19607843459999999" green="0.30980393290000002" blue="0.52156865600000002" alpha="1" colorSpace="calibratedRGB"/>
+                                <rect key="frame" x="4" y="332" width="106" height="34"/>
+                                <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="15"/>
+                                <state key="normal" title="RECOMMEND TO">
+                                    <color key="titleColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
                                     <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
                                 <state key="highlighted">
@@ -1549,10 +1527,10 @@ San Francisco, CA 94111</string>
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="w4A-3n-AHd" userLabel="Category Button">
-                                <rect key="frame" x="6" y="163" width="150" height="110"/>
-                                <fontDescription key="fontDescription" type="boldSystem" pointSize="15"/>
-                                <state key="normal">
-                                    <color key="titleColor" red="0.19607843459999999" green="0.30980393290000002" blue="0.52156865600000002" alpha="1" colorSpace="calibratedRGB"/>
+                                <rect key="frame" x="4" y="236" width="106" height="34"/>
+                                <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="15"/>
+                                <state key="normal" title="I'M EATING">
+                                    <color key="titleColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
                                     <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
                                 <state key="highlighted">
@@ -1562,31 +1540,8 @@ San Francisco, CA 94111</string>
                                     <action selector="editCategory:" destination="i81-4z-gaU" eventType="touchUpInside" id="9Lg-T0-yGj"/>
                                 </connections>
                             </button>
-                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="I'M RECOMMENDING TO" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="ify-9e-L8v">
-                                <rect key="frame" x="8" y="276" width="149" height="21"/>
-                                <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="1"/>
-                                <color key="textColor" white="0.59999999999999998" alpha="1" colorSpace="calibratedWhite"/>
-                                <nil key="highlightedColor"/>
-                            </label>
-                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="I'M WITH" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="j7f-BF-QVO">
-                                <rect key="frame" x="166" y="276" width="151" height="20"/>
-                                <color key="backgroundColor" white="1" alpha="0.0" colorSpace="custom" customColorSpace="calibratedWhite"/>
-                                <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="1"/>
-                                <color key="textColor" white="0.59999999999999998" alpha="1" colorSpace="calibratedWhite"/>
-                                <nil key="highlightedColor"/>
-                            </label>
-                            <view contentMode="scaleToFill" id="xtE-Oe-GQ7" userLabel="Vertical Grid Line">
-                                <rect key="frame" x="159" y="153" width="1" height="216"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <color key="backgroundColor" white="0.84999999999999998" alpha="1" colorSpace="calibratedWhite"/>
-                            </view>
-                            <view contentMode="scaleToFill" id="GrH-PA-QwD" userLabel="Horizontal Grid Line">
-                                <rect key="frame" x="5" y="274" width="310" height="1"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <color key="backgroundColor" white="0.84999999999999998" alpha="1" colorSpace="calibratedWhite"/>
-                            </view>
-                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="ll8-6b-kxa">
-                                <rect key="frame" x="66" y="377" width="34" height="34"/>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="ll8-6b-kxa" userLabel="Facebook button">
+                                <rect key="frame" x="65" y="377" width="34" height="34"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <fontDescription key="fontDescription" type="boldSystem" pointSize="15"/>
                                 <state key="normal" title="Button" image="facebook.png">
@@ -1600,6 +1555,14 @@ San Francisco, CA 94111</string>
                                     <action selector="toggleFacebook" destination="i81-4z-gaU" eventType="touchUpInside" id="kb8-fC-eDW"/>
                                 </connections>
                             </button>
+                            <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" id="Mxm-26-wAr">
+                                <rect key="frame" x="120" y="284" width="200" height="34"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                            </scrollView>
+                            <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" id="ZYr-er-Z0S">
+                                <rect key="frame" x="120" y="332" width="200" height="34"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                            </scrollView>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                     </view>
@@ -1614,31 +1577,26 @@ San Francisco, CA 94111</string>
                     </navigationItem>
                     <connections>
                         <outlet property="captionTextView" destination="Xcl-iC-d7C" id="JgK-hK-3e7"/>
-                        <outlet property="categoryImageView" destination="Cb8-Tu-rX3" id="f4n-xY-MU6"/>
-                        <outlet property="categoryLabel" destination="c5D-9T-P1I" id="7p6-1t-rcG"/>
-                        <outlet property="confirmLocationImageView" destination="bT1-Wm-blw" id="opl-xX-SRG"/>
+                        <outlet property="deleteButton" destination="2Ma-aP-CCN" id="0JI-zc-kn6"/>
                         <outlet property="facebookButton" destination="ll8-6b-kxa" id="qZg-zN-3ur"/>
-                        <outlet property="foodiaObjectContainer" destination="RtA-9A-by1" id="6WZ-Vt-VzF"/>
-                        <outlet property="foodiaObjectLabel" destination="4ou-XZ-OuS" id="EGK-hi-7KU"/>
+                        <outlet property="foodiaObjectButton" destination="w4A-3n-AHd" id="DWz-2P-a3t"/>
+                        <outlet property="foodiaObjectLabel" destination="4ou-XZ-OuS" id="tgw-fJ-xIJ"/>
                         <outlet property="foursquareButton" destination="Rhb-vy-Kbv" id="lTN-jZ-wRt"/>
-                        <outlet property="friendsContainerView" destination="ZsO-VV-YdA" id="nhc-2O-Ytl"/>
+                        <outlet property="friendsButton" destination="q5L-6T-knc" id="vsL-sf-dGJ"/>
+                        <outlet property="friendsScrollView" destination="Mxm-26-wAr" id="k6a-AD-7cS"/>
                         <outlet property="instagramButton" destination="f9f-Qv-MWf" id="VRD-Ev-KIJ"/>
-                        <outlet property="locationContainerView" destination="TCU-KD-uJq" id="dBc-LL-Cp1"/>
-                        <outlet property="locationLabel" destination="CdO-Fa-1n4" id="pz6-st-loe"/>
-                        <outlet property="mapView" destination="my3-yw-soY" id="ldn-PH-maI"/>
-                        <outlet property="noCategoryContainerView" destination="BCT-8p-lea" id="b7U-Lm-QL6"/>
-                        <outlet property="noFriendsContainerView" destination="2dS-Fc-Zoa" id="pxJ-xk-HlC"/>
-                        <outlet property="noLocationActivityIndicatorView" destination="EEO-DI-R79" id="trV-6u-Rtd"/>
-                        <outlet property="noLocationContainerView" destination="gRm-0s-UfG" id="r5k-tL-lSg"/>
-                        <outlet property="noLocationLabel" destination="VTp-49-4Xv" id="fkr-7b-YGI"/>
-                        <outlet property="noRecommendationsContainerView" destination="irk-Rc-I5h" id="BUe-X0-Tcw"/>
-                        <outlet property="photoButton" destination="Y9d-Nd-8Ib" id="kWG-fc-Phh"/>
+                        <outlet property="locationButton" destination="Fb1-gS-1L2" id="zwa-Zm-D5m"/>
+                        <outlet property="locationLabel" destination="Vxu-AJ-0Gk" id="mHj-5a-IVD"/>
+                        <outlet property="photoButton" destination="Y9d-Nd-8Ib" id="v4O-Jf-ee1"/>
+                        <outlet property="postButtonItem" destination="2xJ-GP-vHZ" id="yau-wR-dVm"/>
                         <outlet property="posterImageView" destination="nDw-1K-6hu" id="zKE-mI-hOL"/>
-                        <outlet property="recommendationsContainerView" destination="RjS-BP-tQa" id="1pW-dY-XWh"/>
+                        <outlet property="recButton" destination="e2U-5L-gnD" id="Xa4-XI-xSi"/>
+                        <outlet property="recScrollView" destination="ZYr-er-Z0S" id="S7q-cN-RvK"/>
                         <outlet property="takePhotoButton" destination="g94-SC-k1c" id="xqY-ef-5Wd"/>
                         <outlet property="twitterButton" destination="0VH-5X-bU3" id="JV7-LL-lYH"/>
                         <segue destination="4xr-Qy-Eta" kind="push" identifier="TakePhoto" id="fxv-tE-qgb"/>
                         <segue destination="ooj-dJ-CFW" kind="push" identifier="tumblrAuth" id="KUS-Cq-XFm"/>
+                        <segue destination="MIu-0K-XDF" kind="push" identifier="ShowProfileFromNewPost" id="w3i-0J-Ycf"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="BPO-cF-fSi" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -1672,7 +1630,7 @@ San Francisco, CA 94111</string>
             <objects>
                 <viewController id="2Qv-FQ-W8B" customClass="FDAddLocationViewController" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="Otf-8K-9pk">
-                        <rect key="frame" x="0.0" y="64" width="320" height="416"/>
+                        <rect key="frame" x="0.0" y="20" width="320" height="460"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
                             <imageView userInteractionEnabled="NO" contentMode="scaleToFill" image="foodiaBackground.png" id="9Jd-oy-FRy" userLabel="background image view">
@@ -1680,7 +1638,7 @@ San Francisco, CA 94111</string>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                             </imageView>
                             <mapView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" mapType="standard" showsUserLocation="YES" id="dJ7-i2-cCZ">
-                                <rect key="frame" x="0.0" y="0.0" width="320" height="372"/>
+                                <rect key="frame" x="0.0" y="0.0" width="320" height="416"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <connections>
                                     <outlet property="delegate" destination="2Qv-FQ-W8B" id="Aop-7j-IuV"/>
@@ -1803,7 +1761,7 @@ San Francisco, CA 94111</string>
                     <tableView key="view" opaque="NO" clipsSubviews="YES" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="clt-qb-FZI">
                         <rect key="frame" x="0.0" y="64" width="320" height="416"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                        <color key="backgroundColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <searchBar key="tableHeaderView" contentMode="redraw" barStyle="blackTranslucent" id="Ynf-RR-lu2">
                             <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
                             <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
@@ -1987,7 +1945,7 @@ San Francisco, CA 94111</string>
                     <tableView key="view" opaque="NO" clipsSubviews="YES" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="11j-cl-O5p">
                         <rect key="frame" x="0.0" y="64" width="320" height="416"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                        <color key="backgroundColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <searchBar key="tableHeaderView" contentMode="redraw" barStyle="blackTranslucent" id="byX-zq-zaF">
                             <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
                             <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
@@ -2039,11 +1997,189 @@ San Francisco, CA 94111</string>
             </objects>
             <point key="canvasLocation" x="583" y="1707"/>
         </scene>
+        <!--Place View Controller-->
+        <scene sceneID="gkd-a2-tAh">
+            <objects>
+                <viewController storyboardIdentifier="PlaceView" id="upL-Dx-g5n" customClass="FDPlaceViewController" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="4A3-Y7-rHG">
+                        <rect key="frame" x="0.0" y="64" width="320" height="416"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                        <subviews>
+                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="OPK-UX-tBl">
+                                <rect key="frame" x="194" y="143" width="122" height="25"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="14"/>
+                                <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="jiI-1k-hLE">
+                                <rect key="frame" x="194" y="163" width="122" height="25"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="14"/>
+                                <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="cvR-cn-tGM">
+                                <rect key="frame" x="4" y="70" width="156" height="50"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="14"/>
+                                <color key="textColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="sWo-fE-uBs">
+                                <rect key="frame" x="4" y="138" width="129" height="34"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="14"/>
+                                <color key="textColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="s19-2m-5so">
+                                <rect key="frame" x="4" y="160" width="130" height="34"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="14"/>
+                                <color key="textColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <mapView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" mapType="standard" id="xpa-LU-h0g">
+                                <rect key="frame" x="180" y="0.0" width="140" height="140"/>
+                                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                            </mapView>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="sKb-Ad-lwc">
+                                <rect key="frame" x="125" y="149" width="70" height="34"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="14"/>
+                                <state key="normal" title="Directions">
+                                    <color key="titleColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
+                                    <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                                </state>
+                                <state key="highlighted">
+                                    <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                </state>
+                                <connections>
+                                    <action selector="getDirections:" destination="upL-Dx-g5n" eventType="touchUpInside" id="5Lt-Qe-0Fr"/>
+                                </connections>
+                            </button>
+                            <button hidden="YES" opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="tOL-ud-0Zr">
+                                <rect key="frame" x="2" y="108" width="90" height="34"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="14"/>
+                                <state key="normal" title="Menu">
+                                    <color key="titleColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
+                                    <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                                </state>
+                                <state key="highlighted">
+                                    <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                </state>
+                            </button>
+                            <button hidden="YES" opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="cMX-z7-zfD">
+                                <rect key="frame" x="2" y="147" width="90" height="34"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="14"/>
+                                <state key="normal" title="Reservations">
+                                    <color key="titleColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
+                                    <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                                </state>
+                                <state key="highlighted">
+                                    <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                </state>
+                                <connections>
+                                    <action selector="getReservation:" destination="upL-Dx-g5n" eventType="touchUpInside" id="TRT-sf-LFd"/>
+                                </connections>
+                            </button>
+                            <tableView clipsSubviews="YES" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" allowsSelectionDuringEditing="YES" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="Dpx-H1-u4c">
+                                <rect key="frame" x="0.0" y="189" width="320" height="227"/>
+                                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <connections>
+                                    <outlet property="dataSource" destination="upL-Dx-g5n" id="Zwb-zf-0e8"/>
+                                    <outlet property="delegate" destination="upL-Dx-g5n" id="rM6-7p-Loy"/>
+                                </connections>
+                            </tableView>
+                            <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" id="IQ2-2A-zHz">
+                                <rect key="frame" x="0.0" y="0.0" width="181" height="68"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                <color key="textColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
+                                <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="14"/>
+                                <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
+                            </textView>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+                    </view>
+                    <navigationItem key="navigationItem" id="UXM-K6-CF2">
+                        <nil key="title"/>
+                        <barButtonItem key="backBarButtonItem" title="BACK" id="wFL-Fu-2bo"/>
+                        <view key="titleView" contentMode="scaleToFill" id="8ms-Il-Jm6">
+                            <rect key="frame" x="65" y="0.0" width="190" height="44"/>
+                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                            <subviews>
+                                <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="Dyo-OS-igA">
+                                    <rect key="frame" x="0.0" y="0.0" width="190" height="44"/>
+                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                    <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="20"/>
+                                    <nil key="highlightedColor"/>
+                                </label>
+                            </subviews>
+                            <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                        </view>
+                    </navigationItem>
+                    <simulatedScreenMetrics key="simulatedDestinationMetrics"/>
+                    <connections>
+                        <outlet property="categoryLabel" destination="cvR-cn-tGM" id="fQk-8z-Ih4"/>
+                        <outlet property="cityStateCountry" destination="jiI-1k-hLE" id="s5G-4Y-7Qe"/>
+                        <outlet property="directionsButton" destination="sKb-Ad-lwc" id="1WM-Yg-mvg"/>
+                        <outlet property="foodiaPosts" destination="s19-2m-5so" id="YQ7-of-Ser"/>
+                        <outlet property="hoursTextView" destination="IQ2-2A-zHz" id="pYe-2g-Bdl"/>
+                        <outlet property="mapView" destination="xpa-LU-h0g" id="qNs-DR-ZRo"/>
+                        <outlet property="menuLink" destination="tOL-ud-0Zr" id="SN6-9W-EZo"/>
+                        <outlet property="placeLabel" destination="Dyo-OS-igA" id="usr-0C-cVp"/>
+                        <outlet property="postsContainerTableView" destination="Dpx-H1-u4c" id="kAu-h3-BgX"/>
+                        <outlet property="reservationsLink" destination="cMX-z7-zfD" id="nFI-5v-2uV"/>
+                        <outlet property="streetAddress" destination="OPK-UX-tBl" id="ps1-TW-TOd"/>
+                        <outlet property="totalCheckinsLabel" destination="sWo-fE-uBs" id="EJF-Ds-EBk"/>
+                        <segue destination="LZE-XF-kth" kind="push" identifier="ShowPostFromPlace" id="tPP-jm-iOQ"/>
+                        <segue destination="MIu-0K-XDF" kind="push" identifier="ShowProfileFromLikers" id="ZVm-AV-IpP"/>
+                        <segue destination="yOB-em-gHe" kind="push" identifier="ViewWebsite" id="oh4-DU-pQf"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="W9A-ur-Oqz" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="-1194" y="-512"/>
+        </scene>
+        <!--Web View Controller-->
+        <scene sceneID="wb2-9b-D7b">
+            <objects>
+                <viewController id="yOB-em-gHe" customClass="FDWebViewController" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="HXA-2N-mT1">
+                        <rect key="frame" x="0.0" y="64" width="320" height="416"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                        <subviews>
+                            <webView multipleTouchEnabled="YES" contentMode="scaleToFill" scalesPageToFit="YES" id="vEC-Lb-UUe">
+                                <rect key="frame" x="0.0" y="0.0" width="320" height="416"/>
+                                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                                <dataDetectorType key="dataDetectorTypes" phoneNumber="YES" link="YES" address="YES"/>
+                                <connections>
+                                    <outlet property="delegate" destination="yOB-em-gHe" id="d0a-aN-9J9"/>
+                                </connections>
+                            </webView>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+                    </view>
+                    <navigationItem key="navigationItem" id="gub-10-UIn"/>
+                    <connections>
+                        <outlet property="webView" destination="vEC-Lb-UUe" id="B8J-lB-iLt"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="m7p-J7-X62" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="-622" y="-553"/>
+        </scene>
     </scenes>
     <resources>
         <image name="Default-568h@2x.png" width="640" height="1136"/>
         <image name="Default.png" width="320" height="480"/>
-        <image name="addPostButton.png" width="16" height="16"/>
+        <image name="FOODIA-black.png" width="192" height="75"/>
         <image name="cameraAcceptPhotoButton.png" width="20" height="20"/>
         <image name="cameraCaptureButton.png" width="89" height="89"/>
         <image name="cameraPhotoLibraryButton.png" width="22" height="24"/>
@@ -2051,22 +2187,25 @@ San Francisco, CA 94111</string>
         <image name="cancelPin.png" width="41" height="41"/>
         <image name="close.png" width="16" height="16"/>
         <image name="commentField.png" width="227" height="30"/>
-        <image name="connectbutton.png" width="239" height="57"/>
+        <image name="connect.png" width="241" height="58"/>
+        <image name="connectbutton.png" width="16" height="16"/>
         <image name="emptyBarButton.png" width="1" height="44"/>
         <image name="facebook.png" width="34" height="34"/>
         <image name="feedLikeButtonGray.png" width="23" height="23"/>
+        <image name="feedTypeFeatured.png" width="33" height="32"/>
+        <image name="feedTypeMy.png" width="33" height="33"/>
+        <image name="feedTypeNearby.png" width="30" height="36"/>
+        <image name="feedTypeRecommended.png" width="28" height="35"/>
         <image name="foodiaBackground.png" width="320" height="568"/>
-        <image name="foodiaHeader.png" width="16" height="16"/>
         <image name="instagramGray.png" width="34" height="34"/>
-        <image name="loginLogo.png" width="166" height="62"/>
         <image name="magnifier.png" width="19" height="19"/>
         <image name="menuBarButtonImage.png" width="19" height="19"/>
-        <image name="newPostBluePin.png" width="34" height="45"/>
+        <image name="myPosts.png" width="30" height="30"/>
+        <image name="newFoodiaHeader.png" width="320" height="44"/>
         <image name="newPostCamera.png" width="60" height="45"/>
-        <image name="newPostNoFriendsIcon.png" width="50" height="37"/>
-        <image name="newPostNoRecs.png" width="35" height="52"/>
-        <image name="postDetailRecGray.png" width="27" height="40"/>
+        <image name="plusButtonv2.png" width="55" height="55"/>
         <image name="poweredByFoursquare_gray.png" width="482" height="121"/>
+        <image name="scrollView.png" width="320" height="88"/>
         <image name="textField.png" width="305" height="37"/>
         <image name="textFieldClearButton.png" width="12" height="12"/>
         <image name="tumblrGray.png" width="34" height="34"/>
@@ -2078,7 +2217,10 @@ San Francisco, CA 94111</string>
         <simulatedScreenMetrics key="destination"/>
     </simulatedMetricsContainer>
     <inferredMetricsTieBreakers>
-        <segue reference="AAG-HL-Mja"/>
-        <segue reference="tDw-Eo-TUb"/>
+        <segue reference="95a-PX-POf"/>
+        <segue reference="6RC-Oj-kBr"/>
+        <segue reference="ciL-Yp-aME"/>
+        <segue reference="z8s-ya-eJa"/>
+        <segue reference="H0T-M3-DMm"/>
     </inferredMetricsTieBreakers>
 </document>

@@ -46,11 +46,11 @@ static FDFoursquareAPIClient *singleton;
     _lastLocation = nil;
 }
 
-- (AFHTTPRequestOperation *)getVenuesNearLocation:(CLLocation *)location success:(void(^)(NSArray *venues))success failure:(void(^)(NSError *error))failure {
+- (AFJSONRequestOperation *)getVenuesNearLocation:(CLLocation *)location success:(void(^)(NSArray *venues))success failure:(void(^)(NSError *error))failure {
     
     NSString *coordinateString = [NSString stringWithFormat:@"%f,%f",location.coordinate.latitude, location.coordinate.longitude];
     
-    NSDictionary *parameters = @{@"ll" : coordinateString};
+    NSDictionary *parameters = [NSDictionary dictionaryWithObjectsAndKeys:coordinateString,@"ll",/*@"4d4b7105d754a06374d81259,4d4b7105d754a06376d81259,4bf58dd8d48988d1f9941735,4bf58dd8d48988d117951735", @"categoryId", */@"50", @"limit",nil];
     
     _isUpdating = YES;
     
@@ -69,7 +69,7 @@ static FDFoursquareAPIClient *singleton;
             ];
 }
 
-- (AFHTTPRequestOperation *)getDetailsForPlace:(NSString *)venueId
+- (AFJSONRequestOperation *)getDetailsForPlace:(NSString *)venueId
                                       success:(void(^)(NSDictionary *placeDetails))success
                                       failure:(void(^)(NSError *error))failure {
     
@@ -91,7 +91,7 @@ static FDFoursquareAPIClient *singleton;
             ];
 }
 
-- (AFHTTPRequestOperation *)getVenuesNearLocation:(CLLocation *)location
+- (AFJSONRequestOperation *)getVenuesNearLocation:(CLLocation *)location
                                         withQuery:(NSString *)query
                                           success:(void(^)(NSArray *venues))success
                                           failure:(void(^)(NSError *error))failure {

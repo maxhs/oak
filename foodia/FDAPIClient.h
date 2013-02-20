@@ -113,6 +113,10 @@ typedef void(^RequestSuccess)(id result);
                                success:(RequestSuccess)success
                                failure:(RequestFailure)failure;
 
+- (AFJSONRequestOperation *)deletePost:(FDPost *)post
+                             success:(RequestSuccess)success
+                             failure:(RequestFailure)failure;
+
 - (AFJSONRequestOperation *)registerUser;
 
 - (AFJSONRequestOperation *)likePost:(FDPost *)post
@@ -127,7 +131,7 @@ typedef void(^RequestSuccess)(id result);
                                          success:(RequestSuccess)success
                                          failure:(RequestFailure)failure;
 
-- (AFHTTPRequestOperation *)getPostsForPlace:(FDVenue *)venue
+- (AFJSONRequestOperation *)getPostsForPlace:(FDVenue *)venue
                                      success:(RequestSuccess)success
                                      failure:(RequestFailure)failure;
 

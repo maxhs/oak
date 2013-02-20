@@ -40,7 +40,7 @@
 }
 
 - (IBAction)cancel:(UIBarButtonItem *)sender {
-    [self dismissModalViewControllerAnimated:YES];
+    [self dismissViewControllerAnimated:YES completion:nil];
 }
 
 - (void)validate {

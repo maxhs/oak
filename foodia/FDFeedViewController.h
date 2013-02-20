@@ -21,8 +21,7 @@
 - (void)showNearby;
 - (void)showRecommended;
 - (void)showProfile;
-- (void)showSlider;
 - (void)hideSlider;
-- (IBAction)activateSearch;
+//- (void)activateSearch;
 - (NSString *)searchText;
 @end

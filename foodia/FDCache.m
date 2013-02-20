@@ -195,7 +195,7 @@ static int kCacheMemoryLimit;
     
     
     
-    NSArray *recommendedArr = [NSJSONSerialization JSONObjectWithData:[postFrom.withFriends dataUsingEncoding:NSUTF8StringEncoding] options:kNilOptions error:&error];
+    //NSArray *recommendedArr = [NSJSONSerialization JSONObjectWithData:[postFrom.withFriends dataUsingEncoding:NSUTF8StringEncoding] options:kNilOptions error:&error];
     
     ret.isRecommendedToUser = 0;
     
@@ -216,7 +216,7 @@ static int kCacheMemoryLimit;
     
     
     
-    NSArray *friendsArr = [NSJSONSerialization JSONObjectWithData:[postFrom.withFriends dataUsingEncoding:NSUTF8StringEncoding] options:kNilOptions error:&error];
+    //NSArray *friendsArr = [NSJSONSerialization JSONObjectWithData:[postFrom.withFriends dataUsingEncoding:NSUTF8StringEncoding] options:kNilOptions error:&error];
     
     NSMutableArray *newFriendsArr = [NSMutableArray array];
     /*for(id friend in friendsArr) {

@@ -12,7 +12,7 @@
 #import "UIButton+WebCache.h"
 #import "UIImageView+WebCache.h"
 #import "Utilities.h"
-#import "FDMapViewController.h"
+#import "FDPlaceViewController.h"
 #import <QuartzCore/QuartzCore.h>
 #import <CoreLocation/CoreLocation.h>
 

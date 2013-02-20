@@ -89,6 +89,8 @@
 {
     [super viewDidLoad];
     self.navigationItem.rightBarButtonItem = nil;
+    FDPost *newPost = [[FDPost alloc] init];
+    [FDPost setUserPost:newPost];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -287,7 +289,7 @@
             self.eatingContainerView.userInteractionEnabled      = YES;
         }];
     } else {
-        [self dismissModalViewControllerAnimated:YES];
+        [self dismissViewControllerAnimated:YES completion:nil];
     }
 }
 
@@ -452,7 +454,7 @@
         
         [button setImageWithURL:imageUrl forState:UIControlStateNormal completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType) {
             [UIView animateWithDuration:0.8 delay:delay options:0 animations:^{
-                [button setAlpha:1.0f];
+                [_button setAlpha:1.0f];
             } completion:^(BOOL finished) {
                 // after fading in the new button, remove any old ones behind it
                 // using weak reference to button to avoid leaking it. thanks, ARC warning

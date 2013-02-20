@@ -17,6 +17,11 @@
 
 @implementation FDFeaturedGridViewController
 
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
+}
+
 - (void)loadFromCache {
     NSMutableArray *cachedPosts = [FDCache getCachedFeaturedPosts];
     if (cachedPosts == nil) {
@@ -34,7 +39,6 @@
 }
 
 - (void)refresh {
-    [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
     [TestFlight passCheckpoint:@"Viewing Featured Grid View"];
     // if we already have some posts in the feed, get the feed since the last post
     if (self.posts.count) {

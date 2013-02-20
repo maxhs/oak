@@ -12,8 +12,8 @@
 	<string></string>
 	<key>CFBundleIconFiles</key>
 	<array>
-		<string>test_icon.png</string>
-		<string>test_icon@2x.png</string>
+		<string>FOODIA-app-icon.png</string>
+		<string>FOODIA-app-icon@2x.png</string>
 		<string>FOODIA_crab_58x58.png</string>
 		<string>FOODIA_crab_29x29.png</string>
 	</array>
@@ -23,8 +23,8 @@
 		<dict>
 			<key>CFBundleIconFiles</key>
 			<array>
-				<string>test_icon.png</string>
-				<string>test_icon@2x.png</string>
+				<string>FOODIA-app-icon.png</string>
+				<string>FOODIA-app-icon@2x.png</string>
 				<string>FOODIA_crab_58x58.png</string>
 				<string>FOODIA_crab_29x29.png</string>
 			</array>
@@ -41,7 +41,7 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.3.5</string>
+	<string>1.4</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleURLTypes</key>
@@ -62,7 +62,7 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>1.3.5</string>
+	<string>1.4</string>
 	<key>FacebookAppID</key>
 	<string>308922285811091</string>
 	<key>LSRequiresIPhoneOS</key>

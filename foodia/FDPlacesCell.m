@@ -10,6 +10,20 @@
 
 @implementation FDPlacesCell
 
+static NSDictionary *placeholderImages;
+
++ (void)initialize {
+    placeholderImages = [NSDictionary dictionaryWithObjectsAndKeys:
+                         [UIImage imageNamed:@"detailPlaceholderEating.png"],   @"Eating",
+                         [UIImage imageNamed:@"detailPlaceholderDrinking.png"], @"Drinking",
+                         [UIImage imageNamed:@"detailPlaceholderMaking.png"],  @"Making",
+                         [UIImage imageNamed:@"detailPlaceholderShopping.png"], @"Shopping", nil];
+}
+
++ (UIImage *)placeholderImageForCategory:(NSString *)category {
+    return [placeholderImages objectForKey:category];
+}
+
 - (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier
 {
     self = [super initWithStyle:style reuseIdentifier:reuseIdentifier];

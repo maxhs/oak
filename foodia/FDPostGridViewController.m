@@ -88,7 +88,6 @@
     [super viewWillDisappear:animated];
     [self.feedRequestOperation cancel];
     [self saveCache];
-    [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
 }
 
 - (void)saveCache {
@@ -157,7 +156,6 @@
 {
     if([indexPath row] == ((NSIndexPath*)[[tableView indexPathsForVisibleRows] lastObject]).row){
         //end of loading
-        NSLog(@"removing loading overlay");
         [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
     }
 }

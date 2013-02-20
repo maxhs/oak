@@ -17,9 +17,9 @@
 @property (nonatomic, readonly) CLLocation *lastLocation;
 @property (readonly) BOOL isUpdating;
 + (FDFoursquareAPIClient *)sharedClient;
-- (AFHTTPRequestOperation *)getVenuesNearLocation:(CLLocation *)location success:(void(^)(NSArray *venues))success failure:(void(^)(NSError *error))failure;
-- (AFHTTPRequestOperation *)getVenuesNearLocation:(CLLocation *)location withQuery:(NSString *)query success:(void(^)(NSArray *venues))success failure:(void(^)(NSError *error))failure;
-- (AFHTTPRequestOperation *)getDetailsForPlace:(NSString *)venueId
+- (AFJSONRequestOperation *)getVenuesNearLocation:(CLLocation *)location success:(void(^)(NSArray *venues))success failure:(void(^)(NSError *error))failure;
+- (AFJSONRequestOperation *)getVenuesNearLocation:(CLLocation *)location withQuery:(NSString *)query success:(void(^)(NSArray *venues))success failure:(void(^)(NSError *error))failure;
+- (AFJSONRequestOperation *)getDetailsForPlace:(NSString *)venueId
                                        success:(void(^)(NSDictionary *placeDetails))success
                                        failure:(void(^)(NSError *error))failure;
 - (AFHTTPRequestOperation *)checkInVenue:(NSString *)venueId postCaption:(NSString*)caption withPostId:(id)postId;

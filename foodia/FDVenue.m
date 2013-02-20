@@ -24,6 +24,10 @@
 @synthesize verified;
 @synthesize tips, totalCheckins, hereNow;
 @synthesize stats, url, menuUrl, reservationsUrl;
+@synthesize posts;
+@synthesize imageView;
+@synthesize imageViewUrl;
+@synthesize likes = likes_;
 
 #pragma mark - MKAnnotation Properties
 
@@ -112,7 +116,6 @@
             self.isOpen = NO;
         }
         self.statusHours = [value objectForKey:@"status"];
-        
     } else if ([key isEqualToString:@"contact"]) {
 
         if ([value isKindOfClass:[NSDictionary class]]) {
@@ -120,7 +123,6 @@
         }
 
     } else if ([key isEqualToString:@"location"]) {
-
         if ([value isKindOfClass:[NSDictionary class]]) {
             self.location = [FDVenueLocation instanceFromDictionary:value];
         }
@@ -142,10 +144,8 @@
     }  else if ([key isEqualToString:@"reservations"]) {
         //good
         if ([value isKindOfClass:[NSDictionary class]]) {
-            
             self.reservationsUrl = [value objectForKey:@"url"];
         }
-        
     } else if ([key isEqualToString:@"tips"]) {
         //NSLog(@"tips value: %@",value);
         if ([value isKindOfClass:[NSDictionary class]]) {

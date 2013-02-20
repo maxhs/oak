@@ -13,17 +13,17 @@
 #import "FDProfileViewController.h"
 #import "FDModalNoAnimationSegue.h"
 #import "FDAppDelegate.h"
-#import <FacebookSDK/FacebookSDK.h>
-#import "FDShareViewController.h"
+#import "Facebook.h"
 
-@interface FDSocialViewController ()
+@interface FDSocialViewController () <FBDialogDelegate>
 @property (nonatomic, retain) NSMutableArray *friends;
-
+@property (nonatomic, strong) Facebook *facebook;
 - (IBAction)revealMenu:(UIBarButtonItem *)sender;
 
 @end
 
 @implementation FDSocialViewController
+@synthesize facebook = _facebook;
 
 - (id)initWithStyle:(UITableViewStyle)style
 {
@@ -41,12 +41,12 @@
     [TestFlight passCheckpoint:@"Passed Social View checkpoint"];
     self.delegate = self;
     UILabel *navTitle = [[UILabel alloc] init];
-    navTitle.frame = CGRectMake(0,0,190,44);
+    navTitle.frame = CGRectMake(0,0,200,44);
     navTitle.text = @"FRIENDS & INVITES";
     navTitle.font = [UIFont fontWithName:@"AvenirNextCondensed-DemiBold" size:21];
     navTitle.backgroundColor = [UIColor clearColor];
     navTitle.textColor = [UIColor blackColor];
-    navTitle.textAlignment = UITextAlignmentCenter;
+    navTitle.textAlignment = NSTextAlignmentCenter;
     
     // Set label as titleView
     self.navigationItem.titleView = navTitle;
@@ -86,11 +86,13 @@
     // Dispose of any resources that can be recreated.
 }
 
+#pragma Facebook stuff
+
 - (void) sendInvite:(NSNotification *)notification {
+    [self.searchDisplayController.searchBar resignFirstResponder];
     NSString *recipient = [notification.object objectForKey:@"fbid"];
-    NSLog(@"recipient: %@", recipient);
-    
-    /*BOOL displayedNativeDialog = [FBNativeDialogs presentShareDialogModallyFrom:vc initialText:@"Download FOODIA. Spend less time with your phone and more time with your food." image:[UIImage imageNamed:@"FOODIA_crab_114x114.png"] url:[NSURL URLWithString:@"http://www.foodia.com"] handler:^(FBNativeDialogResult result, NSError *error) {
+    NSMutableDictionary *postParams = [[NSMutableDictionary alloc] init];
+    /*BOOL displayedNativeDialog = [FBNativeDialogs presentShareDialogModallyFrom:self initialText:@"Download FOODIA. Spend less time with your phone and more time with your food." image:[UIImage imageNamed:@"FOODIA_crab_114x114.png"] url:[NSURL URLWithString:@"http://www.foodia.com"] handler:^(FBNativeDialogResult result, NSError *error) {
 
         // Only show the error if it is not due to the dialog
         // not being supporte, i.e. code = 7, otherwise ignore
@@ -116,17 +118,67 @@
                               otherButtonTitles:nil]
              show];
         }
-    }];*/
+    }];
     
-    //if (!displayedNativeDialog) {
-        FDShareViewController *viewController =
-        [[FDShareViewController alloc] initWithNibName:@"FDShareViewController"
-                                              bundle:nil];
-        viewController.recipient = recipient;
-        [self presentViewController:viewController
-                           animated:YES
-                         completion:nil];
+    if (!displayedNativeDialog) {*/
+        if (FBSession.activeSession.isOpen) {
+            // Initiate a Facebook instance and properties
+            if (nil == self.facebook) {
+                self.facebook = [[Facebook alloc]
+                                 initWithAppId:FBSession.activeSession.appID
+                                 andDelegate:nil];
+                
+                // Store the Facebook session information
+                self.facebook.accessToken = FBSession.activeSession.accessToken;
+                self.facebook.expirationDate = FBSession.activeSession.expirationDate;
+            }
+        } else {
+            NSLog(@"you're not signed in to facebook, so you can't share");
+            // Clear out the Facebook instance
+            self.facebook = nil;
+        }
+        
+        if (recipient) {
+            [postParams addEntriesFromDictionary:@{@"to":recipient,@"link":@"http://www.foodia.com",@"caption":@"Use foodia!"}];
+            [self.facebook dialog:@"feed" andParams:postParams andDelegate:self];
+        }
     //}
+}
+
+- (void)dialog:(FBDialog*)dialog didFailWithError:(NSError *)error {
+    NSLog(@"error: %@", error.description);
+}
+
+/*- (void)dialogDidNotComplete:(FBDialog *)dialog {
+ NSLog(@"Dialog did NOT complete: %@", dialog);
+ [dialog dismissWithSuccess:YES animated:YES];
+ }*/
+
+// Handle the publish feed call back
+- (void)dialogCompleteWithUrl:(NSURL *)url {
+    NSDictionary *params = [self parseURLParams:[url query]];
+    if ([params count] != 0) [[[UIAlertView alloc] initWithTitle:@"Nice!"
+                                                         message:@"That was pretty fun. Why not invite another friend to join in?"
+                                                        delegate:self
+                                               cancelButtonTitle:@"Okay"
+                                               otherButtonTitles:nil] show];
+}
+
+/**
+ * A function for parsing URL parameters.
+ */
+- (NSDictionary*)parseURLParams:(NSString *)query {
+    NSArray *pairs = [query componentsSeparatedByString:@"&"];
+    NSMutableDictionary *params = [[NSMutableDictionary alloc] init];
+    for (NSString *pair in pairs) {
+        NSArray *kv = [pair componentsSeparatedByString:@"="];
+        NSString *val =
+        [[kv objectAtIndex:1]
+         stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+        
+        [params setObject:val forKey:[kv objectAtIndex:0]];
+    }
+    return params;
 }
 #pragma mark - Table view data source
 

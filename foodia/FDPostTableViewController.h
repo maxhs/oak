@@ -18,9 +18,7 @@
 @property (nonatomic,strong) AFJSONRequestOperation *feedRequestOperation;
 @property (nonatomic) BOOL canLoadAdditionalPosts;
 @property (nonatomic) NSInteger notificationsPending;
-@property (nonatomic) BOOL fewPosts;
 @property (nonatomic) BOOL didLoadFromCache;
-@property (nonatomic) BOOL isLoading;
 
 - (void)reloadData;
 - (void)refresh;

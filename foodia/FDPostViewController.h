@@ -14,5 +14,5 @@
 - (IBAction)recommend;
 - (IBAction)expandImage:(id)sender;
 - (void)showPostDetails;
-- (IBAction)pageCurl;
+- (IBAction)showPlace;
 @end

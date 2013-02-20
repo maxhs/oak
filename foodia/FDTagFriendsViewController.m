@@ -20,8 +20,7 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    self.tableView.backgroundView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"foodiaBackground.png"]];
-	self.taggedFriendFacebookIds = [NSMutableSet set];
+    self.taggedFriendFacebookIds = [NSMutableSet set];
     [FDPost.userPost.withFriends enumerateObjectsUsingBlock:^(id obj, BOOL *stop) {
         [self.taggedFriendFacebookIds addObject:[obj facebookId]];
     }];
@@ -29,17 +28,29 @@
     UILabel *navTitle = [[UILabel alloc] init];
     navTitle.frame = CGRectMake(0,0,200,44);
     navTitle.text = @"I'M WITH";
-    navTitle.font = [UIFont fontWithName:@"AvenirNextCondensed-Medium" size:20];
+    navTitle.font = [UIFont fontWithName:@"AvenirNextCondensed-Medium" size:21];
     navTitle.backgroundColor = [UIColor clearColor];
-    navTitle.textColor = [UIColor whiteColor];
-    navTitle.textAlignment = UITextAlignmentCenter;
+    navTitle.textColor = [UIColor blackColor];
+    navTitle.textAlignment = NSTextAlignmentCenter;
     
     // Set label as titleView
     self.navigationItem.titleView = navTitle;
-    
-    // Shift the title down a bit...
-    //[self.navigationController.navigationBar setTitleVerticalPositionAdjustment:0.0f forBarMetrics:UIBarMetricsDefault];
-    
+
+    //set custom font in searchBar
+    for(UIView *subView in self.searchDisplayController.searchBar.subviews) {
+        if ([subView isKindOfClass:[UITextField class]]) {
+            UITextField *searchField = (UITextField *)subView;
+            searchField.font = [UIFont fontWithName:@"AvenirNextCondensed-Medium" size:15];
+        }
+    }
+    //replace ugly background
+    for (UIView *view in self.searchDisplayController.searchBar.subviews) {
+        if ([view isKindOfClass:NSClassFromString(@"UISearchBarBackground")]){
+            UIImageView *header = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"newFoodiaHeader.png"]];
+            [view addSubview:header];
+            break;
+        }
+    }
 }
 
 - (void)didReceiveMemoryWarning

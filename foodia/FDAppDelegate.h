@@ -9,15 +9,16 @@
 #import "FDSlidingViewController.h"
 #import "FDLoginViewController.h"
 #import "FDAPIClient.h"
+#import "Facebook.h"
 
-@interface FDAppDelegate : NSObject <UIApplicationDelegate, UIAlertViewDelegate> /*{
+@interface FDAppDelegate : NSObject <UIApplicationDelegate, UIAlertViewDelegate, FBSessionDelegate, FBDialogDelegate, FBLoginViewDelegate> /*{
     NSManagedObjectModel *managedObjectModel;
     NSManagedObjectContext *managedObjectContext;
     NSPersistentStoreCoordinator *persistentStoreCoordinator;
 }*/
 
 @property (strong, nonatomic) UIWindow *window;
-
+@property (nonatomic, retain) Facebook *facebook;
 /*@property (nonatomic, retain, readonly) NSManagedObjectModel *managedObjectModel;
 @property (nonatomic, retain, readonly) NSManagedObjectContext *managedObjectContext;
 @property (nonatomic, retain, readonly) NSPersistentStoreCoordinator *persistentStoreCoordinator;*/
@@ -26,9 +27,9 @@
 - (void)getPublishPermissions;
 - (void)showLoadingOverlay;
 - (void)hideLoadingOverlay;
+- (void)feedDialogWithParams:(NSMutableDictionary *)params;
 - (void)setupNoConnection;
 - (void)showFacebookWallPost;
 - (void)removeFacebookWallPost;
 - (void)showUserProfile:(NSString *)facebookId;
-- (void)openSession;
 @end

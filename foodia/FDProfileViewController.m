@@ -18,12 +18,14 @@
 #import "FDPeopleTableViewController.h"
 #import "Constants.h"
 #import "FDUserCell.h"
-#import "FDShareViewController.h"
 #import "FDProfileMapViewController.h"
-#import <FacebookSDK/FBSession.h>
-#import <FacebookSDK/FacebookSDK.h>
+#import "Facebook.h"
 #import <QuartzCore/QuartzCore.h>
-@interface FDProfileViewController()
+#import <MessageUI/MessageUI.h>
+#import "FDRecommendViewController.h"
+#import "FDCustomSheet.h"
+#import "FDPlaceViewController.h"
+@interface FDProfileViewController() <MFMessageComposeViewControllerDelegate, MFMailComposeViewControllerDelegate, UIActionSheetDelegate>
 
 @property (nonatomic) BOOL canLoadMore;
 @property int tableViewHeight;
@@ -57,7 +59,6 @@
 - (void)initWithUserId:(NSString *)uid {
     [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
     self.userId = uid;
-    NSLog(@"userId from profile view: %@",self.userId);
     self.canLoadMore = YES;
     self.detailsRequestOperation = [[FDAPIClient sharedClient] getProfileDetails:uid success:^(NSDictionary *result) {
         [profileButton setUserId:self.userId];
@@ -75,13 +76,11 @@
             self.followingCountLabel.text = [[result objectForKey:@"following_count"] stringValue];
             self.followerCountLabel.text = [[result objectForKey:@"followers_count"] stringValue];
             if([[NSString stringWithFormat:@"%@",[result objectForKey:@"following"]] isEqualToString:@"1"]) {
-                //self.navigationItem.rightBarButtonItem.title = @"UNFOLLOW";
                 [self.socialButton setTitle:@"UNFOLLOW" forState:UIControlStateNormal];
                 [self.socialButton.titleLabel setTextColor:[UIColor lightGrayColor]];
                 [self.socialButton.layer setBorderColor:[UIColor lightGrayColor].CGColor];
                 currButton = @"following";
             } else {
-                //self.navigationItem.rightBarButtonItem.title = @"FOLLOW";
                 [self.socialButton setTitle:@"FOLLOW" forState:UIControlStateNormal];
                 [self.socialButton.titleLabel setTextColor:[UIColor redColor]];
                 [self.socialButton.layer setBorderColor:[UIColor redColor].CGColor];
@@ -90,9 +89,8 @@
             self.followers = [result objectForKey:@"followers_arr"];
             self.following = [result objectForKey:@"following_arr"];
             [self.postList reloadData];
-            //[self.postList reloadSections:[NSIndexSet indexSetWithIndexesInRange:{0,3}] withRowAnimation:<#(UITableViewRowAnimation)#> withRowAnimation:UITableViewRowAnimationFade];
+        
         } else {
-            //self.navigationItem.rightBarButtonItem.title = @"INVITE";
             [self.socialButton setTitle:@"INVITE" forState:UIControlStateNormal];
             [self.postList setHidden:true];
             [self.inactiveLabel setHidden:false];
@@ -117,7 +115,7 @@
         followerCountLabel.text = [NSString stringWithFormat:@"%d",followerCounter];
         self.currButton = @"following";
         [self.socialButton setTitle:@"UNFOLLOW" forState:UIControlStateNormal];
-        [self.socialButton setTitleColor:[UIColor orangeColor] forState:UIControlStateNormal];
+        [self.socialButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
     } else if([currButton isEqualToString:@"following"]) {
         NSLog(@"unfollowing Tapped...");
         int followerCounter;
@@ -149,7 +147,10 @@
     self.following = [NSArray array];
     [self.postList setDataSource:self];
     [self.postList setDelegate:self];
-    
+    self.makingButton.layer.cornerRadius = 17.0;
+    self.eatingButton.layer.cornerRadius = 17.0;
+    self.drinkingButton.layer.cornerRadius = 17.0;
+    self.shoppingButton.layer.cornerRadius = 17.0;
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(followCreated:) name:kNotificationFollowCreated object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(followDestroyed:) name:kNotificationFollowDestroyed object:nil];
     self.tableViewHeight = self.postList.frame.size.height;
@@ -200,17 +201,6 @@
     }
 }
 
-- (void)viewWillDisappear:(BOOL)animated {
-    [super viewWillDisappear:animated];
-
-    [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
-}
-
-
-- (IBAction)done:(id)sender {
-    [self.navigationController popViewControllerAnimated:YES];
-}
-
 -(NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
     if (tableView != self.searchDisplayController.searchResultsTableView) return 3;
     else return 1;
@@ -233,6 +223,14 @@
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
     if(indexPath.section == 0) return 155;
     else return 44;
+}
+
+-(void) tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    if([indexPath row] == ((NSIndexPath*)[[tableView indexPathsForVisibleRows] lastObject]).row){
+        //end of loading
+        [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
+    }
 }
 
 -(void)loadPosts:(NSString *)uid{
@@ -262,9 +260,47 @@
             [cell configureForPost:post];
             cell = [self showLikers:cell forPost:post];
             [cell bringSubviewToFront:cell.likersScrollView];
-            if (post.location.coordinate.latitude != 0){
+            
+            cell.detailPhotoButton.tag = [post.identifier integerValue];
+            [cell.detailPhotoButton addTarget:self action:@selector(didSelectRow:) forControlEvents:UIControlEventTouchUpInside];
+            
+            UIButton *recButton = [UIButton buttonWithType:UIButtonTypeCustom];
+            [recButton setFrame:CGRectMake(276,52,70,34)];
+            [recButton addTarget:self action:@selector(recommend:) forControlEvents:UIControlEventTouchUpInside];
+            [recButton setTitle:@"Rec" forState:UIControlStateNormal];
+            recButton.layer.borderColor = [UIColor colorWithWhite:.1 alpha:.1].CGColor;
+            recButton.layer.borderWidth = 1.0f;
+            recButton.backgroundColor = [UIColor whiteColor];
+            recButton.layer.cornerRadius = 17.0f;
+            recButton.layer.shouldRasterize = YES;
+            recButton.layer.rasterizationScale = [UIScreen mainScreen].scale;
+            [recButton.titleLabel setFont:[UIFont fontWithName:@"AvenirNextCondensed-Medium" size:15]];
+            [recButton.titleLabel setTextColor:[UIColor lightGrayColor]];
+            recButton.tag = indexPath.row;
+            [cell.scrollView addSubview:recButton];
+            
+            UIButton *commentButton = [UIButton buttonWithType:UIButtonTypeCustom];
+            [commentButton setFrame:CGRectMake(382,52,118,34)];
+            commentButton.tag = [post.identifier integerValue];
+            [commentButton addTarget:self action:@selector(didSelectRow:) forControlEvents:UIControlEventTouchUpInside];
+            [commentButton setTitle:@"Add a comment..." forState:UIControlStateNormal];
+            [commentButton setTitle:@"Nice!" forState:UIControlStateSelected];
+            commentButton.layer.borderColor = [UIColor colorWithWhite:.1 alpha:.1].CGColor;
+            commentButton.layer.borderWidth = 1.0f;
+            commentButton.backgroundColor = [UIColor whiteColor];
+            commentButton.layer.cornerRadius = 17.0f;
+            commentButton.layer.shouldRasterize = YES;
+            commentButton.layer.rasterizationScale = [UIScreen mainScreen].scale;
+            [commentButton.titleLabel setFont:[UIFont fontWithName:@"AvenirNextCondensed-Medium" size:15]];
+            [commentButton.titleLabel setTextColor:[UIColor lightGrayColor]];
+            [cell.scrollView addSubview:commentButton];
+            
+            //capture touch event to show user place map
+            if (post.locationName.length){
+                [cell.locationButton setHidden:NO];
+                [cell.locationButton addTarget:self action:@selector(showPlace:) forControlEvents:UIControlEventTouchUpInside];
+                cell.locationButton.tag = indexPath.row;
             }
-            [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
         }
         [cell.likeButton addTarget:self action:@selector(likeButtonTapped:) forControlEvents:UIControlEventTouchUpInside];
         cell.likeButton.tag = indexPath.row;
@@ -308,6 +344,105 @@
         emptyCell.userInteractionEnabled = NO;
         return emptyCell;
     }
+}
+
+- (void)didSelectRow:(id)sender {
+    //UIButton *button = (UIButton*)sender;
+    [self performSegueWithIdentifier:@"ShowPostFromProfile" sender:sender];
+}
+
+-(void)showPlace:(id)sender {
+    [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
+    UIButton *button = (UIButton *) sender;
+    [self performSegueWithIdentifier:@"ShowPlace" sender:[self.posts objectAtIndex:button.tag]];
+}
+
+- (void)recommend:(id)sender {
+    UIButton *button = (UIButton *)sender;
+    FDPost *post = [self.posts objectAtIndex:button.tag];
+    FDCustomSheet *actionSheet = [[FDCustomSheet alloc] initWithTitle:@"I'm recommending something on FOODIA!" delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:@"Recommend via Facebook",@"Send a Text", @"Send an Email", nil];
+    [actionSheet setFoodiaObject:post.foodiaObject];
+    [actionSheet setPost:post];
+    [actionSheet showInView:self.view];
+}
+
+- (void) actionSheet:(FDCustomSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
+    if (buttonIndex == 0) {
+        UIStoryboard *storyboard;
+        if (([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone && [UIScreen mainScreen].bounds.size.height == 568.0)){
+            storyboard = [UIStoryboard storyboardWithName:@"iPhone5"
+                                                   bundle:nil];
+        } else {
+            storyboard = [UIStoryboard storyboardWithName:@"iPhone"
+                                                   bundle:nil];
+        }
+        FDRecommendViewController *vc = [storyboard instantiateViewControllerWithIdentifier:@"RecommendView"];
+        [vc setPost:actionSheet.post];
+        
+        if ([FBSession.activeSession.permissions
+             indexOfObject:@"publish_actions"] == NSNotFound) {
+            // No permissions found in session, ask for it
+            [FBSession.activeSession reauthorizeWithPublishPermissions:[NSArray arrayWithObjects:@"publish_actions",nil] defaultAudience:FBSessionDefaultAudienceFriends completionHandler:^(FBSession *session, NSError *error) {
+                if (!error) {
+                    if ([FBSession.activeSession.permissions
+                         indexOfObject:@"publish_actions"] != NSNotFound) {
+                        // If permissions granted, go to the rec controller
+                        [self.navigationController pushViewController:vc animated:YES];
+                        
+                    } else {
+                        [self dismissViewControllerAnimated:YES completion:nil];
+                        [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"But we'll need your permission in order to post recommendations to Facebook." delegate:self cancelButtonTitle:@"Okay" otherButtonTitles: nil] show];
+                    }
+                }
+            }];
+        } else if ([FBSession.activeSession.permissions
+                    indexOfObject:@"publish_actions"] != NSNotFound) {
+            [self.navigationController pushViewController:vc animated:YES];
+        }
+    } else if(buttonIndex == 1) {
+        MFMessageComposeViewController *viewController = [[MFMessageComposeViewController alloc] init];
+        if ([MFMessageComposeViewController canSendText]){
+            NSString *textBody = [NSString stringWithFormat:@"I just recommended %@ to you from FOODIA!\n Download the app now: itms-apps://itunes.com/apps/foodia",actionSheet.foodiaObject];
+            viewController.messageComposeDelegate = self;
+            [viewController setBody:textBody];
+            [self presentViewController:viewController animated:YES completion:nil];
+        }
+    } else if(buttonIndex == 2) {
+        if ([MFMailComposeViewController canSendMail]) {
+            MFMailComposeViewController* controller = [[MFMailComposeViewController alloc] init];
+            controller.mailComposeDelegate = self;
+            NSString *emailBody = [NSString stringWithFormat:@"I just recommended %@ to you on FOODIA! Take a look: http://posts.foodia.com/p/%@ <br><br> Or <a href='http://itunes.com/apps/foodia'>download the app now!</a>", actionSheet.foodiaObject, actionSheet.post.identifier];
+            [controller setMessageBody:emailBody isHTML:YES];
+            [controller setSubject:actionSheet.foodiaObject];
+            if (controller) [self presentViewController:controller animated:YES completion:nil];
+        } else {
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Sorry" message:@"But we weren't able to email your recommendation. Please try again..." delegate:self cancelButtonTitle:@"" otherButtonTitles:nil];
+            [alert show];
+        }
+    }
+}
+
+- (void)messageComposeViewController:(MFMessageComposeViewController *)controller
+                 didFinishWithResult:(MessageComposeResult)result
+{
+    if (result == MessageComposeResultSent) {
+    } else if (result == MessageComposeResultFailed) {
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Sorry" message:@"But we weren't able to send your message. Please try again..." delegate:self cancelButtonTitle:@"Okay" otherButtonTitles: nil];
+        [alert show];
+    }
+    [self dismissViewControllerAnimated:YES completion:nil];
+}
+
+- (void)mailComposeController:(MFMailComposeViewController*)controller
+          didFinishWithResult:(MFMailComposeResult)result
+                        error:(NSError*)error;
+{
+    if (result == MFMailComposeResultSent) {
+    } else if (result == MFMailComposeResultFailed) {
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Sorry" message:@"But we weren't able to send your mail. Please try again..." delegate:self cancelButtonTitle:@"Okay" otherButtonTitles: nil];
+        [alert show];
+    }
+    [self dismissViewControllerAnimated:YES completion:nil];
 }
 
 #pragma mark - Display likers
@@ -356,27 +491,33 @@
     [self.delegate performSegueWithIdentifier:@"ShowProfileFromComment" sender:sender];
 }
 
-
-
 -(void)profileTappedFromProfile:(id)sender {
     UIButton *button = (UIButton *) sender;
-    //[self performSegueWithIdentifier:@"ShowProfileFromProfile" sender:button];
     [self initWithUserId:[NSString stringWithFormat:@"%d",button.tag]];
 }
 
 -(void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
-    UIButton *button = (UIButton *) sender;
     if ([segue.identifier isEqualToString:@"ShowProfileFromProfile"]) {
+        UIButton *button = (UIButton *) sender;
         FDProfileViewController *profileVC = segue.destinationViewController;
         [profileVC initWithUserId:[NSString stringWithFormat:@"%d",button.tag]];
     } else if ([segue.identifier isEqualToString:@"ShowPostFromProfile"]) {
         FDPostViewController *vc = segue.destinationViewController;
-        [vc setPostIdentifier:[(FDPost *)sender identifier]];
+        if ([sender isMemberOfClass:[UIButton class]]){
+            UIButton *button = (UIButton *) sender;
+            [vc setPostIdentifier:[NSString stringWithFormat:@"%d",button.tag]];
+        } else {
+            FDPost *post = (FDPost *) sender;
+            [vc setPostIdentifier:post.identifier];
+        }
     } else if ([segue.identifier isEqualToString:@"ShowProfileMap"]) {
         [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
         FDProfileMapViewController *vc = segue.destinationViewController;
-        NSLog(@"userID from profileView: %@",self.userId);
         [vc setUid:self.userId];
+    } else if ([segue.identifier isEqualToString:@"ShowPlace"]){
+        FDPlaceViewController *placeView = [segue destinationViewController];
+        FDPost *post = (FDPost *) sender;
+        [placeView setVenueId:post.foursquareid];
     }
 }
 
@@ -405,7 +546,6 @@
     }
 }
 
-
 - (IBAction)showFollowing:(id)sender {
     self.currTab = 2;
     [self resetCategoryButtons];
@@ -415,7 +555,6 @@
 - (IBAction)showPosts:(id)sender {
     self.currTab = 0;
     self.canLoadMore = YES;
-    [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
     [self resetCategoryButtons];
     //[self.postList reloadData];
     [self loadPosts:self.userId];
@@ -423,9 +562,9 @@
 
 -(void)inviteUser:(NSString *)who {
     if ([FBSession.activeSession.permissions
-         indexOfObject:@"publish_stream"] == NSNotFound) {
+         indexOfObject:@"publish_actions"] == NSNotFound) {
         // No permissions found in session, ask for it
-        [FBSession.activeSession reauthorizeWithPublishPermissions:[NSArray arrayWithObjects:@"publish_stream", @"email", nil] defaultAudience:FBSessionDefaultAudienceFriends completionHandler:^(FBSession *session, NSError *error) {
+        [FBSession.activeSession reauthorizeWithPublishPermissions:[NSArray arrayWithObjects:@"publish_actions", nil] defaultAudience:FBSessionDefaultAudienceFriends completionHandler:^(FBSession *session, NSError *error) {
             if (!error) {
                 // If permissions granted, publish the story
                 [self inviteUserFb:who];
@@ -438,8 +577,7 @@
 }
 
 -(void)inviteUserFb:(NSString *)who {
-    UIViewController *vc = (UIViewController *)self;
-    BOOL displayedNativeDialog = [FBNativeDialogs presentShareDialogModallyFrom:vc initialText:@"Download FOODIA. Spend less time with your phone and more time with your food." image:[UIImage imageNamed:@"FOODIA_crab_114x114.png"] url:[NSURL URLWithString:@"http://www.foodia.com"] handler:^(FBNativeDialogResult result, NSError *error) {
+    BOOL displayedNativeDialog = [FBNativeDialogs presentShareDialogModallyFrom:self initialText:@"Download FOODIA. Spend less time with your phone and more time with your food." image:[UIImage imageNamed:@"blackLogo.png"] url:[NSURL URLWithString:@"http://www.foodia.com"] handler:^(FBNativeDialogResult result, NSError *error) {
         
         // Only show the error if it is not due to the dialog
         // not being supporte, i.e. code = 7, otherwise ignore
@@ -462,21 +600,13 @@
                                         message:alertText
                                        delegate:self
                               cancelButtonTitle:@"OK!"
-                              otherButtonTitles:nil]
-             show];
+                              otherButtonTitles:nil] show];
         }
     }];
     
     if (!displayedNativeDialog) {
-        FDShareViewController *viewController =
-        [[FDShareViewController alloc] initWithNibName:@"FDShareViewController"
-                                                bundle:nil];
-        viewController.recipient = who;
-        [self presentViewController:viewController
-                           animated:YES
-                         completion:nil];
-    }
 
+    }
 }
 
 
@@ -488,7 +618,7 @@
                                        success:^(FDPost *newPost) {
                                            [self.posts replaceObjectAtIndex:button.tag withObject:newPost];
                                            NSIndexPath *path = [NSIndexPath indexPathForRow:button.tag inSection:0];
-                                           [self.postList reloadRowsAtIndexPaths:[NSArray arrayWithObject:path] withRowAnimation:UITableViewRowAnimationNone];
+                                           [self.postList reloadRowsAtIndexPaths:[NSArray arrayWithObject:path] withRowAnimation:UITableViewRowAnimationFade];
                                        }
                                        failure:^(NSError *error) {
                                            NSLog(@"unlike failed! %@", error);
@@ -503,7 +633,7 @@
                                          
                                          [newPost setLikeCount:[[NSNumber alloc] initWithInt:t]];
                                          NSIndexPath *path = [NSIndexPath indexPathForRow:button.tag inSection:0];
-                                         [self.postList reloadRowsAtIndexPaths:[NSArray arrayWithObject:path] withRowAnimation:UITableViewRowAnimationNone];
+                                         [self.postList reloadRowsAtIndexPaths:[NSArray arrayWithObject:path] withRowAnimation:UITableViewRowAnimationFade];
                                      } failure:^(NSError *error) {
                                          NSLog(@"like failed! %@", error);
                                      }
@@ -512,7 +642,7 @@
 }
 
 - (void)loadAdditionalPosts{
-    if (self.canLoadMore = YES){
+    if (self.canLoadMore == YES){
     self.feedRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getProfileFeedBefore:self.posts.lastObject forProfile:self.userId success:^(NSMutableArray *morePosts) {
         if (morePosts.count == 0){
             self.canLoadMore = NO;
@@ -528,9 +658,7 @@
         self.feedRequestOperation = nil;
         NSLog(@"adding more profile posts has failed");
     }];
-    } else {
-        NSLog(@"can't load more");
-    }
+    } else NSLog(@"can't load more");
 }
 
 - (void) didShowLastRow {
@@ -544,8 +672,8 @@
     self.canLoadMore = NO;
     self.currTab = 0;
     [self resetCategoryButtons];
-    [self.eatingButton setTitleColor:[UIColor orangeColor] forState:UIControlStateNormal];
-    [self.eatingButton setBackgroundColor:[UIColor whiteColor]];
+    //[self.eatingButton setTitleColor:[UIColor redColor] forState:UIControlStateNormal];
+    [self.eatingButton setBackgroundColor:[UIColor lightGrayColor]];
 
     self.feedRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getProfileFeedForCategory:@"Eating" forProfile:self.userId success:^(NSMutableArray *categoryPosts) {
         if (categoryPosts.count == 0){
@@ -566,8 +694,8 @@
     self.canLoadMore = NO;
     self.currTab = 0;
     [self resetCategoryButtons];
-    [self.drinkingButton setTitleColor:[UIColor orangeColor] forState:UIControlStateNormal];
-    [self.drinkingButton setBackgroundColor:[UIColor whiteColor]];
+    //[self.drinkingButton setTitleColor:[UIColor redColor] forState:UIControlStateNormal];
+    [self.drinkingButton setBackgroundColor:[UIColor lightGrayColor]];
 
     self.feedRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getProfileFeedForCategory:@"Drinking" forProfile:self.userId success:^(NSMutableArray *categoryPosts) {
         if (categoryPosts.count == 0){
@@ -587,8 +715,8 @@
     self.canLoadMore = NO;
     self.currTab = 0;
     [self resetCategoryButtons];
-    [self.makingButton setTitleColor:[UIColor orangeColor] forState:UIControlStateNormal];
-    [self.makingButton setBackgroundColor:[UIColor whiteColor]];
+    //[self.makingButton setTitleColor:[UIColor redColor] forState:UIControlStateNormal];
+    [self.makingButton setBackgroundColor:[UIColor lightGrayColor]];
     self.feedRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getProfileFeedForCategory:@"Making" forProfile:self.userId success:^(NSMutableArray *categoryPosts) {
         if (categoryPosts.count == 0){
             self.canLoadMore = NO;
@@ -605,8 +733,8 @@
 - (IBAction)getFeedForShopping {
     [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
     [self resetCategoryButtons];
-    [self.shoppingButton setTitleColor:[UIColor orangeColor] forState:UIControlStateNormal];
-    [self.shoppingButton setBackgroundColor:[UIColor whiteColor]];
+    //[self.shoppingButton setTitleColor:[UIColor redColor] forState:UIControlStateNormal];
+    [self.shoppingButton setBackgroundColor:[UIColor lightGrayColor]];
     self.canLoadMore = NO;
     self.currTab = 0;
     self.feedRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getProfileFeedForCategory:@"Shopping" forProfile:self.userId success:^(NSMutableArray *categoryPosts) {
@@ -699,11 +827,11 @@
     //Update the filtered array based on the search text and scope.
     [self.filteredPosts removeAllObjects];
     NSString *scope;
-    if (originalScope == @"Make") scope = @"Making";
+    if ([originalScope isEqualToString:@"Make"]) scope = @"Making";
     else scope = originalScope;
     NSLog(@"current scope: %@", scope);
     // Search the main list for products whose type matches the scope (if selected) and whose name matches searchText; add items that match to the filtered array.
-    if (scope == @"ALL"){
+    if ([scope isEqualToString:@"ALL"]){
         for (FDPost *post in self.posts){
             NSString *combinedSearchBase = [NSString stringWithFormat:@"%@ %@", post.socialString, post.caption ];
             NSPredicate *predicate = [NSPredicate predicateWithFormat:@"(SELF contains[cd] %@)", searchText];
@@ -742,6 +870,11 @@
     
     // Return YES to cause the search result table view to be reloaded.
     return YES;
+}
+
+- (void)viewWillDisappear:(BOOL)animated {
+    self.feedRequestOperation = nil;
+    [super viewWillDisappear:animated];
 }
 
 @end

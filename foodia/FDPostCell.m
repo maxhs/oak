@@ -56,6 +56,7 @@ static NSDictionary *placeholderImages;
 
 -(void)showPost {
     [self.scrollView setContentSize:CGSizeMake(542,115)];
+    self.scrollView.delegate = self;
     [self.slideCellButton setHidden:YES];
     self.postId = self.post.identifier;
     self.userId = self.post.user.facebookId;
@@ -145,7 +146,6 @@ static NSDictionary *placeholderImages;
 
 - (IBAction)slideCell {
     if (self.scrollView.contentOffset.x < 270 ){
-        NSLog(@"self.scrollView: %f", self.scrollView.contentOffset.x);
         [self.scrollView setContentOffset:CGPointMake(271,0) animated:YES];
         [self.slideCellButton setHidden:NO];
     } else {

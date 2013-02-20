@@ -188,12 +188,6 @@
     [manager stopUpdatingLocation];
 }
 
-- (void)locationManager:(CLLocationManager *)manager didUpdateToLocation:(CLLocation *)newLocation fromLocation:(CLLocation *)oldLocation {
-    [self updateVenuesForLocation:newLocation];
-    FDPost.userPost.location = newLocation;
-    [manager stopUpdatingLocation];
-}
-
 - (void)locationManager:(CLLocationManager *)manager didFailWithError:(NSError *)error {
     [[[UIAlertView alloc] initWithTitle:@"Error" message:@"Couldn't find your location!" delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil] show];
 }

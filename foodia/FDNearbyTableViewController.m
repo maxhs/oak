@@ -9,7 +9,7 @@
 #import "FDNearbyTableViewController.h"
 #import "FDCache.h"
 #import "FDPostNearbyCell.h"
-#import "FDMapViewController.h"
+#import "FDPlaceViewController.h"
 #import <CoreLocation/CoreLocation.h>
 #import "FDFeedViewController.h"
 #import "FDGoogleAPIClient.h"
@@ -135,7 +135,7 @@
             noResults.textColor = [UIColor lightGrayColor];
             noResults.numberOfLines = 5;
             [noResults setBackgroundColor:[UIColor clearColor]];
-            noResults.textAlignment = UITextAlignmentCenter;
+            noResults.textAlignment = NSTextAlignmentCenter;
             self.tableView.separatorColor = [UIColor clearColor];
             [noResultsView addSubview:noResults];
             [self.tableView addSubview:noResultsView];

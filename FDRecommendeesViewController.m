@@ -26,19 +26,31 @@
     }];
     UILabel *navTitle = [[UILabel alloc] init];
     navTitle.frame = CGRectMake(0,0,200,44);
-    //RESET FRAME TO ACCOMODATE LEFT BUT NO RIGHT BAR BUTTON
-    navTitle.text = @"I'M RECOMMENDING TO";
+    navTitle.text = @"I'M RECOMMENDING";
     
-    navTitle.font = [UIFont fontWithName:@"AvenirNextCondensed-Medium" size:20];
+    navTitle.font = [UIFont fontWithName:@"AvenirNextCondensed-Medium" size:21];
     navTitle.backgroundColor = [UIColor clearColor];
-    navTitle.textColor = [UIColor whiteColor];
-    navTitle.textAlignment = UITextAlignmentCenter;
+    navTitle.textColor = [UIColor blackColor];
+    navTitle.textAlignment = NSTextAlignmentCenter;
     
     // Set label as titleView
     self.navigationItem.titleView = navTitle;
     
-    // Shift the title down a bit...
-    //[self.navigationController.navigationBar setTitleVerticalPositionAdjustment:0.0f forBarMetrics:UIBarMetricsDefault];
+    //set custom font in searchBar
+    for(UIView *subView in self.searchDisplayController.searchBar.subviews) {
+        if ([subView isKindOfClass:[UITextField class]]) {
+            UITextField *searchField = (UITextField *)subView;
+            searchField.font = [UIFont fontWithName:@"AvenirNextCondensed-Medium" size:15];
+        }
+    }
+    //replace ugly background
+    for (UIView *view in self.searchDisplayController.searchBar.subviews) {
+        if ([view isKindOfClass:NSClassFromString(@"UISearchBarBackground")]){
+            UIImageView *header = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"newFoodiaHeader.png"]];
+            [view addSubview:header];
+            break;
+        }
+    }
 }
 
 - (void)didReceiveMemoryWarning
@@ -54,6 +66,7 @@
 }
 
 - (void)save {
+    NSLog(@"self.people from recommendees vc: %@",self.people);
     FDPost.userPost.recommendedTo = [[NSSet setWithArray:self.people] objectsPassingTest:^BOOL(id obj, BOOL *stop) {
         return [self.recommendeeIds containsObject:[obj facebookId]];
     }];

@@ -8,7 +8,7 @@
 
 #import "FDFeedViewController.h"
 #import <QuartzCore/QuartzCore.h>
-#import <FacebookSDK/FacebookSDK.h>
+#import "Facebook.h"
 #import "FDFeaturedGridViewController.h"
 #import "FDFeedTableViewController.h"
 #import "FDRecommendedTableViewController.h"
@@ -17,7 +17,7 @@
 #import "FDUser.h"
 #import "FDPostViewController.h"
 #import "ECSlidingViewController.h"
-#import "FDMapViewController.h"
+#import "FDPlaceViewController.h"
 #import "FDMenuViewController.h"
 #import "FDNewProfileViewController.h"
 #import "FDPlacesViewController.h"
@@ -43,18 +43,17 @@
 @property (nonatomic, assign) int lastContentOffsetX;
 @property (nonatomic, assign) int lastContentOffsetY;
 @property BOOL movedRight;
-@property CGFloat previousContentDelta;
 @property int page;
 
 - (IBAction)revealMenu:(UIBarButtonItem *)sender;
-//- (IBAction)revealFeedTypes:(UIBarButtonItem *)sender;
+- (IBAction)activateSearch:(UIBarButtonItem *)sender;
 
 @end
 
 @implementation FDFeedViewController
 @synthesize lastContentOffsetX = _lastContentOffsetX;
 @synthesize lastContentOffsetY = _lastContentOffsetY;
-@synthesize previousContentDelta, page;
+@synthesize page;
 
 - (void)viewDidLoad
 {
@@ -70,10 +69,10 @@
     
     self.addPostButton.layer.shadowOffset = CGSizeMake(0,0);
     self.addPostButton.layer.shadowColor = [UIColor blackColor].CGColor;
-    self.addPostButton.layer.shadowRadius = 2.0;
-    self.addPostButton.layer.shadowOpacity = .55;
+    self.addPostButton.layer.shadowRadius = 3.0;
+    self.addPostButton.layer.shadowOpacity = .4;
 
-    int screenWidth = self.view.bounds.size.width;
+    /*int screenWidth = self.view.bounds.size.width;
     int screenHeight = self.view.bounds.size.height;
     BOOL existingUser = [[NSUserDefaults standardUserDefaults] boolForKey:@"existingUser"];
     if (!existingUser) {
@@ -96,7 +95,7 @@
         [blackView addSubview:dismiss];
         [self.view addSubview:blackView];
         [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"existingUser"];
-    }
+    }*/
     
     self.searchBar = [[UISearchBar alloc] initWithFrame:CGRectMake(0,-44,320,44)];
     self.searchDisplay = [[UISearchDisplayController alloc] initWithSearchBar:self.searchBar contentsController:self];
@@ -162,22 +161,27 @@
     switch (self.page) {
         case 0:
             [self showFeed];
+            [self.addPostButton setFrame:CGRectMake(130,self.view.frame.size.height-55,55,55)];
             [self hideLabelsExcept:self.feedLabel];
             break;
         case 1:
             [self showNearby];
+            [self.addPostButton setFrame:CGRectMake(130,self.view.frame.size.height,55,55)];
             [self hideLabelsExcept:self.nearbyLabel];
             break;
         case 2:
             [self showFeatured];
+            [self.addPostButton setFrame:CGRectMake(130,self.view.frame.size.height,55,55)];
             [self hideLabelsExcept:self.featuredLabel];
             break;
         case 3:
             [self showRecommended];
+            [self.addPostButton setFrame:CGRectMake(130,self.view.frame.size.height-55,55,55)];
             [self hideLabelsExcept:self.recLabel];
             break;
         case 4:
             [self showProfile];
+            [self.addPostButton setFrame:CGRectMake(130,self.view.frame.size.height-55,55,55)];
             [self hideLabelsExcept:self.myPostsLabel];
             break;
         default:
@@ -190,7 +194,7 @@
         if ([view isMemberOfClass:[UILabel class]]){
             UILabel *label = (UILabel *)view;
             if (label.text != feed.text) {
-                [UIView animateWithDuration:.3f animations:^{
+                [UIView animateWithDuration:.25f animations:^{
                     label.alpha = 0.0;
                     feed.alpha = 1.0;
                 }];
@@ -202,11 +206,13 @@
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView {
     _lastContentOffsetX = scrollView.contentOffset.x;
     _lastContentOffsetY = scrollView.contentOffset.y;
-    self.previousContentDelta = 0.f;
 }
 
 - (void)revealSlider {
-        [UIView animateWithDuration:UINavigationControllerHideShowBarDuration animations:^(void) {
+    [UIView animateWithDuration:UINavigationControllerHideShowBarDuration
+                          delay:0
+                        options:UIViewAnimationOptionCurveEaseInOut
+                     animations:^(void) {
             [self.navigationController setNavigationBarHidden:NO animated:NO];
             [self.feedContainerView setFrame:CGRectMake(0,88,320,self.view.bounds.size.height)];
             [clipView setFrame:CGRectMake(0,0,320,88)];
@@ -220,11 +226,14 @@
 }
 
 - (void)hideSlider {
-    [UIView animateWithDuration:UINavigationControllerHideShowBarDuration animations:^(void) {
+    [UIView animateWithDuration:UINavigationControllerHideShowBarDuration
+                          delay:0
+                        options:UIViewAnimationOptionCurveEaseInOut
+                     animations:^(void) {
         [self.feedContainerView setFrame:CGRectMake(0,0,320,self.view.bounds.size.height)];
-        [clipView setFrame:CGRectMake(0,-128,320,88)];
-        [self.clipViewBackground setFrame:CGRectMake(0,-128,320,88)];
-        [_scrollView setFrame:CGRectMake(116,-128,88,88)];
+        [clipView setFrame:CGRectMake(0,-134,320,88)];
+        [self.clipViewBackground setFrame:CGRectMake(0,-134,320,88)];
+        [_scrollView setFrame:CGRectMake(116,-134,88,88)];
         [self hideLabels];
     }completion:^(BOOL finished){
 
@@ -253,7 +262,7 @@
     }
 }
 - (void) showAllLabels {
-    [UIView animateWithDuration:.3f animations:^{
+    [UIView animateWithDuration:.25f animations:^{
         self.feedLabel.alpha = 1.0;
         self.featuredLabel.alpha = 1.0;
         self.myPostsLabel.alpha = 1.0;
@@ -262,24 +271,23 @@
     }];
     
 }
-- (void)dismissSelf {
+/*- (void)dismissSelf {
     UIView *blackView = [self.view viewWithTag:333];
     [self.navigationController setNavigationBarHidden:NO animated:YES];
     [UIView animateWithDuration:0.25f
                           delay:0
-                        options:UIViewAnimationCurveEaseOut
+                        options:UIViewAnimationOptionCurveEaseOut
                      animations:^{
         [blackView setAlpha:0.0f];
     }
                      completion: ^(BOOL finished){
                          [blackView removeFromSuperview];
     }];
-}
+}*/
 
 - (void)viewWillDisappear:(BOOL)animated {
     [super viewWillDisappear:animated];
     self.slidingViewController.panGesture.enabled = NO;
-    [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
 }
 
 - (void)viewDidUnload
@@ -301,19 +309,17 @@
     } else if ([segue.identifier isEqualToString:@"AddPost"]) {
         [FDPost resetUserPost];
     } else if ([segue.identifier isEqualToString:@"ShowMap"]) {
-       FDMapViewController *vcForMap = segue.destinationViewController;
-        NSLog(@"post.identifier from NearbyTableView: %@", [(FDPost *)sender identifier]);
+        FDPlaceViewController *vcForMap = segue.destinationViewController;
         [vcForMap setPostIdentifier:[(FDPost *)sender identifier]];
     } else if ([segue.identifier isEqualToString:@"ShowProfileFromLikers"]){
         UIButton *button = (UIButton *)sender;
         FDProfileViewController *vc = segue.destinationViewController;
-        NSLog(@"button.titleLabel: %@",button.titleLabel.text);
         [vc initWithUserId:button.titleLabel.text];
     } else if ([segue.identifier isEqualToString:@"ShowPlace"]){
-        FDMapViewController *mapView = [segue destinationViewController];
+        FDPlaceViewController *placeView = [segue destinationViewController];
         FDPost *post = (FDPost *) sender;
-        NSLog(@"sender.venue from FDFeedView: %@",post.foursquareid);
-        [mapView setVenueId:post.foursquareid];
+        NSLog(@"post.foursquareid: %@",post.foursquareid);
+        [placeView setVenueId:post.foursquareid];
     }
 }
 
@@ -323,25 +329,23 @@
     [self showFeatured];
 }
 
-- (void)showProfile {
-    [self.searchButtonItem setImage:[UIImage imageNamed:@"magnifier"]];
-    [self showPostViewController:self.profileViewController];
-}
-
 - (void)showFeed {
     [self.searchButtonItem setImage:[UIImage imageNamed:@"emptyBarButton"]];
+    [self.searchButtonItem setEnabled:NO];
     //self.title = @"FRIENDS";
     [self showPostViewController:self.feedTableViewController];
 }
 
 - (void)showFeatured {
     [self.searchButtonItem setImage:[UIImage imageNamed:@"emptyBarButton"]];
+    [self.searchButtonItem setEnabled:NO];
     //self.title = @"FEATURED";
     [self showPostViewController:self.featuredGridViewController];
 }
 
 - (void)showRecommended {
     [self.searchButtonItem setImage:[UIImage imageNamed:@"emptyBarButton"]];
+    [self.searchButtonItem setEnabled:NO];
     //self.title = @"RECOMMENDED";
     [self showPostViewController:self.recommendedTableViewController];
 }
@@ -349,7 +353,14 @@
 - (void)showNearby {
     //self.title = @"NEARBY";
     [self.searchButtonItem setImage:[UIImage imageNamed:@"magnifier"]];
+    [self.searchButtonItem setEnabled:YES];
     [self showPostViewController:self.placesViewController];
+}
+
+- (void)showProfile {
+    [self.searchButtonItem setImage:[UIImage imageNamed:@"magnifier"]];
+    [self.searchButtonItem setEnabled:YES];
+    [self showPostViewController:self.profileViewController];
 }
 
 - (void)showPostViewController:(UIViewController *)toViewController {
@@ -382,11 +393,11 @@
             
         [self transitionFromViewController:self.currentChildViewController
                           toViewController:toViewController
-                                  duration:0.30f
+                                  duration:0.15f
                                    options:0
                                 animations:^{
                                     CGAffineTransform hiddenTransform = CGAffineTransformMakeTranslation(-self.feedContainerView.bounds.size.width, 0);
-                                    //hiddenTransform = CGAffineTransformScale(hiddenTransform, 0.5, 0.5);
+                                    hiddenTransform = CGAffineTransformScale(hiddenTransform, 0.4, 0.4);
                                     self.currentChildViewController.view.transform = hiddenTransform;
                                     toViewController.view.transform = CGAffineTransformIdentity;
                                 }
@@ -409,23 +420,22 @@
     [(FDMenuViewController*)self.slidingViewController.underLeftViewController refresh];
 }
 
-- (IBAction)activateSearch {
-    if (self.searchBar.hidden == YES){
+- (IBAction)activateSearch:(UIBarButtonItem *)sender {
+    if (!self.navigationController.navigationBar.isHidden){
+        NSLog(@"tucking away the feedContainerView from feedViewVC");
         [self hideSlider];
-        [self.navigationController setNavigationBarHidden:YES animated:YES];
         [UIView animateWithDuration:UINavigationControllerHideShowBarDuration animations:^{
-            [self.searchBar setFrame:CGRectMake(0,0,320,44)];
+            //[self.searchBar setFrame:CGRectMake(0,0,320,44)];
             [self.feedContainerView setFrame:CGRectMake(0,44,320,self.view.frame.size.height)];
         }];
-        [self.searchBar setHidden:NO];
-    } /*else {
-        NSLog(@"should be hiding search");
+        //[self.searchBar setHidden:NO];
+    } else {
         [UIView animateWithDuration:.3f animations:^{
-            [self.searchBar setFrame:CGRectMake(0,-44,320,44)];
+            //[self.searchBar setFrame:CGRectMake(0,-44,320,44)];
             [self.feedContainerView setFrame:CGRectMake(0,26,320,self.view.frame.size.height)];
-            [self.searchBar setHidden:YES];
+            //[self.searchBar setHidden:YES];
         }];
-    }*/
+    }
 }
 
 - (NSString *)searchText {
@@ -445,13 +455,13 @@
 
 - (void)postTableViewController:(FDPostTableViewController *)controller didSelectPost:(FDPost *)post {
     [self.navigationController setNavigationBarHidden:NO];
-    [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
     [self performSegueWithIdentifier:@"ShowPost" sender:post];
 }
 
 - (void)postTableViewController:(FDPostTableViewController *)controller didSelectPlace:(FDVenue *)place {
     [self.navigationController setNavigationBarHidden:NO];
     [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
+    NSLog(@"place we're going to: %@",place.name);
     [self performSegueWithIdentifier:@"ShowPlace" sender:place];
 }
 

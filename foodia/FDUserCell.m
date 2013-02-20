@@ -10,7 +10,7 @@
 #import "FDAPIClient.h"
 #import "FDCache.h"
 #import "FDSocialViewController.h"
-#import <FacebookSDK/FacebookSDK.h>
+#import "Facebook.h"
 #import "Utilities.h"
 
 @implementation FDUserCell
@@ -35,14 +35,11 @@
 - (void)buttonPressed
 {
     if([currentButton isEqualToString:@"Invite"]) {
-        NSLog(@"yup, it's an invite");
         [self inviteUser:self.facebookId];
     } else if([currentButton isEqualToString:@"Follow"]) {
-        NSLog(@"follow button pressed");
         [self setUnfollowButton];
         (void)[[FDAPIClient sharedClient] followUser:self.facebookId];
     } else if([currentButton isEqualToString:@"Unfollow"]) {
-        NSLog(@"unfollow button pressed");
         [self setFollowButton];
         (void)[[FDAPIClient sharedClient] unfollowUser:self.facebookId];
     }
@@ -57,6 +54,9 @@
     [button setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     [button.titleLabel setFont:[UIFont fontWithName:@"AvenirNextCondensed-DemiBold" size:15]];
     currentButton = @"Invite";
+    button.layer.shouldRasterize = YES;
+    button.layer.rasterizationScale = [UIScreen mainScreen].scale;
+    
     button.userInteractionEnabled = YES;
 }
 
@@ -69,6 +69,8 @@
     [button setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
     [button.titleLabel setFont:[UIFont fontWithName:@"AvenirNextCondensed-Medium" size:15]];
     currentButton = @"Invited";
+    button.layer.shouldRasterize = YES;
+    button.layer.rasterizationScale = [UIScreen mainScreen].scale;
     button.userInteractionEnabled = NO;
 }
 
@@ -82,6 +84,8 @@
     [button setTitleColor:[UIColor redColor] forState:UIControlStateNormal];
     [button.titleLabel setFont:[UIFont fontWithName:@"AvenirNextCondensed-DemiBold" size:15]];
     currentButton = @"Follow";
+    button.layer.shouldRasterize = YES;
+    button.layer.rasterizationScale = [UIScreen mainScreen].scale;
 }
 
 - (void)setUnfollowButton
@@ -92,6 +96,8 @@
     [button setTitleColor:[UIColor darkGrayColor] forState:UIControlStateNormal];
     [button.titleLabel setFont:[UIFont fontWithName:@"AvenirNextCondensed-Medium" size:15]];
     currentButton = @"Unfollow";
+    button.layer.shouldRasterize = YES;
+    button.layer.rasterizationScale = [UIScreen mainScreen].scale;
 }
 
 - (void)setFacebookId:(NSString *)newFacebookId
@@ -110,13 +116,13 @@
 -(void)inviteUser:(NSString *)who {
     [self setInvitedButton];
     if ([FBSession.activeSession.permissions
-         indexOfObject:@"publish_stream"] == NSNotFound) {
+         indexOfObject:@"publish_actions"] == NSNotFound) {
         // No permissions found in session, ask for it
-        [FBSession.activeSession reauthorizeWithPublishPermissions:[NSArray arrayWithObjects:@"publish_stream",@"email",nil] defaultAudience:FBSessionDefaultAudienceFriends completionHandler:^(FBSession *session, NSError *error) {
+        [FBSession.activeSession reauthorizeWithPublishPermissions:[NSArray arrayWithObjects:@"publish_actions",nil] defaultAudience:FBSessionDefaultAudienceFriends completionHandler:^(FBSession *session, NSError *error) {
             if (!error) {
                 // If permissions granted, publish the story
                 if ([FBSession.activeSession.permissions
-                     indexOfObject:@"publish_stream"] != NSNotFound) {
+                     indexOfObject:@"publish_actions"] != NSNotFound) {
                     NSDictionary *inviteRecipient = [NSDictionary dictionaryWithObject:who forKey:@"fbid"];
                     //[[NSUserDefaults standardUserDefaults] setObject:session.accessToken forKey:@"FacebookAccessToken"];
                     [[NSNotificationCenter defaultCenter]
@@ -129,7 +135,7 @@
             }
         }];
     } else if ([FBSession.activeSession.permissions
-                indexOfObject:@"publish_stream"] != NSNotFound) {
+                indexOfObject:@"publish_actions"] != NSNotFound) {
         // If permissions present, publish the story
         NSDictionary *inviteRecipient = [NSDictionary dictionaryWithObject:who forKey:@"fbid"];
         [[NSNotificationCenter defaultCenter]

@@ -6,7 +6,7 @@
 //
 
 #import "Utilities.h"
-#import <FacebookSDK/FacebookSDK.h>
+#import "Facebook.h"
 #import "SDImageCache.h"
 
 #define TMP NSTemporaryDirectory()

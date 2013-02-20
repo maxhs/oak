@@ -6,8 +6,6 @@
 //  Copyright (c) 2012 FOODIA. All rights reserved.
 //
 
-#import <UIKit/UIKit.h>
-
 #import "FDAppDelegate.h"
 
 int main(int argc, char *argv[])

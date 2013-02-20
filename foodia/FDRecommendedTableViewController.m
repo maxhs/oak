@@ -11,6 +11,7 @@
 #import "FDAPIClient.h"
 #import "FDPostCell.h"
 #import "Utilities.h"
+#import "FDPlaceViewController.h"
 
 @interface FDRecommendedTableViewController ()
 
@@ -19,14 +20,15 @@
 @implementation FDRecommendedTableViewController
 
 - (void)viewDidLoad {
+    [super viewDidLoad];
     [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
     [TestFlight passCheckpoint:@"Viewing Recommend Table View"];
-    [super viewDidLoad];
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(updatePostNotification:)
                                                  name:@"UpdatePostNotification"
                                                object:nil];
-    [self refresh];
+    
+    
     
     //replace ugly background
     for (UIView *view in self.searchDisplayController.searchBar.subviews) {
@@ -36,8 +38,9 @@
             break;
         }
     }
+    [self refresh];
 }
-- (void)loadFromCache {
+/*- (void)loadFromCache {
     NSMutableArray *cachedPosts = [FDCache getCachedRecommendedPosts];
     if (cachedPosts == nil)
         [self refresh];
@@ -51,11 +54,11 @@
 
 - (void)saveCache {
     [FDCache cacheRecommendedPosts:self.posts];
-}
+}*/
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    if (indexPath.section == 1 && self.posts.count != 0) {
+    //if (indexPath.section == 1 && self.posts.count != 0) {
         static NSString *PostCellIdentifier = @"PostCell";
         FDPostCell *cell = (FDPostCell *)[tableView dequeueReusableCellWithIdentifier:PostCellIdentifier];
         if (cell == nil) {
@@ -71,7 +74,7 @@
         [cell.posterButton addTarget:self action:@selector(showProfile:) forControlEvents:UIControlEventTouchUpInside];
         self.tableView.separatorStyle = UITableViewCellSeparatorStyleSingleLine;
         
-        [cell.locationButton addTarget:self action:@selector(selectMap:) forControlEvents:UIControlEventTouchUpInside];
+        [cell.locationButton addTarget:self action:@selector(showPlace:) forControlEvents:UIControlEventTouchUpInside];
         cell.locationButton.tag = indexPath.row;
         
         [self showLikers:cell forPost:post];
@@ -79,10 +82,9 @@
         
         //capture recommend touch event
         UIButton *recButton = [UIButton buttonWithType:UIButtonTypeCustom];
-        [recButton setFrame:CGRectMake(278,52,70,34)];
+        [recButton setFrame:CGRectMake(276,52,70,34)];
         [recButton addTarget:self action:@selector(recommend:) forControlEvents:UIControlEventTouchUpInside];
-        [recButton setTitle:@"REC" forState:UIControlStateNormal];
-        [recButton setTitle:@"REC" forState:UIControlStateSelected];
+        [recButton setTitle:@"Rec" forState:UIControlStateNormal];
         recButton.layer.borderColor = [UIColor colorWithWhite:.1 alpha:.1].CGColor;
         recButton.layer.borderWidth = 1.0f;
         recButton.backgroundColor = [UIColor whiteColor];
@@ -98,8 +100,8 @@
         
         //capture add comment touch event, send user to post detail view
         UIButton *commentButton = [UIButton buttonWithType:UIButtonTypeCustom];
-        [commentButton setFrame:CGRectMake(278,97,130,34)];
-        commentButton.tag = indexPath.row;
+        [commentButton setFrame:CGRectMake(382,52,118,34)];
+        commentButton.tag = indexPath.row;;
         [commentButton addTarget:self action:@selector(didSelectRow:) forControlEvents:UIControlEventTouchUpInside];
         [commentButton setTitle:@"Add a comment..." forState:UIControlStateNormal];
         [commentButton setTitle:@"Nice!" forState:UIControlStateSelected];
@@ -112,35 +114,24 @@
         
         [cell.scrollView addSubview:commentButton];
         return cell;
-    } else {
-        static NSString *FeedEndCellIdenfitier = @"FeedEndCellIdenfitier";
-        UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:FeedEndCellIdenfitier];
-        if (cell == nil) {
-            NSArray *nib = [[NSBundle mainBundle] loadNibNamed:@"FeedEndCell" owner:self options:nil];
-            cell = (FDPostCell *)[nib objectAtIndex:0];
-        }
-        [cell.contentView setHidden:YES];
-        if(self.fewPosts = NO){
-            [((UIButton *)[cell viewWithTag:1]) addTarget:self action:@selector(showFeaturedPosts) forControlEvents:UIControlEventTouchUpInside];
-            [((UIButton *)[cell viewWithTag:2]) addTarget:self action:@selector(showSocial) forControlEvents:UIControlEventTouchUpInside];
-            cell.selectionStyle = UITableViewCellSelectionStyleNone;
-            [cell setHidden:NO];
-        }
-        return cell;
-    }
+    //}
 }
 
 -(void) tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath
 {
     if([indexPath row] == ((NSIndexPath*)[[tableView indexPathsForVisibleRows] lastObject]).row){
         //end of loading
-        NSLog(@"removing loading overlay");
         [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
     }
 }
 
-- (void)refresh {
+-(void)showPlace: (id)sender {
+    [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
+    UIButton *button = (UIButton *) sender;
+    [self.delegate performSegueWithIdentifier:@"ShowPlace" sender:(FDPost*)[self.posts objectAtIndex:button.tag]];
+}
 
+- (void)refresh {
     // if we already have some posts in the feed, get the feed since the last post
     if (self.posts.count) {
         self.feedRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getRecommendedPostsSincePost:[self.posts objectAtIndex:0] success:^(NSMutableArray *posts) {
@@ -171,7 +162,6 @@
         } failure:^(NSError *error) {
             self.feedRequestOperation = nil;
             [self reloadData];
-            
         }];
     }
 }
@@ -201,9 +191,7 @@
 - (void)didShowLastRow {
     if (self.feedRequestOperation == nil && self.posts.count && self.canLoadAdditionalPosts) {
         [self loadAdditionalPosts];
-    } else {
-        NSLog(@"No more rows");
-    }
+    } else NSLog(@"No more rows");
 }
 
 
@@ -251,13 +239,20 @@
     [self.delegate performSegueWithIdentifier:@"ShowProfileFromLikers" sender:sender];
 }
 
+#pragma mark - Table view data source
+
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
+    return 155;
+}
+
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
+{
+    return 1;
+}
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-    
-    if(section == 0) return 0;
-    else if (section == 1) return self.posts.count;
-    else return 1;
+    return self.posts.count;
 }
 
 

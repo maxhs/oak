@@ -37,12 +37,12 @@
     [super viewDidLoad];
 	// Do any additional setup after loading the view.
     UILabel *navTitle = [[UILabel alloc] init];
-    navTitle.frame = CGRectMake(0,0,190,40);
+    navTitle.frame = CGRectMake(0,0,200,40);
     navTitle.text = @"THE PLACES I'VE BEEN";
-    navTitle.font = [UIFont fontWithName:@"AvenirNextCondensed-Medium" size:22];
+    navTitle.font = [UIFont fontWithName:@"AvenirNextCondensed-Medium" size:21];
     navTitle.backgroundColor = [UIColor clearColor];
-    navTitle.textColor = [UIColor whiteColor];
-    navTitle.textAlignment = UITextAlignmentCenter;
+    navTitle.textColor = [UIColor blackColor];
+    navTitle.textAlignment = NSTextAlignmentCenter;
     
     // Set label as titleView
     self.navigationItem.titleView = navTitle;
@@ -68,7 +68,6 @@
         for (FDPost *post in newPosts){
             if (post.location.coordinate.latitude != 0){
                 [self.posts addObject:post];
-                NSLog(@"post had location: %@",post.location);
             }
         }
         self.feedRequestOperation = nil;
@@ -92,7 +91,7 @@
 }
 
 - (void)showPostsOnMap {
-    [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
+    
     [self.mapView setShowsUserLocation:YES];
     [self.mapView removeAnnotations:self.mapView.annotations];
     
@@ -147,10 +146,16 @@
     
     return view;
 }
+        
+- (void)mapView:(MKMapView *)mapView didAddAnnotationViews:(NSArray *)views {
+    if ([views count] == self.posts.count) {
+        NSLog(@"just loaded %d posts",self.posts.count);
+        [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
+    }
+}
 
 - (void)tappedPostButton:(UIButton *)button {
     FDPost *post = [self.posts objectAtIndex:button.tag];
-    NSLog(@"post from tappedPostBUtton method: %@",post);
     [self performSegueWithIdentifier:@"ShowPostFromMap" sender:post];
 }
 

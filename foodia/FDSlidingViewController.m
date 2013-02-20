@@ -44,7 +44,6 @@
     UIStoryboard *storyboard;
     if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone && [UIScreen mainScreen].bounds.size.height == 568.0){
         storyboard = [UIStoryboard storyboardWithName:@"iPhone5" bundle:nil];
-        NSLog(@"Loading iPhone 5 Storyboard");
         self.topViewController = [storyboard instantiateViewControllerWithIdentifier:@"FeedNavigation"];
     } else {
         storyboard = [UIStoryboard storyboardWithName:@"iPhone" bundle:nil];

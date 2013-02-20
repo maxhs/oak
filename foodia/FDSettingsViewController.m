@@ -34,7 +34,7 @@
     navTitle.font = [UIFont fontWithName:@"AvenirNextCondensed-Medium" size:24];
     navTitle.backgroundColor = [UIColor clearColor];
     navTitle.textColor = [UIColor whiteColor];
-    navTitle.textAlignment = UITextAlignmentCenter;
+    navTitle.textAlignment = NSTextAlignmentCenter;
     
     // Set label as titleView
     self.navigationItem.titleView = navTitle;

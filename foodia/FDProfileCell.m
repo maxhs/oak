@@ -30,4 +30,37 @@
     // Configure the view for the selected state
 }
 
+- (IBAction)makingTapped {
+    [self resetCategoryButtons];
+    [self.makingButton setBackgroundColor:[UIColor lightGrayColor]];
+    NSLog(@"making tapped");
+}
+
+- (IBAction)shoppingTapped {
+    [self resetCategoryButtons];
+    [self.shoppingButton setBackgroundColor:[UIColor lightGrayColor]];
+    NSLog(@"shopping tapped");
+}
+- (IBAction)drinkingTapped {
+    [self resetCategoryButtons];
+    [self.drinkingButton setBackgroundColor:[UIColor lightGrayColor]];
+    NSLog(@"drinking tapped");
+    
+}
+- (IBAction)eatingTapped {
+    [self resetCategoryButtons];
+    [self.eatingButton setBackgroundColor:[UIColor lightGrayColor]];
+    NSLog(@"eating tapped");
+}
+
+-(void) resetCategoryButtons {
+    [self.shoppingButton setTitleColor:[UIColor darkGrayColor] forState:UIControlStateNormal];
+    [self.shoppingButton setBackgroundColor:[UIColor clearColor]];
+    [self.makingButton setTitleColor:[UIColor darkGrayColor] forState:UIControlStateNormal];
+    [self.makingButton setBackgroundColor:[UIColor clearColor]];
+    [self.eatingButton setTitleColor:[UIColor darkGrayColor] forState:UIControlStateNormal];
+    [self.eatingButton setBackgroundColor:[UIColor clearColor]];
+    [self.drinkingButton setTitleColor:[UIColor darkGrayColor] forState:UIControlStateNormal];
+    [self.drinkingButton setBackgroundColor:[UIColor clearColor]];
+}
 @end

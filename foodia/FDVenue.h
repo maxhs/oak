@@ -39,6 +39,9 @@
 @property (nonatomic, copy) NSMutableArray *stats;
 @property (nonatomic, copy) NSString *url;
 @property (nonatomic, copy) NSString *reservationsUrl;
+@property (nonatomic, copy) NSMutableArray *posts;
+@property (nonatomic, copy) NSString *imageViewUrl;
+@property (nonatomic, retain) UIImageView *imageView;
 @property (nonatomic, assign) BOOL isOpen;
 @property (nonatomic, assign) BOOL verified;
 

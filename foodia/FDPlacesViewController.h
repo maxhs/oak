@@ -8,7 +8,8 @@
 
 #import "FDPostTableViewController.h"
 #import "FDAppDelegate.h"
+typedef void (^TaskCompletionBlock)(void);
 
 @interface FDPlacesViewController : FDPostTableViewController
-
+@property (nonatomic, copy) TaskCompletionBlock block;
 @end
