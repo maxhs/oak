@@ -205,6 +205,10 @@
 		F22B269E16402DD000E64A91 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = F22B269A16402DD000E64A91 /* README.md */; };
 		F22B269F16402DD000E64A91 /* release_notes.md in Resources */ = {isa = PBXBuildFile; fileRef = F22B269B16402DD000E64A91 /* release_notes.md */; };
 		F22B26A116402E6F00E64A91 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = F22B26A016402E6F00E64A91 /* libz.dylib */; };
+		F23C051016D56B050075AB19 /* FOODIA app icon_29.png in Resources */ = {isa = PBXBuildFile; fileRef = F23C050C16D56B050075AB19 /* FOODIA app icon_29.png */; };
+		F23C051116D56B050075AB19 /* FOODIA app icon_58.png in Resources */ = {isa = PBXBuildFile; fileRef = F23C050D16D56B050075AB19 /* FOODIA app icon_58.png */; };
+		F23C051216D56B050075AB19 /* FOODIA app icon_512.png in Resources */ = {isa = PBXBuildFile; fileRef = F23C050E16D56B050075AB19 /* FOODIA app icon_512.png */; };
+		F23C051316D56B050075AB19 /* FOODIA app icon_1024.png in Resources */ = {isa = PBXBuildFile; fileRef = F23C050F16D56B050075AB19 /* FOODIA app icon_1024.png */; };
 		F23D45DD16C6C60C003B63B4 /* plusButtonv2.png in Resources */ = {isa = PBXBuildFile; fileRef = F23D45DB16C6C60C003B63B4 /* plusButtonv2.png */; };
 		F23D45DE16C6C60C003B63B4 /* plusButtonv2@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F23D45DC16C6C60C003B63B4 /* plusButtonv2@2x.png */; };
 		F24126E816C16A3A00C0D680 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F24126E716C16A3A00C0D680 /* CoreFoundation.framework */; };
@@ -661,6 +665,10 @@
 		F22B269B16402DD000E64A91 /* release_notes.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = release_notes.md; sourceTree = "<group>"; };
 		F22B269C16402DD000E64A91 /* TestFlight.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestFlight.h; sourceTree = "<group>"; };
 		F22B26A016402E6F00E64A91 /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = usr/lib/libz.dylib; sourceTree = SDKROOT; };
+		F23C050C16D56B050075AB19 /* FOODIA app icon_29.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "FOODIA app icon_29.png"; sourceTree = "<group>"; };
+		F23C050D16D56B050075AB19 /* FOODIA app icon_58.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "FOODIA app icon_58.png"; sourceTree = "<group>"; };
+		F23C050E16D56B050075AB19 /* FOODIA app icon_512.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "FOODIA app icon_512.png"; sourceTree = "<group>"; };
+		F23C050F16D56B050075AB19 /* FOODIA app icon_1024.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "FOODIA app icon_1024.png"; sourceTree = "<group>"; };
 		F23D45DB16C6C60C003B63B4 /* plusButtonv2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = plusButtonv2.png; sourceTree = "<group>"; };
 		F23D45DC16C6C60C003B63B4 /* plusButtonv2@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "plusButtonv2@2x.png"; sourceTree = "<group>"; };
 		F24126E716C16A3A00C0D680 /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
@@ -1237,6 +1245,10 @@
 				F27AA6DB16D4A7140077F77D /* FacebookSDK.framework */,
 				F27AA6D916D4A6A30077F77D /* Social.framework */,
 				F25102B416D492980003FA3B /* FOODIA-app-icon.png */,
+				F23C050C16D56B050075AB19 /* FOODIA app icon_29.png */,
+				F23C050D16D56B050075AB19 /* FOODIA app icon_58.png */,
+				F23C050E16D56B050075AB19 /* FOODIA app icon_512.png */,
+				F23C050F16D56B050075AB19 /* FOODIA app icon_1024.png */,
 				F25102B216D492940003FA3B /* FOODIA-app-icon@2x.png */,
 				F2FE147816C5FAAA006F8ACD /* icon.png */,
 				F2FE147616C5FAA6006F8ACD /* icon@2x.png */,
@@ -2044,6 +2056,10 @@
 				F25102B316D492940003FA3B /* FOODIA-app-icon@2x.png in Resources */,
 				F25102B516D492980003FA3B /* FOODIA-app-icon.png in Resources */,
 				F27AA6DF16D4BA590077F77D /* newFoodiaHeader.png in Resources */,
+				F23C051016D56B050075AB19 /* FOODIA app icon_29.png in Resources */,
+				F23C051116D56B050075AB19 /* FOODIA app icon_58.png in Resources */,
+				F23C051216D56B050075AB19 /* FOODIA app icon_512.png in Resources */,
+				F23C051316D56B050075AB19 /* FOODIA app icon_1024.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2268,7 +2284,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 6.0;
 				ONLY_ACTIVE_ARCH = NO;
 				PROVISIONING_PROFILE = "F3D660E3-FC76-420C-8FE9-867945C47F01";
-				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "CE32EA13-3CFD-47DF-921D-ED960FFAD1D7";
+				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "F3D660E3-FC76-420C-8FE9-867945C47F01";
 				SDKROOT = iphoneos;
 			};
 			name = Debug;
@@ -2294,8 +2310,8 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 6.0;
 				ONLY_ACTIVE_ARCH = NO;
 				OTHER_CFLAGS = "-DNS_BLOCK_ASSERTIONS=1";
-				PROVISIONING_PROFILE = "02385A1D-0673-49B0-8B77-C593275AF107";
-				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "02385A1D-0673-49B0-8B77-C593275AF107";
+				PROVISIONING_PROFILE = "AB96DACE-BDDB-4534-8750-5A424543BF61";
+				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "AB96DACE-BDDB-4534-8750-5A424543BF61";
 				SDKROOT = iphoneos;
 				VALIDATE_PRODUCT = YES;
 			};
@@ -2304,7 +2320,7 @@
 		897CB95815BB68F900DB53F7 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_IDENTITY = "iPhone Developer: Max Haines-Stiles (QKJE3TUQ3S)";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)\"",
@@ -2332,7 +2348,7 @@
 					"-all_load",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE = "";
+				PROVISIONING_PROFILE = "F3D660E3-FC76-420C-8FE9-867945C47F01";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = NO;
 				WRAPPER_EXTENSION = app;
@@ -2342,7 +2358,7 @@
 		897CB95915BB68F900DB53F7 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_IDENTITY = "iPhone Distribution: Foodia, Inc.";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)\"",
@@ -2370,7 +2386,7 @@
 					"-all_load",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE = "";
+				PROVISIONING_PROFILE = "443250C0-EE5D-4855-AA38-FE41CD89C4D6";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = NO;
 				VALIDATE_PRODUCT = YES;
@@ -2453,7 +2469,7 @@
 		8980169B15C6093F00CB5971 /* Testflight */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_IDENTITY = "iPhone Distribution: Foodia, Inc.";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)\"",
@@ -2481,7 +2497,7 @@
 					"-all_load",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE = "";
+				PROVISIONING_PROFILE = "443250C0-EE5D-4855-AA38-FE41CD89C4D6";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = NO;
 				VALIDATE_PRODUCT = NO;

@@ -54,13 +54,44 @@ static NSDictionary *placeholderImages;
         post = [cellPosts objectAtIndex:0];
         post1 = [cellPosts objectAtIndex:1];
         post2 = [cellPosts objectAtIndex:2];
-        [self.photoImageView setImageWithURL:post.featuredImageURL];
-        [self.photoImageView1 setImageWithURL:post1.featuredImageURL];
-        [self.photoImageView2 setImageWithURL:post2.featuredImageURL];
+        [self.photoImageView setImageWithURL:post.featuredImageURL completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType) {
+            [UIView animateWithDuration:.25 animations:^{
+                [self.photoImageView setImage:image];
+                [self.photoImageView setAlpha:1.0];
+                [self addShadow:self.photoImageView];
+            }];
+        }];
+        [self.photoImageView1 setImageWithURL:post1.featuredImageURL completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType) {
+            [UIView animateWithDuration:.25 animations:^{
+                [self.photoImageView1 setImage:image];
+                [self.photoImageView1 setAlpha:1.0];
+                [self addShadow:self.photoImageView1];
+            }];
+        }];
+        [self.photoImageView2 setImageWithURL:post2.featuredImageURL completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType) {
+            [UIView animateWithDuration:.25 animations:^{
+                [self.photoImageView2 setImage:image];
+                [self.photoImageView2 setAlpha:1.0];
+                [self addShadow:self.photoImageView2];
+            }];
+        }];
+
     } else {
         post = [cellPosts objectAtIndex:0];
         [self.photoImageView setImage:[FDPostGridCell placeholderImageForCategory:post.category]];
     }
+}
+
+-(void)addShadow:(UIImageView *)photoImageViewToShadow {
+    CGPathRef path = [UIBezierPath bezierPathWithRect:photoImageViewToShadow.bounds].CGPath;
+    [photoImageViewToShadow.layer setShadowPath:path];
+    photoImageViewToShadow.layer.shouldRasterize = YES;
+    photoImageViewToShadow.layer.rasterizationScale = [UIScreen mainScreen].scale;
+    photoImageViewToShadow.layer.shadowColor = [UIColor blackColor].CGColor;
+    photoImageViewToShadow.layer.shadowOffset = CGSizeMake(0, 0);
+    photoImageViewToShadow.layer.shadowOpacity = 1;
+    photoImageViewToShadow.layer.shadowRadius = 1.0;
+    photoImageViewToShadow.clipsToBounds = NO;
 }
 
 @end

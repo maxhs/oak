@@ -739,7 +739,7 @@
             <objects>
                 <viewController id="cJa-Iw-QRl" customClass="FDProfileMapViewController" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="hzH-jv-QmG">
-                        <rect key="frame" x="0.0" y="64" width="320" height="416"/>
+                        <rect key="frame" x="0.0" y="20" width="320" height="416"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
                             <mapView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" mapType="standard" id="q26-T2-WTJ">
@@ -922,14 +922,14 @@
             <objects>
                 <viewController storyboardIdentifier="PostView" id="LZE-XF-kth" customClass="FDPostViewController" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="6ox-v4-SAX">
-                        <rect key="frame" x="0.0" y="64" width="320" height="416"/>
+                        <rect key="frame" x="0.0" y="20" width="320" height="416"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="MCp-hq-K2j">
                                 <rect key="frame" x="0.0" y="0.0" width="320" height="416"/>
                                 <color key="backgroundColor" white="1" alpha="0.0" colorSpace="calibratedWhite"/>
                                 <view key="tableHeaderView" contentMode="scaleToFill" id="ZoU-hS-xBf">
-                                    <rect key="frame" x="0.0" y="0.0" width="320" height="325"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="320" height="323"/>
                                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES" flexibleMaxY="YES"/>
                                     <subviews>
                                         <progressView opaque="NO" contentMode="scaleToFill" progressViewStyle="bar" id="5VC-vT-Hta">
@@ -939,7 +939,7 @@
                                             <color key="trackTintColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
                                         </progressView>
                                         <scrollView hidden="YES" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" id="IWQ-X8-Ub9">
-                                            <rect key="frame" x="10" y="279" width="300" height="40"/>
+                                            <rect key="frame" x="10" y="277" width="300" height="40"/>
                                             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                         </scrollView>
                                         <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" editable="NO" id="VmA-yj-05f">
@@ -966,8 +966,8 @@
                                             <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="14"/>
                                             <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
                                         </textView>
-                                        <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" id="FIb-FL-3GD" userLabel="photo view">
-                                            <rect key="frame" x="5" y="5" width="310" height="310"/>
+                                        <imageView clipsSubviews="YES" userInteractionEnabled="NO" alpha="0.0" contentMode="scaleToFill" id="FIb-FL-3GD" userLabel="photo view">
+                                            <rect key="frame" x="5" y="4" width="310" height="310"/>
                                         </imageView>
                                         <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="HKZ-0U-mxo">
                                             <rect key="frame" x="5" y="5" width="310" height="310"/>
@@ -1002,20 +1002,17 @@
                                     <color key="backgroundColor" white="1" alpha="0.0" colorSpace="custom" customColorSpace="calibratedWhite"/>
                                 </view>
                                 <prototypes>
-                                    <tableViewCell contentMode="scaleToFill" selectionStyle="none" indentationWidth="10" reuseIdentifier="AddComment" rowHeight="50" id="ydf-UD-6fP">
-                                        <rect key="frame" x="0.0" y="347" width="320" height="50"/>
+                                    <tableViewCell contentMode="scaleToFill" selectionStyle="none" indentationWidth="10" reuseIdentifier="AddComment" rowHeight="66" id="ydf-UD-6fP">
+                                        <rect key="frame" x="0.0" y="345" width="320" height="66"/>
                                         <view key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center">
-                                            <rect key="frame" x="0.0" y="0.0" width="320" height="49"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="320" height="65"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <imageView userInteractionEnabled="NO" tag="66" contentMode="scaleToFill" id="dr7-wZ-2yr">
-                                                    <rect key="frame" x="10" y="2" width="36" height="36"/>
+                                                    <rect key="frame" x="10" y="1" width="36" height="36"/>
                                                 </imageView>
-                                                <imageView userInteractionEnabled="NO" contentMode="scaleToFill" image="commentField.png" id="eLp-ey-rZb">
-                                                    <rect key="frame" x="62" y="3" width="251" height="34"/>
-                                                </imageView>
-                                                <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" text="Add your two cents..." id="AX7-CG-gHf">
-                                                    <rect key="frame" x="65" y="4" width="246" height="34"/>
+                                                <textView clipsSubviews="YES" multipleTouchEnabled="YES" tag="67" contentMode="scaleToFill" text="Add your two cents..." id="AX7-CG-gHf">
+                                                    <rect key="frame" x="53" y="1" width="262" height="58"/>
                                                     <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                                     <color key="textColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
                                                     <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="15"/>
@@ -1358,7 +1355,7 @@
             <objects>
                 <viewController id="i81-4z-gaU" customClass="FDNewPostViewController" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="JX2-xA-Pck">
-                        <rect key="frame" x="0.0" y="64" width="320" height="416"/>
+                        <rect key="frame" x="0.0" y="20" width="320" height="416"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
                             <textView autoresizesSubviews="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="top" bounces="NO" bouncesZoom="NO" text="I'M THINKING..." id="Xcl-iC-d7C" userLabel="caption text view">
@@ -1608,7 +1605,7 @@
             <objects>
                 <viewController id="ooj-dJ-CFW" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="JX0-a6-uwB">
-                        <rect key="frame" x="0.0" y="64" width="320" height="416"/>
+                        <rect key="frame" x="0.0" y="20" width="320" height="416"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
                             <webView contentMode="scaleToFill" id="13O-qC-dTa">
@@ -1688,16 +1685,16 @@
                                                     <autoresizingMask key="autoresizingMask"/>
                                                     <subviews>
                                                         <label opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="left" text="Title" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="abl-0g-IY7">
-                                                            <rect key="frame" x="10" y="1" width="24" height="23"/>
+                                                            <rect key="frame" x="10" y="0.0" width="26" height="24"/>
                                                             <autoresizingMask key="autoresizingMask"/>
                                                             <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="17"/>
                                                             <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
                                                             <color key="highlightedColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                                                         </label>
                                                         <label opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="left" text="Subtitle" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="efJ-bQ-Qdx">
-                                                            <rect key="frame" x="10" y="24" width="34" height="19"/>
+                                                            <rect key="frame" x="10" y="24" width="40" height="20"/>
                                                             <autoresizingMask key="autoresizingMask"/>
-                                                            <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="13"/>
+                                                            <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="14"/>
                                                             <color key="textColor" red="0.50196078431372548" green="0.50196078431372548" blue="0.50196078431372548" alpha="1" colorSpace="calibratedRGB"/>
                                                             <color key="highlightedColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                                                         </label>
@@ -1715,7 +1712,7 @@
                                                         <label opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="left" text="Add Location" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="xZa-hs-vpq">
                                                             <rect key="frame" x="10" y="0.0" width="300" height="43"/>
                                                             <autoresizingMask key="autoresizingMask"/>
-                                                            <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="19"/>
+                                                            <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="17"/>
                                                             <color key="textColor" white="0.5" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                                                             <color key="highlightedColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                                                         </label>
@@ -1759,7 +1756,7 @@
             <objects>
                 <tableViewController id="p7Y-Uw-T4O" customClass="FDTagFriendsViewController" sceneMemberID="viewController">
                     <tableView key="view" opaque="NO" clipsSubviews="YES" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="clt-qb-FZI">
-                        <rect key="frame" x="0.0" y="64" width="320" height="416"/>
+                        <rect key="frame" x="0.0" y="20" width="320" height="416"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <searchBar key="tableHeaderView" contentMode="redraw" barStyle="blackTranslucent" id="Ynf-RR-lu2">
@@ -1818,7 +1815,7 @@
             <objects>
                 <viewController id="4xr-Qy-Eta" customClass="FDCameraViewController" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="1MY-Gs-rFv">
-                        <rect key="frame" x="0.0" y="64" width="320" height="416"/>
+                        <rect key="frame" x="0.0" y="20" width="320" height="416"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
                             <view clearsContextBeforeDrawing="NO" contentMode="scaleToFill" id="0Sb-qD-I9J">
@@ -1943,7 +1940,7 @@
             <objects>
                 <tableViewController id="C65-jf-Lgd" customClass="FDRecommendeesViewController" sceneMemberID="viewController">
                     <tableView key="view" opaque="NO" clipsSubviews="YES" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="11j-cl-O5p">
-                        <rect key="frame" x="0.0" y="64" width="320" height="416"/>
+                        <rect key="frame" x="0.0" y="20" width="320" height="416"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <searchBar key="tableHeaderView" contentMode="redraw" barStyle="blackTranslucent" id="byX-zq-zaF">
@@ -2186,7 +2183,6 @@
         <image name="cameraRejectPhotoButton.png" width="68" height="68"/>
         <image name="cancelPin.png" width="41" height="41"/>
         <image name="close.png" width="16" height="16"/>
-        <image name="commentField.png" width="227" height="30"/>
         <image name="connect.png" width="241" height="58"/>
         <image name="connectbutton.png" width="16" height="16"/>
         <image name="emptyBarButton.png" width="1" height="44"/>
@@ -2211,16 +2207,298 @@
         <image name="tumblrGray.png" width="34" height="34"/>
         <image name="twitterGray.png" width="40" height="33"/>
     </resources>
+    <classes>
+        <class className="ECSlidingViewController" superclassName="UIViewController">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/ECSlidingViewController.h"/>
+        </class>
+        <class className="FDActivityNavigationController" superclassName="UINavigationController">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDActivityNavigationController.h"/>
+        </class>
+        <class className="FDAddLocationViewController" superclassName="UIViewController">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDAddLocationViewController.h"/>
+            <relationships>
+                <relationship kind="action" name="removeLocation:"/>
+                <relationship kind="outlet" name="foursquareLogoView" candidateClass="UIImageView"/>
+                <relationship kind="outlet" name="mapView" candidateClass="MKMapView"/>
+                <relationship kind="outlet" name="searchBar" candidateClass="UISearchBar"/>
+                <relationship kind="outlet" name="tableContainerView" candidateClass="UIView"/>
+                <relationship kind="outlet" name="tableView" candidateClass="UITableView"/>
+            </relationships>
+        </class>
+        <class className="FDCameraViewController" superclassName="UIViewController">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDCameraViewController.h"/>
+            <relationships>
+                <relationship kind="action" name="cancel:"/>
+                <relationship kind="action" name="captureStillImage:"/>
+                <relationship kind="action" name="selectImage:"/>
+                <relationship kind="action" name="toggleCamera:"/>
+                <relationship kind="action" name="toggleRecording:"/>
+                <relationship kind="outlet" name="activityIndicator" candidateClass="UIActivityIndicatorView"/>
+                <relationship kind="outlet" name="cameraToggleButton" candidateClass="UIBarButtonItem"/>
+                <relationship kind="outlet" name="captureButtons" candidateClass="UIView"/>
+                <relationship kind="outlet" name="capturedImageView" candidateClass="UIImageView"/>
+                <relationship kind="outlet" name="focusModeLabel" candidateClass="UILabel"/>
+                <relationship kind="outlet" name="libraryButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="recordButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="reviewButtons" candidateClass="UIView"/>
+                <relationship kind="outlet" name="stillButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="videoPreviewView" candidateClass="UIView"/>
+            </relationships>
+        </class>
+        <class className="FDClipView" superclassName="UIView">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDClipView.h"/>
+            <relationships>
+                <relationship kind="outlet" name="_scrollView" candidateClass="UIScrollView"/>
+            </relationships>
+        </class>
+        <class className="FDFeedNavigationViewController" superclassName="UINavigationController">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDFeedNavigationViewController.h"/>
+        </class>
+        <class className="FDFeedViewController" superclassName="UIViewController">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDFeedViewController.h"/>
+            <relationships>
+                <relationship kind="action" name="activateSearch:" candidateClass="UIBarButtonItem"/>
+                <relationship kind="action" name="revealMenu:" candidateClass="UIBarButtonItem"/>
+                <relationship kind="outlet" name="_scrollView" candidateClass="UIScrollView"/>
+                <relationship kind="outlet" name="addPostButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="clipView" candidateClass="UIView"/>
+                <relationship kind="outlet" name="clipViewBackground" candidateClass="UIImageView"/>
+                <relationship kind="outlet" name="featuredLabel" candidateClass="UILabel"/>
+                <relationship kind="outlet" name="feedContainerView" candidateClass="UIView"/>
+                <relationship kind="outlet" name="feedLabel" candidateClass="UILabel"/>
+                <relationship kind="outlet" name="menuButtonItem" candidateClass="UIBarButtonItem"/>
+                <relationship kind="outlet" name="myPostsLabel" candidateClass="UILabel"/>
+                <relationship kind="outlet" name="nearbyLabel" candidateClass="UILabel"/>
+                <relationship kind="outlet" name="recLabel" candidateClass="UILabel"/>
+                <relationship kind="outlet" name="searchButtonItem" candidateClass="UIBarButtonItem"/>
+            </relationships>
+        </class>
+        <class className="FDLoginViewController" superclassName="UIViewController">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDLoginViewController.h"/>
+            <relationships>
+                <relationship kind="action" name="login:"/>
+                <relationship kind="outlet" name="loginButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="pageControl" candidateClass="UIPageControl"/>
+                <relationship kind="outlet" name="previewScrollView" candidateClass="UIScrollView"/>
+            </relationships>
+        </class>
+        <class className="FDMenuViewController" superclassName="UITableViewController">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDMenuViewController.h"/>
+        </class>
+        <class className="FDNewPostViewController" superclassName="UIViewController">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDNewPostViewController.h"/>
+            <relationships>
+                <relationship kind="action" name="addPhoto:"/>
+                <relationship kind="action" name="editCategory:"/>
+                <relationship kind="action" name="editPhoto:"/>
+                <relationship kind="action" name="submitPost:"/>
+                <relationship kind="action" name="toggleFacebook"/>
+                <relationship kind="outlet" name="captionTextView" candidateClass="UITextView"/>
+                <relationship kind="outlet" name="categoryImageView" candidateClass="UIImageView"/>
+                <relationship kind="outlet" name="categoryLabel" candidateClass="UILabel"/>
+                <relationship kind="outlet" name="confirmLocationImageView" candidateClass="UIImageView"/>
+                <relationship kind="outlet" name="deleteButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="facebookButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="foodiaObjectButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="foodiaObjectContainer" candidateClass="UIView"/>
+                <relationship kind="outlet" name="foodiaObjectLabel" candidateClass="UILabel"/>
+                <relationship kind="outlet" name="foursquareButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="friendsButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="friendsContainerView" candidateClass="UIView"/>
+                <relationship kind="outlet" name="friendsLabel" candidateClass="UILabel"/>
+                <relationship kind="outlet" name="friendsScrollView" candidateClass="UIScrollView"/>
+                <relationship kind="outlet" name="instagramButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="locationButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="locationContainerView" candidateClass="UIView"/>
+                <relationship kind="outlet" name="locationLabel" candidateClass="UILabel"/>
+                <relationship kind="outlet" name="mapView" candidateClass="MKMapView"/>
+                <relationship kind="outlet" name="noLocationActivityIndicatorView" candidateClass="UIActivityIndicatorView"/>
+                <relationship kind="outlet" name="photoBoxView" candidateClass="UIImageView"/>
+                <relationship kind="outlet" name="photoButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="postButtonItem" candidateClass="UIBarButtonItem"/>
+                <relationship kind="outlet" name="posterButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="posterImageView" candidateClass="UIImageView"/>
+                <relationship kind="outlet" name="recButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="recScrollView" candidateClass="UIScrollView"/>
+                <relationship kind="outlet" name="takePhotoButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="twitterButton" candidateClass="UIButton"/>
+            </relationships>
+        </class>
+        <class className="FDPeopleTableViewController" superclassName="UITableViewController">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDPeopleTableViewController.h"/>
+        </class>
+        <class className="FDPlaceViewController" superclassName="UIViewController">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDPlaceViewController.h"/>
+            <relationships>
+                <relationship kind="action" name="getReservation:"/>
+                <relationship kind="outlet" name="categoryLabel" candidateClass="UILabel"/>
+                <relationship kind="outlet" name="cityStateCountry" candidateClass="UILabel"/>
+                <relationship kind="outlet" name="directionsButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="foodiaPosts" candidateClass="UILabel"/>
+                <relationship kind="outlet" name="hoursTextView" candidateClass="UITextView"/>
+                <relationship kind="outlet" name="mapView" candidateClass="MKMapView"/>
+                <relationship kind="outlet" name="menuLink" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="placeLabel" candidateClass="UILabel"/>
+                <relationship kind="outlet" name="postsContainerTableView" candidateClass="UITableView"/>
+                <relationship kind="outlet" name="reservationsLink" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="streetAddress" candidateClass="UILabel"/>
+                <relationship kind="outlet" name="totalCheckinsLabel" candidateClass="UILabel"/>
+            </relationships>
+        </class>
+        <class className="FDPostCategoryViewController" superclassName="UIViewController">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDPostCategoryViewController.h"/>
+            <relationships>
+                <relationship kind="action" name="cancel:"/>
+                <relationship kind="action" name="clearTextField:"/>
+                <relationship kind="action" name="done:"/>
+                <relationship kind="action" name="selectDrink:"/>
+                <relationship kind="action" name="selectEat:"/>
+                <relationship kind="action" name="selectMake:"/>
+                <relationship kind="action" name="selectShop:"/>
+                <relationship kind="action" name="textFieldDidChange:"/>
+                <relationship kind="outlet" name="cameraButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="clearButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="doneButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="drinkingContainerView" candidateClass="UIView"/>
+                <relationship kind="outlet" name="drinkingTitleView" candidateClass="UIView"/>
+                <relationship kind="outlet" name="dummyView" candidateClass="UIImageView"/>
+                <relationship kind="outlet" name="eatingContainerView" candidateClass="UIView"/>
+                <relationship kind="outlet" name="eatingTitleView" candidateClass="UIView"/>
+                <relationship kind="outlet" name="makingContainerView" candidateClass="UIView"/>
+                <relationship kind="outlet" name="makingTitleView" candidateClass="UIView"/>
+                <relationship kind="outlet" name="nextButtonItem" candidateClass="UIBarButtonItem"/>
+                <relationship kind="outlet" name="objectTextField" candidateClass="UITextField"/>
+                <relationship kind="outlet" name="plusButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="searchResultsTableView" candidateClass="UITableView"/>
+                <relationship kind="outlet" name="shoppingContainerView" candidateClass="UIView"/>
+                <relationship kind="outlet" name="shoppingTitleView" candidateClass="UIView"/>
+                <relationship kind="outlet" name="textFieldImageView" candidateClass="UIImageView"/>
+            </relationships>
+        </class>
+        <class className="FDPostViewController" superclassName="UIViewController">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDPostViewController.h"/>
+            <relationships>
+                <relationship kind="action" name="expandImage:"/>
+                <relationship kind="action" name="likeButtonTapped:"/>
+                <relationship kind="action" name="recommend"/>
+                <relationship kind="action" name="showPlace"/>
+                <relationship kind="outlet" name="captionLabel" candidateClass="UILabel"/>
+                <relationship kind="outlet" name="captionTextView" candidateClass="UITextView"/>
+                <relationship kind="outlet" name="foodiaObjectTextView" candidateClass="UITextView"/>
+                <relationship kind="outlet" name="likeButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="likeCountLabel" candidateClass="UILabel"/>
+                <relationship kind="outlet" name="likersScrollView" candidateClass="UIScrollView"/>
+                <relationship kind="outlet" name="locationButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="photoButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="photoImageView" candidateClass="UIImageView"/>
+                <relationship kind="outlet" name="postTitle" candidateClass="UILabel"/>
+                <relationship kind="outlet" name="posterButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="progressView" candidateClass="UIProgressView"/>
+                <relationship kind="outlet" name="recButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="recCountLabel" candidateClass="UILabel"/>
+                <relationship kind="outlet" name="socialLabel" candidateClass="UITextView"/>
+                <relationship kind="outlet" name="tableHeaderView" candidateClass="UIView"/>
+                <relationship kind="outlet" name="tableView" candidateClass="UITableView"/>
+                <relationship kind="outlet" name="titleView" candidateClass="UIView"/>
+                <relationship kind="outlet" name="whiteCaption" candidateClass="UITextView"/>
+            </relationships>
+        </class>
+        <class className="FDProfileButton" superclassName="UIView">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDProfileButton.h"/>
+        </class>
+        <class className="FDProfileMapViewController" superclassName="UIViewController">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDProfileMapViewController.h"/>
+            <relationships>
+                <relationship kind="outlet" name="mapView" candidateClass="MKMapView"/>
+            </relationships>
+        </class>
+        <class className="FDProfileNavigationController" superclassName="UINavigationController">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDProfileNavigationController.h"/>
+        </class>
+        <class className="FDProfileViewController" superclassName="UIViewController">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDProfileViewController.h"/>
+            <relationships>
+                <relationship kind="action" name="activateSearch"/>
+                <relationship kind="action" name="followButtonTapped"/>
+                <relationship kind="action" name="getFeedForDrinking"/>
+                <relationship kind="action" name="getFeedForEating"/>
+                <relationship kind="action" name="getFeedForMaking"/>
+                <relationship kind="action" name="getFeedForShopping"/>
+                <relationship kind="action" name="showFollowers:"/>
+                <relationship kind="action" name="showFollowing:"/>
+                <relationship kind="outlet" name="activateSearchButton" candidateClass="UIBarButtonItem"/>
+                <relationship kind="outlet" name="buttonBackground" candidateClass="UIImageView"/>
+                <relationship kind="outlet" name="drinkingButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="eatingButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="followerCountLabel" candidateClass="UILabel"/>
+                <relationship kind="outlet" name="followersButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="followingButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="followingCountLabel" candidateClass="UILabel"/>
+                <relationship kind="outlet" name="inactiveLabel" candidateClass="UILabel"/>
+                <relationship kind="outlet" name="makingButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="mapView" candidateClass="MKMapView"/>
+                <relationship kind="outlet" name="postButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="postCountLabel" candidateClass="UILabel"/>
+                <relationship kind="outlet" name="postList" candidateClass="UITableView"/>
+                <relationship kind="outlet" name="profileButton" candidateClass="FDProfileButton"/>
+                <relationship kind="outlet" name="profileContainerView" candidateClass="UIView"/>
+                <relationship kind="outlet" name="profileDetailsContainerView" candidateClass="UIView"/>
+                <relationship kind="outlet" name="shoppingButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="socialButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="userNameLabel" candidateClass="UILabel"/>
+            </relationships>
+        </class>
+        <class className="FDRecommendViewController" superclassName="FDPeopleTableViewController">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDRecommendViewController.h"/>
+        </class>
+        <class className="FDRecommendeesViewController" superclassName="FDPeopleTableViewController">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDRecommendeesViewController.h"/>
+        </class>
+        <class className="FDSettingsNavigationController" superclassName="UINavigationController">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDSettingsNavigationController.h"/>
+        </class>
+        <class className="FDSettingsViewController" superclassName="UIViewController">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDSettingsViewController.h"/>
+            <relationships>
+                <relationship kind="action" name="revealMenu:" candidateClass="UIBarButtonItem"/>
+                <relationship kind="action" name="saveChanges"/>
+                <relationship kind="outlet" name="location" candidateClass="UITextView"/>
+                <relationship kind="outlet" name="occupation" candidateClass="UITextView"/>
+                <relationship kind="outlet" name="profileImageView" candidateClass="UIImageView"/>
+            </relationships>
+        </class>
+        <class className="FDSlidingViewController" superclassName="ECSlidingViewController">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDSlidingViewController.h"/>
+        </class>
+        <class className="FDSocialNavigationController" superclassName="UINavigationController">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDSocialNavigationController.h"/>
+        </class>
+        <class className="FDSocialViewController" superclassName="FDPeopleTableViewController">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDSocialViewController.h"/>
+            <relationships>
+                <relationship kind="action" name="revealMenu:" candidateClass="UIBarButtonItem"/>
+            </relationships>
+        </class>
+        <class className="FDTagFriendsViewController" superclassName="FDPeopleTableViewController">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDTagFriendsViewController.h"/>
+        </class>
+        <class className="FDWebViewController" superclassName="UIViewController">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDWebViewController.h"/>
+            <relationships>
+                <relationship kind="outlet" name="webView" candidateClass="UIWebView"/>
+            </relationships>
+        </class>
+    </classes>
     <simulatedMetricsContainer key="defaultSimulatedMetrics">
         <simulatedStatusBarMetrics key="statusBar" statusBarStyle="blackTranslucent"/>
         <simulatedOrientationMetrics key="orientation"/>
         <simulatedScreenMetrics key="destination"/>
     </simulatedMetricsContainer>
     <inferredMetricsTieBreakers>
-        <segue reference="95a-PX-POf"/>
-        <segue reference="6RC-Oj-kBr"/>
+        <segue reference="H0T-M3-DMm"/>
         <segue reference="ciL-Yp-aME"/>
         <segue reference="z8s-ya-eJa"/>
-        <segue reference="H0T-M3-DMm"/>
+        <segue reference="qXJ-nF-yFn"/>
+        <segue reference="uS6-Ln-RXv"/>
     </inferredMetricsTieBreakers>
 </document>

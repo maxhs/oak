@@ -62,7 +62,7 @@ static NSDictionary *placeholderImages;
     self.userId = self.post.user.facebookId;
     // set up the poster button
     [self.posterButton setImageWithURL:[Utilities profileImageURLForFacebookID:self.post.user.facebookId] forState:UIControlStateNormal];
-    self.posterButton.layer.cornerRadius = 5.0f;
+    self.posterButton.layer.cornerRadius = 22.0f;
     self.posterButton.clipsToBounds = YES;
     self.posterButton.layer.shouldRasterize = YES;
     self.posterButton.layer.rasterizationScale = [UIScreen mainScreen].scale;
@@ -73,27 +73,43 @@ static NSDictionary *placeholderImages;
         self.timeLabel.text = [Utilities timeIntervalSinceStartDate:self.post.postedAt];
     }
     // show the photo if present
-    if (self.post.hasPhoto) {
+    if (!self.post.hasPhoto) {
+        [self.photoImageView setImage:[FDPostCell placeholderImageForCategory:self.post.category]];
+        [UIView animateWithDuration:.25 animations:^{
+            [self.photoImageView setAlpha:1.0];
+            [self.posterButton setAlpha:1.0];
+            CGPathRef path = [UIBezierPath bezierPathWithRect:self.photoImageView.bounds].CGPath;
+            [self.photoImageView.layer setShadowPath:path];
+            self.photoImageView.layer.shouldRasterize = YES;
+            self.photoImageView.layer.rasterizationScale = [UIScreen mainScreen].scale;
+            self.photoImageView.layer.shadowColor = [UIColor lightGrayColor].CGColor;
+            self.photoImageView.layer.shadowOffset = CGSizeMake(0, 1);
+            self.photoImageView.layer.shadowOpacity = 1;
+            self.photoImageView.layer.shadowRadius = 2.0;
+        }];
+    } else {
+        NSLog(@"self.post.feedimageurl: %@",self.post.feedImageUrlString);
         [self.photoImageView setImageWithURL:self.post.feedImageURL completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType) {
             if (image) {
                 self.photoImageView.image = image;
                 CGPathRef path = [UIBezierPath bezierPathWithRect:self.photoImageView.bounds].CGPath;
-                [self.photoImageView.layer setShadowPath:path];
-                self.photoImageView.layer.shouldRasterize = YES;
-                // Don't forget the rasterization scale
-                // I spent days trying to figure out why retina display assets weren't working as expected
-                self.photoImageView.layer.rasterizationScale = [UIScreen mainScreen].scale;
-                self.photoImageView.layer.shadowColor = [UIColor lightGrayColor].CGColor;
-                self.photoImageView.layer.shadowOffset = CGSizeMake(0, 1);
-                self.photoImageView.layer.shadowOpacity = 1;
-                self.photoImageView.layer.shadowRadius = 2.0;
+                [UIView animateWithDuration:.25 animations:^{
+                    [self.photoImageView setAlpha:1.0];
+                    [self.posterButton setAlpha:1.0];
+                    [self.photoImageView.layer setShadowPath:path];
+                    self.photoImageView.layer.shouldRasterize = YES;
+                    self.photoImageView.layer.rasterizationScale = [UIScreen mainScreen].scale;
+                    self.photoImageView.layer.shadowColor = [UIColor lightGrayColor].CGColor;
+                    self.photoImageView.layer.shadowOffset = CGSizeMake(0, 1);
+                    self.photoImageView.layer.shadowOpacity = 1;
+                    self.photoImageView.layer.shadowRadius = 2.0;
+                }];
                 self.photoImageView.clipsToBounds = NO;
-
             } else {
                 NSLog(@"error drawing feed photo: %@",error.description);
             }
         }];
-    } else [self.photoImageView setImage:[FDPostCell placeholderImageForCategory:self.post.category]];
+    }
     
     // show the like count, and set the like button's image to indicate whether current user likes
     self.likeCountLabel.text = [NSString stringWithFormat:@"%@", self.post.likeCount];

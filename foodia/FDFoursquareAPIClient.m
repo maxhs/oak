@@ -122,7 +122,7 @@ static FDFoursquareAPIClient *singleton;
                               withPostId:(id)postId
 {
     NSString *foursquareAccessToken = [[NSUserDefaults standardUserDefaults] objectForKey:@"foursquare_access_token"];
-    NSString *shout = [NSString stringWithFormat:@"%@. Check it out on FOODIA: http://posts.foodia.com/p/%@", caption, [postId stringValue]];
+    NSString *shout = [NSString stringWithFormat:@"%@ | Check it out on FOODIA: http://posts.foodia.com/p/%@", caption, [postId stringValue]];
     NSMutableDictionary *parameters = [NSMutableDictionary dictionaryWithObjectsAndKeys: venueId,@"venueId",foursquareAccessToken,@"oauth_token",shout,@"shout", nil];
     return [self requestOperationWithMethod:@"POST"
                               path:CHECKIN_PATH

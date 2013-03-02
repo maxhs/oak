@@ -94,7 +94,6 @@ return [self requestOperationWithMethod:@"GET"
 }*/
 - (AFHTTPRequestOperation *)deviceConnectivity
 {
-    NSLog(@"device token from API client: %@",self.deviceToken);
     OperationFailure opFailure = ^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"failed to get device connectivity: %@", error.description);
     };

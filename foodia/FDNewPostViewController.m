@@ -232,12 +232,22 @@ static NSDictionary *categoryImages = nil;
         [self.photoButton setImage:FDPost.userPost.photoImage forState:UIControlStateNormal];
         self.photoButton.imageView.layer.borderColor = [UIColor lightGrayColor].CGColor;
         self.photoButton.imageView.layer.borderWidth = .5f;
+        CGPathRef path = [UIBezierPath bezierPathWithRect:self.photoButton.bounds].CGPath;
+        [self.photoButton.layer setShadowPath:path];
+        self.photoButton.layer.shouldRasterize = YES;
+        self.photoButton.layer.rasterizationScale = [UIScreen mainScreen].scale;
+        self.photoButton.layer.shadowColor = [UIColor lightGrayColor].CGColor;
+        self.photoButton.layer.shadowOffset = CGSizeMake(0, 1);
+        self.photoButton.layer.shadowOpacity = 1;
+        self.photoButton.layer.shadowRadius = 2.0;
+
     } else {
         UIImageView *imageView = [[UIImageView alloc] init];
         [imageView setImageWithURL:self.post.detailImageURL];
         [self.photoButton setImage:imageView.image forState:UIControlStateNormal];
         self.post.photoImage = imageView.image;
     }
+
     self.photoButton.hidden = !self.post.photoImage;
     [self.foodiaObjectButton setTitle:[NSString stringWithFormat:@"I'M %@", self.post.category.uppercaseString] forState:UIControlStateNormal];
     self.categoryImageView.image = [FDNewPostViewController imageForCategory:self.post.category];

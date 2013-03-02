@@ -195,10 +195,8 @@
         return addSearchLocation;
     } else {
         FDPlacesCell *cell = (FDPlacesCell *)[tableView dequeueReusableCellWithIdentifier:@"PlacesCell"];
-        if (cell == nil) {
             NSArray *nib = [[NSBundle mainBundle] loadNibNamed:@"FDPlacesCell" owner:self options:nil];
             cell = (FDPlacesCell *)[nib objectAtIndex:0];
-        }
         FDVenue *location = [self.locations objectAtIndex:indexPath.row];
         cell.placeName.text = location.name;
         cell.placeAddress.text = location.location.locality;

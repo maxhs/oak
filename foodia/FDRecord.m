@@ -9,7 +9,6 @@
 #import "FDRecord.h"
 #import "NSString+CamelCaseUnderscore.h"
 
-
 @implementation FDRecord
 
 @synthesize identifier;

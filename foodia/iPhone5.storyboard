@@ -26,7 +26,7 @@
             <objects>
                 <viewController storyboardIdentifier="PlaceView" id="drh-hQ-eC0" customClass="FDPlaceViewController" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="MOf-QI-7UE">
-                        <rect key="frame" x="0.0" y="64" width="320" height="504"/>
+                        <rect key="frame" x="0.0" y="20" width="320" height="548"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
                             <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="nl1-TQ-Osm">
@@ -65,7 +65,7 @@
                                 <nil key="highlightedColor"/>
                             </label>
                             <mapView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" mapType="standard" id="3ca-7u-RlG">
-                                <rect key="frame" x="160" y="0.0" width="160" height="160"/>
+                                <rect key="frame" x="160" y="0.0" width="160" height="204"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                             </mapView>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="Lpw-GF-dJk">
@@ -111,7 +111,7 @@
                                 </connections>
                             </button>
                             <tableView clipsSubviews="YES" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" allowsSelectionDuringEditing="YES" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="8Rl-zj-dcy">
-                                <rect key="frame" x="0.0" y="209" width="320" height="295"/>
+                                <rect key="frame" x="0.0" y="209" width="320" height="339"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <connections>
@@ -995,7 +995,7 @@
                                             <color key="progressTintColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                             <color key="trackTintColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
                                         </progressView>
-                                        <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" id="FIb-FL-3GD" userLabel="photo view">
+                                        <imageView clipsSubviews="YES" userInteractionEnabled="NO" alpha="0.0" contentMode="scaleToFill" id="FIb-FL-3GD" userLabel="photo view">
                                             <rect key="frame" x="5" y="5" width="310" height="310"/>
                                         </imageView>
                                         <textView hidden="YES" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" editable="NO" id="yvi-zI-CUp">
@@ -1051,25 +1051,34 @@
                                                 <segue destination="MIu-0K-XDF" kind="push" identifier="ShowProfile" id="95h-WE-ezW"/>
                                             </connections>
                                         </button>
+                                        <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" editable="NO" id="c3z-yh-3kE">
+                                            <rect key="frame" x="0.0" y="-66" width="320" height="66"/>
+                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                            <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                            <color key="textColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                            <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="15"/>
+                                            <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
+                                            <dataDetectorType key="dataDetectorTypes" phoneNumber="YES" link="YES" address="YES" calendarEvent="YES"/>
+                                            <connections>
+                                                <outlet property="delegate" destination="LZE-XF-kth" id="86z-3f-Q78"/>
+                                            </connections>
+                                        </textView>
                                     </subviews>
                                     <color key="backgroundColor" white="1" alpha="0.0" colorSpace="custom" customColorSpace="calibratedWhite"/>
                                 </view>
                                 <prototypes>
-                                    <tableViewCell contentMode="scaleToFill" selectionStyle="none" indentationWidth="10" reuseIdentifier="AddComment" rowHeight="60" id="ydf-UD-6fP">
-                                        <rect key="frame" x="0.0" y="348" width="320" height="60"/>
+                                    <tableViewCell contentMode="scaleToFill" selectionStyle="none" indentationWidth="10" reuseIdentifier="AddComment" rowHeight="66" id="ydf-UD-6fP">
+                                        <rect key="frame" x="0.0" y="348" width="320" height="66"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <view key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center">
-                                            <rect key="frame" x="0.0" y="0.0" width="320" height="59"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="320" height="65"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <imageView userInteractionEnabled="NO" tag="66" contentMode="scaleToFill" id="dr7-wZ-2yr">
-                                                    <rect key="frame" x="10" y="5" width="36" height="36"/>
+                                                    <rect key="frame" x="8" y="1" width="36" height="36"/>
                                                 </imageView>
-                                                <imageView userInteractionEnabled="NO" contentMode="scaleToFill" image="commentField.png" id="eLp-ey-rZb">
-                                                    <rect key="frame" x="62" y="5" width="251" height="34"/>
-                                                </imageView>
-                                                <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" text="Add your two cents..." id="AX7-CG-gHf">
-                                                    <rect key="frame" x="68" y="6" width="240" height="29"/>
+                                                <textView clipsSubviews="YES" multipleTouchEnabled="YES" tag="67" contentMode="scaleToFill" text="Add your two cents..." id="AX7-CG-gHf">
+                                                    <rect key="frame" x="53" y="1" width="262" height="60"/>
                                                     <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                                     <color key="textColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
                                                     <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="15"/>
@@ -1166,6 +1175,7 @@
                     </navigationItem>
                     <connections>
                         <outlet property="captionTextView" destination="Pgf-HE-zob" id="Ut9-AR-wXQ"/>
+                        <outlet property="foodiaObjectTextView" destination="c3z-yh-3kE" id="81Z-0i-Vza"/>
                         <outlet property="likeButton" destination="JGQ-AM-nVy" id="Szy-el-mFA"/>
                         <outlet property="likeCountLabel" destination="4OA-FI-PYa" id="uR2-UF-RYR"/>
                         <outlet property="locationButton" destination="LLY-2f-q7a" id="hWq-96-AVE"/>
@@ -1211,7 +1221,7 @@
             <objects>
                 <tableViewController storyboardIdentifier="RecommendView" useStoryboardIdentifierAsRestorationIdentifier="YES" id="vuk-kw-h1L" customClass="FDRecommendViewController" sceneMemberID="viewController">
                     <tableView key="view" opaque="NO" clipsSubviews="YES" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="AcU-Qe-7ME">
-                        <rect key="frame" x="0.0" y="64" width="320" height="504"/>
+                        <rect key="frame" x="0.0" y="20" width="320" height="548"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <searchBar key="tableHeaderView" contentMode="redraw" barStyle="blackTranslucent" id="qXi-cS-VqQ">
@@ -1274,11 +1284,11 @@
             <objects>
                 <viewController id="qNN-fU-3iK" customClass="FDWebViewController" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="azV-Ys-f3A">
-                        <rect key="frame" x="0.0" y="64" width="320" height="504"/>
+                        <rect key="frame" x="0.0" y="20" width="320" height="548"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
                             <webView multipleTouchEnabled="YES" contentMode="scaleToFill" scalesPageToFit="YES" id="nfd-Hk-UUQ">
-                                <rect key="frame" x="0.0" y="0.0" width="320" height="504"/>
+                                <rect key="frame" x="0.0" y="0.0" width="320" height="548"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                                 <dataDetectorType key="dataDetectorTypes" phoneNumber="YES" link="YES" address="YES"/>
@@ -1742,24 +1752,24 @@
                                         <rect key="frame" x="0.0" y="44" width="320" height="504"/>
                                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                         <prototypes>
-                                            <tableViewCell contentMode="scaleToFill" selectionStyle="gray" indentationWidth="10" reuseIdentifier="LocationCell" textLabel="abl-0g-IY7" detailTextLabel="efJ-bQ-Qdx" style="IBUITableViewCellStyleSubtitle" id="IY9-HW-wPi">
-                                                <rect key="frame" x="0.0" y="22" width="320" height="44"/>
+                                            <tableViewCell contentMode="scaleToFill" selectionStyle="gray" indentationWidth="10" reuseIdentifier="LocationCell" textLabel="abl-0g-IY7" detailTextLabel="efJ-bQ-Qdx" rowHeight="60" style="IBUITableViewCellStyleSubtitle" id="IY9-HW-wPi">
+                                                <rect key="frame" x="0.0" y="22" width="320" height="60"/>
                                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                                 <view key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center">
-                                                    <rect key="frame" x="0.0" y="0.0" width="320" height="43"/>
+                                                    <rect key="frame" x="0.0" y="0.0" width="320" height="59"/>
                                                     <autoresizingMask key="autoresizingMask"/>
                                                     <subviews>
                                                         <label opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="left" text="Title" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="abl-0g-IY7">
-                                                            <rect key="frame" x="10" y="1" width="24" height="23"/>
+                                                            <rect key="frame" x="10" y="8" width="26" height="24"/>
                                                             <autoresizingMask key="autoresizingMask"/>
-                                                            <fontDescription key="fontDescription" name="Futura-CondensedMedium" family="Futura" pointSize="18"/>
+                                                            <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="17"/>
                                                             <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
                                                             <color key="highlightedColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                                                         </label>
                                                         <label opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="left" text="Subtitle" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="efJ-bQ-Qdx">
-                                                            <rect key="frame" x="10" y="24" width="34" height="19"/>
+                                                            <rect key="frame" x="10" y="32" width="40" height="20"/>
                                                             <autoresizingMask key="autoresizingMask"/>
-                                                            <fontDescription key="fontDescription" name="Futura-CondensedMedium" family="Futura" pointSize="14"/>
+                                                            <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="14"/>
                                                             <color key="textColor" red="0.50196078431372548" green="0.50196078431372548" blue="0.50196078431372548" alpha="1" colorSpace="calibratedRGB"/>
                                                             <color key="highlightedColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                                                         </label>
@@ -1767,17 +1777,17 @@
                                                     <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                                 </view>
                                             </tableViewCell>
-                                            <tableViewCell contentMode="scaleToFill" selectionStyle="gray" indentationWidth="10" reuseIdentifier="AddLocationCell" textLabel="xZa-hs-vpq" style="IBUITableViewCellStyleDefault" id="065-7z-ccK">
-                                                <rect key="frame" x="0.0" y="66" width="320" height="44"/>
+                                            <tableViewCell contentMode="scaleToFill" selectionStyle="gray" indentationWidth="10" reuseIdentifier="AddLocationCell" textLabel="xZa-hs-vpq" rowHeight="60" style="IBUITableViewCellStyleDefault" id="065-7z-ccK">
+                                                <rect key="frame" x="0.0" y="82" width="320" height="60"/>
                                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                                 <view key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center">
-                                                    <rect key="frame" x="0.0" y="0.0" width="320" height="43"/>
+                                                    <rect key="frame" x="0.0" y="0.0" width="320" height="59"/>
                                                     <autoresizingMask key="autoresizingMask"/>
                                                     <subviews>
                                                         <label opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="left" text="Add Location" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="xZa-hs-vpq">
-                                                            <rect key="frame" x="10" y="0.0" width="300" height="43"/>
+                                                            <rect key="frame" x="10" y="0.0" width="300" height="59"/>
                                                             <autoresizingMask key="autoresizingMask"/>
-                                                            <fontDescription key="fontDescription" name="Futura-CondensedMedium" family="Futura" pointSize="20"/>
+                                                            <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="15"/>
                                                             <color key="textColor" white="0.5" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                                                             <color key="highlightedColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                                                         </label>
@@ -2111,7 +2121,6 @@
         <image name="cameraRejectPhotoButton.png" width="68" height="68"/>
         <image name="cancelPin.png" width="41" height="41"/>
         <image name="close.png" width="16" height="16"/>
-        <image name="commentField.png" width="227" height="30"/>
         <image name="connect.png" width="241" height="58"/>
         <image name="facebook.png" width="34" height="34"/>
         <image name="feedLikeButtonGray.png" width="23" height="23"/>
@@ -2140,10 +2149,10 @@
         <simulatedScreenMetrics key="destination" type="retina4"/>
     </simulatedMetricsContainer>
     <inferredMetricsTieBreakers>
-        <segue reference="kda-71-cEU"/>
-        <segue reference="9wU-HC-nCr"/>
-        <segue reference="AV0-O6-Tg1"/>
-        <segue reference="dfo-At-Oer"/>
-        <segue reference="AkI-fa-Shb"/>
+        <segue reference="qW8-k0-q9O"/>
+        <segue reference="n2I-9e-igY"/>
+        <segue reference="bt9-rn-enZ"/>
+        <segue reference="hKw-7n-l1j"/>
+        <segue reference="OZo-md-bVq"/>
     </inferredMetricsTieBreakers>
 </document>

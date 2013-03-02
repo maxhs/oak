@@ -72,7 +72,7 @@ static NSDictionary *placeholderImages;
 
 @implementation FDPostViewController
 
-@synthesize likersScrollView, addComment, likerFacebookId, commenterFacebookId, captionRect, socialLabelRect, newTableHeaderView, whiteCaption, screenRect, screenWidth, screenHeight, doubleTap, photoImageViewY, photoImageViewX;
+@synthesize likersScrollView, addComment, likerFacebookId, commenterFacebookId, captionRect, socialLabelRect, newTableHeaderView, whiteCaption, foodiaObjectTextView, screenRect, screenWidth, screenHeight, doubleTap, photoImageViewY, photoImageViewX;
 @synthesize post = _post;
 
 + (void)initialize {
@@ -329,15 +329,28 @@ static NSDictionary *placeholderImages;
         } completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType, BOOL finished) {
             if (finished) {
                 self.photoImageView.image = image;
-                self.photoImageView.layer.shadowColor = [UIColor darkGrayColor].CGColor;
-                self.photoImageView.layer.shadowOffset = CGSizeMake(0, 1);
-                self.photoImageView.layer.shadowOpacity = 1;
-                self.photoImageView.layer.shadowRadius = 3.0;
-                self.photoImageView.clipsToBounds = NO;
+                [UIView animateWithDuration:.25 animations:^{
+                    [self.photoImageView setAlpha:1.0];
+                    self.photoImageView.layer.shadowColor = [UIColor darkGrayColor].CGColor;
+                    self.photoImageView.layer.shadowOffset = CGSizeMake(0, 1);
+                    self.photoImageView.layer.shadowOpacity = 1;
+                    self.photoImageView.layer.shadowRadius = 3.0;
+                    self.photoImageView.clipsToBounds = NO;
+                }];
                 [self.navigationItem.rightBarButtonItem setEnabled:YES];
             }
         }];
-    } else [self.photoImageView setImage:[FDPostViewController placeholderImageForCategory:self.post.category]];
+    } else {
+        [self.photoImageView setImage:[FDPostViewController placeholderImageForCategory:self.post.category]];
+        [UIView animateWithDuration:.25 animations:^{
+            [self.photoImageView setAlpha:1.0];
+            self.photoImageView.layer.shadowColor = [UIColor darkGrayColor].CGColor;
+            self.photoImageView.layer.shadowOffset = CGSizeMake(0, 1);
+            self.photoImageView.layer.shadowOpacity = 1;
+            self.photoImageView.layer.shadowRadius = 3.0;
+            self.photoImageView.clipsToBounds = NO;
+        }];
+    }
     
     self.postTitle.text = [Utilities postedAt:self.post.postedAt];
     //self.socialLabel.text   = self.post.detailString;
@@ -431,12 +444,14 @@ static NSDictionary *placeholderImages;
 -(void)makeBlackView {
     UIView *blackView = [[UIView alloc] initWithFrame:CGRectMake(0,0,self.screenWidth,self.screenHeight)];
     self.whiteCaption.text = self.captionTextView.text;
+    self.foodiaObjectTextView.text = self.post.detailString;
     self.whiteCaption.textAlignment = NSTextAlignmentCenter;
     self.whiteCaption.textColor = [UIColor whiteColor];
     [blackView setTag:99999992];
     [blackView setBackgroundColor:[UIColor clearColor]];
     [self.view insertSubview:blackView belowSubview:self.photoImageView];
     [self.view insertSubview:self.whiteCaption aboveSubview:blackView];
+    [self.view insertSubview:self.foodiaObjectTextView aboveSubview:blackView];
     [self.view insertSubview:self.likeButton aboveSubview:blackView];
     [self.view insertSubview:self.recButton aboveSubview:blackView];
     [self.view insertSubview:self.locationButton aboveSubview:blackView];
@@ -455,6 +470,7 @@ static NSDictionary *placeholderImages;
                          } else {
                              self.whiteCaption.frame = CGRectMake(0,(self.screenHeight/2)+90,self.screenWidth,self.whiteCaption.contentSize.height);
                          }
+                         [self.foodiaObjectTextView setFrame:CGRectMake(0, 0, 320, 66)];
                          [self.likeButton setFrame:CGRectMake(10,self.screenHeight-60, 70,34)];
                          [self.likeCountLabel setFrame:CGRectMake(10,self.screenHeight-90, 70,34)];
                          [self.recButton setFrame:CGRectMake(90,self.screenHeight-60, 70,34)];
@@ -472,7 +488,8 @@ static NSDictionary *placeholderImages;
                      animations:^{
                          [blackView setBackgroundColor:[UIColor colorWithRed:0 green:0 blue:0 alpha:0.0]];
                          self.whiteCaption.frame = CGRectMake(0,self.screenHeight,self.screenWidth,self.captionTextView.contentSize.height);
-                         CGRect frame = CGRectMake(130,548,34,34);
+                         [self.foodiaObjectTextView setFrame:CGRectMake(0, -66, 320, 66)];
+                         CGRect frame = CGRectMake(130,568,34,34);
                          [self.likeButton setFrame:frame];
                          [self.likeCountLabel setFrame:frame];
                          [self.recCountLabel setFrame:frame];
@@ -649,9 +666,14 @@ static NSDictionary *placeholderImages;
     if (indexPath.section == 0) {
         UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"AddComment"];
         UIImageView *imageView = (UIImageView *)[cell viewWithTag:66];
-        imageView.layer.cornerRadius = 5.0f;
+        imageView.layer.cornerRadius = 3.0f;
         imageView.clipsToBounds = YES;
         [imageView setImageWithURL:[Utilities profileImageURLForCurrentUser]];
+        UITextView *textView = (UITextView *)[cell viewWithTag:67];
+        textView.layer.borderColor = [UIColor colorWithWhite:.5 alpha:.4].CGColor;
+        textView.layer.cornerRadius = 3.0f;
+        textView.clipsToBounds = YES;
+        textView.layer.borderWidth = 0.5f;
         return cell;
     }
     
@@ -663,7 +685,7 @@ static NSDictionary *placeholderImages;
     UIButton *commenterButton = [UIButton buttonWithType:UIButtonTypeCustom];
     FDComment *comment = [self.comments objectAtIndex:indexPath.row];
     [cell configureForComment:comment];
-    cell.profileImageView.layer.cornerRadius = 5.0;
+    cell.profileImageView.layer.cornerRadius = 3.0;
     commenterButton.titleLabel.text = comment.user.facebookId;
     commenterButton.titleLabel.hidden = YES;
     self.commenterFacebookId = comment.user.facebookId;
@@ -675,7 +697,7 @@ static NSDictionary *placeholderImages;
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    if (indexPath.section == 0) return 50.f;
+    if (indexPath.section == 0) return 66.f;
     else {
         FDComment *comment = [self.comments objectAtIndex:indexPath.row];
         return [FDCommentCell heightForComment:comment];
@@ -687,7 +709,7 @@ static NSDictionary *placeholderImages;
 - (void)willShowKeyboard {
     UIBarButtonItem *cancelButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel target:self action:@selector(doneEditing)];
     [cancelButton setTitle:@"CANCEL"];
-    [UIView animateWithDuration:0.25 animations:^{
+    [UIView animateWithDuration:0.25f animations:^{
         self.tableView.contentOffset = CGPointMake(0, (self.tableView.tableHeaderView.frame.size.height/1.5));
         [[self navigationItem] setRightBarButtonItem:cancelButton];
     } completion:^(BOOL finished) {
@@ -705,7 +727,7 @@ static NSDictionary *placeholderImages;
     // Clear the message text when the user starts editing
     if ([textView.text isEqualToString:kPlaceholderAddCommentPrompt]) {
         textView.text = @"";
-        textView.textColor = [UIColor blackColor];
+        textView.textColor = [UIColor darkGrayColor];
     }
 }
 
