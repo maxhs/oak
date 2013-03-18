@@ -10,8 +10,10 @@
 
 NSString *const ECSlidingViewUnderRightWillAppear = @"ECSlidingViewUnderRightWillAppear";
 NSString *const ECSlidingViewUnderLeftWillAppear  = @"ECSlidingViewUnderLeftWillAppear";
+NSString *const ECSlidingViewUnderAboveWillAppear  = @"ECSlidingViewUnderAboveWillAppear";
 NSString *const ECSlidingViewTopDidAnchorLeft     = @"ECSlidingViewTopDidAnchorLeft";
 NSString *const ECSlidingViewTopDidAnchorRight    = @"ECSlidingViewTopDidAnchorRight";
+NSString *const ECSlidingViewTopDidAnchorAbove    = @"ECSlidingViewTopDidAnchorAbove";
 NSString *const ECSlidingViewTopDidReset          = @"ECSlidingViewTopDidReset";
 
 @interface ECSlidingViewController()
@@ -22,12 +24,14 @@ NSString *const ECSlidingViewTopDidReset          = @"ECSlidingViewTopDidReset";
 @property (nonatomic, strong) UIPanGestureRecognizer *panGesture;
 @property (nonatomic, strong) UITapGestureRecognizer *resetTapGesture;
 @property (nonatomic, unsafe_unretained) BOOL underLeftShowing;
+@property (nonatomic, unsafe_unretained) BOOL underAboveShowing;
 @property (nonatomic, unsafe_unretained) BOOL underRightShowing;
 @property (nonatomic, unsafe_unretained) BOOL topViewIsOffScreen;
 
 - (NSUInteger)autoResizeToFillScreen;
 - (UIView *)topView;
 - (UIView *)underLeftView;
+- (UIView *)underAboveView;
 - (UIView *)underRightView;
 - (void)adjustLayout;
 - (void)updateTopViewHorizontalCenterWithRecognizer:(UIPanGestureRecognizer *)recognizer;
@@ -38,15 +42,18 @@ NSString *const ECSlidingViewTopDidReset          = @"ECSlidingViewTopDidReset";
 - (void)removeTopViewSnapshot;
 - (CGFloat)anchorRightTopViewCenter;
 - (CGFloat)anchorLeftTopViewCenter;
+- (CGFloat)anchorAboveTopViewCenter;
 - (CGFloat)resettedCenter;
 - (CGFloat)screenWidth;
 - (CGFloat)screenWidthForOrientation:(UIInterfaceOrientation)orientation;
 - (void)underLeftWillAppear;
 - (void)underRightWillAppear;
+- (void)underAboveWillAppear;
 - (void)topDidReset;
 - (BOOL)topViewHasFocus;
 - (void)updateUnderLeftLayout;
 - (void)updateUnderRightLayout;
+- (void)updateUnderAboveLayout;
 
 @end
 
@@ -69,13 +76,17 @@ NSString *const ECSlidingViewTopDidReset          = @"ECSlidingViewTopDidReset";
 // public properties
 @synthesize underLeftViewController  = _underLeftViewController;
 @synthesize underRightViewController = _underRightViewController;
+@synthesize underAboveViewController = _underAboveViewController;
 @synthesize topViewController        = _topViewController;
 @synthesize anchorLeftPeekAmount;
 @synthesize anchorRightPeekAmount;
+@synthesize anchorAbovePeekAmount;
 @synthesize anchorLeftRevealAmount;
 @synthesize anchorRightRevealAmount;
+@synthesize anchorAboveRevealAmount;
 @synthesize underRightWidthLayout = _underRightWidthLayout;
 @synthesize underLeftWidthLayout  = _underLeftWidthLayout;
+@synthesize underAboveWidthLayout  = _underAboveWidthLayout;
 @synthesize shouldAllowUserInteractionsWhenAnchored;
 @synthesize resetStrategy = _resetStrategy;
 
@@ -87,6 +98,7 @@ NSString *const ECSlidingViewTopDidReset          = @"ECSlidingViewTopDidReset";
 @synthesize resetTapGesture;
 @synthesize underLeftShowing   = _underLeftShowing;
 @synthesize underRightShowing  = _underRightShowing;
+@synthesize underAboveShowing  = _underAboveShowing;
 @synthesize topViewIsOffScreen = _topViewIsOffScreen;
 
 - (void)setTopViewController:(UIViewController *)theTopViewController
@@ -145,6 +157,24 @@ NSString *const ECSlidingViewTopDidReset          = @"ECSlidingViewTopDidReset";
   }
 }
 
+- (void)setUnderAboveViewController:(UIViewController *)theUnderAboveViewController
+{
+    [_underAboveViewController.view removeFromSuperview];
+    [_underAboveViewController willMoveToParentViewController:nil];
+    [_underAboveViewController removeFromParentViewController];
+    
+    _underAboveViewController = theUnderAboveViewController;
+    
+    if (_underAboveViewController) {
+        [self addChildViewController:self.underAboveViewController];
+        [self.underAboveViewController didMoveToParentViewController:self];
+        
+        [self updateUnderAboveLayout];
+        
+        [self.view insertSubview:_underAboveViewController.view atIndex:0];
+    }
+}
+
 - (void)setUnderLeftWidthLayout:(ECViewWidthLayout)underLeftWidthLayout
 {
   if (underLeftWidthLayout == ECVariableRevealWidth && self.anchorRightPeekAmount <= 0) {
@@ -154,6 +184,17 @@ NSString *const ECSlidingViewTopDidReset          = @"ECSlidingViewTopDidReset";
   }
   
   _underLeftWidthLayout = underLeftWidthLayout;
+}
+
+- (void)setUnderAboveWidthLayout:(ECViewWidthLayout)underLeftWidthLayout
+{
+    if (underLeftWidthLayout == ECVariableRevealWidth && self.anchorRightPeekAmount <= 0) {
+        [NSException raise:@"Invalid Width Layout" format:@"anchorRightPeekAmount must be set"];
+    } else if (underLeftWidthLayout == ECFixedRevealWidth && self.anchorRightRevealAmount <= 0) {
+        [NSException raise:@"Invalid Width Layout" format:@"anchorRightRevealAmount must be set"];
+    }
+    
+    _underLeftWidthLayout = underLeftWidthLayout;
 }
 
 - (void)setUnderRightWidthLayout:(ECViewWidthLayout)underRightWidthLayout
@@ -399,6 +440,11 @@ NSString *const ECSlidingViewTopDidReset          = @"ECSlidingViewTopDidReset";
   return self.underRightViewController.view;
 }
 
+- (UIView *)underAboveView
+{
+    return self.underAboveViewController.view;
+}
+
 - (void)updateTopViewHorizontalCenter:(CGFloat)newHorizontalCenter
 {
   CGPoint center = self.topView.center;
@@ -461,14 +507,34 @@ NSString *const ECSlidingViewTopDidReset          = @"ECSlidingViewTopDidReset";
   }
 }
 
+- (CGFloat)anchorAboveTopViewCenter
+{
+    if (self.anchorAbovePeekAmount) {
+        return -self.resettedCenter + self.anchorAbovePeekAmount;
+    } else if (self.anchorAboveRevealAmount) {
+        return -self.resettedCenter + (self.screenHeight - self.anchorAboveRevealAmount);
+    } else {
+        return NSNotFound;
+    }
+}
 - (CGFloat)resettedCenter
 {
   return ceil(self.screenWidth / 2);
 }
 
+- (CGFloat)resettedVerticalCenter
+{
+    return ceil(self.screenHeight / 2);
+}
+
 - (CGFloat)screenWidth
 {
   return [self screenWidthForOrientation:[UIApplication sharedApplication].statusBarOrientation];
+}
+
+- (CGFloat)screenHeight
+{
+    return [UIScreen mainScreen].bounds.size.height;
 }
 
 - (CGFloat)screenWidthForOrientation:(UIInterfaceOrientation)orientation

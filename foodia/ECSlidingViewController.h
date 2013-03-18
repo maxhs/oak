@@ -12,11 +12,17 @@
 /** Notification that gets posted when the underRight view will appear */
 extern NSString *const ECSlidingViewUnderRightWillAppear;
 
+/** Notification that gets posted when the underRight view will appear */
+extern NSString *const ECSlidingViewUnderAboveWillAppear;
+
 /** Notification that gets posted when the underLeft view will appear */
 extern NSString *const ECSlidingViewUnderLeftWillAppear;
 
 /** Notification that gets posted when the top view is anchored to the left side of the screen */
 extern NSString *const ECSlidingViewTopDidAnchorLeft;
+
+/** Notification that gets posted when the top view is anchored to the left side of the screen */
+extern NSString *const ECSlidingViewTopDidAnchorAbove;
 
 /** Notification that gets posted when the top view is anchored to the right side of the screen */
 extern NSString *const ECSlidingViewTopDidAnchorRight;
@@ -38,6 +44,8 @@ typedef enum {
 typedef enum {
   /** Left side of screen */
   ECLeft,
+    /** Top */
+    ECAbove,
   /** Right side of screen */
   ECRight
 } ECSide;
@@ -65,6 +73,9 @@ typedef enum {
  */
 @property (nonatomic, strong) UIViewController *underLeftViewController;
 
+
+@property (nonatomic, strong) UIViewController *underAboveViewController;
+
 /** Returns the view controller that will be visible when the top view is slide to the left.
  
  This view controller is typically a supplemental view to the top view.
@@ -85,6 +96,11 @@ typedef enum {
  */
 @property (nonatomic, unsafe_unretained) CGFloat anchorLeftPeekAmount;
 
+
+
+@property (nonatomic, unsafe_unretained) CGFloat anchorAbovePeekAmount;
+
+
 /** Returns the number of points the top view is visible when the top view is anchored to the right side.
  
  This value is fixed after rotation. If the number of points to reveal needs to be fixed, use anchorRightRevealAmount.
@@ -100,6 +116,9 @@ typedef enum {
  @see anchorLeftPeekAmount
  */
 @property (nonatomic, unsafe_unretained) CGFloat anchorLeftRevealAmount;
+
+
+@property (nonatomic, unsafe_unretained) CGFloat anchorAboveRevealAmount;
 
 /** Returns the number of points the under left view is visible when the top view is anchored to the right side.
  
@@ -120,6 +139,9 @@ typedef enum {
  By default, this is set to ECFullWidth
  */
 @property (nonatomic, unsafe_unretained) ECViewWidthLayout underLeftWidthLayout;
+
+
+@property (nonatomic, unsafe_unretained) ECViewWidthLayout underAboveWidthLayout;
 
 /** Specifies the behavior for the under right width
  
@@ -185,6 +207,11 @@ typedef enum {
 
 /** Returns true if the underLeft view is showing (even partially) */
 - (BOOL)underLeftShowing;
+
+
+/** Returns true if the underLeft view is showing (even partially) */
+- (BOOL)underAboveShowing;
+
 
 /** Returns true if the underRight view is showing (even partially) */
 - (BOOL)underRightShowing;

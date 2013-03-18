@@ -11,6 +11,8 @@
 
 @implementation FDComment
 
+@synthesize body;
+
 - (NSDate *)date {
     return [NSDate dateWithTimeIntervalSince1970:self.epochTime.integerValue];
 }

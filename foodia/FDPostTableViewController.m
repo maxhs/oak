@@ -58,7 +58,7 @@
     [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
     notificationsPending = 0;
     [self getNotificationCount];
-    
+    self.tableView.showsVerticalScrollIndicator = NO;
     didLoadFromCache = false;
     [super viewDidLoad];
     isRefreshing_ = NO;
@@ -83,7 +83,7 @@
         self.tableView.separatorColor = [UIColor colorWithWhite:0.9 alpha:1.0];
         self.tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
     }
-    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(refresh) name:@"RefreshFeed" object:nil];
     [self refresh];
 }
 
@@ -113,10 +113,10 @@
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
     
-    if(!didLoadFromCache) {
+    /*if(!didLoadFromCache) {
         [self loadFromCache];
         didLoadFromCache = true;
-    }
+    }*/
 }
 
 - (void)saveCache {
@@ -221,7 +221,7 @@
     } else if (indexPath.section == 1) {
         static NSString *PostCellIdentifier = @"PostCell";
         FDPostCell *cell = (FDPostCell *)[tableView dequeueReusableCellWithIdentifier:PostCellIdentifier];
-        if (cell == nil) {
+        if (cell.photoImageView == nil) {
             NSArray *nib = [[NSBundle mainBundle] loadNibNamed:@"FDPostCell" owner:self options:nil];
             cell = (FDPostCell *)[nib objectAtIndex:0];
         }
@@ -404,7 +404,7 @@
     [cell.likersScrollView.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
     cell.likersScrollView.showsHorizontalScrollIndicator = NO;
     
-    float imageSize = 36.0;
+    float imageSize = 34.0;
     float space = 6.0;
     int index = 0;
     
@@ -429,7 +429,7 @@
         likerView.layer.rasterizationScale = [UIScreen mainScreen].scale;
         
         likerView.frame = CGRectMake(((space+imageSize)*index),0,imageSize, imageSize);
-        heart.frame = CGRectMake((((space+imageSize)*index)+22),18,20,20);
+        heart.frame = CGRectMake((((space+imageSize)*index)+20),16,20,20);
         [likerButton setFrame:likerView.frame];
         heart.clipsToBounds = NO;
         [cell.likersScrollView addSubview:likerView];

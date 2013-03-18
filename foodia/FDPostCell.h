@@ -19,6 +19,7 @@
 @property (weak, nonatomic) IBOutlet UIScrollView *likersScrollView;
 @property (weak, nonatomic) IBOutlet UIButton *detailPhotoButton;
 @property (weak, nonatomic) IBOutlet UIButton *slideCellButton;
+@property (weak, nonatomic) IBOutlet UIImageView *photoImageView;
 - (void)configureForPost:(FDPost *)post;
 + (CGFloat)cellHeight;
 - (IBAction)slideCell;

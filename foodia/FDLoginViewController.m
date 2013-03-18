@@ -13,6 +13,7 @@
 #import "FDAPIClient.h"
 #import "FDPost.h"
 #import "FDPreviewPostView.h"
+#import "FDEmailConnectViewController.h"
 
 static NSArray *tagLines;
 
@@ -71,6 +72,18 @@ static NSArray *tagLines;
         }];
     [FBSession.activeSession close]; // so we close our session and start over
     }
+}
+
+- (IBAction)showEmailConnect {
+    FDEmailConnectViewController *vc;
+    if (([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone && [UIScreen mainScreen].bounds.size.height == 568.0)){
+        UIStoryboard *storyboard5 = [UIStoryboard storyboardWithName:@"iPhone5" bundle:nil];
+        vc = [storyboard5 instantiateViewControllerWithIdentifier:@"EmailConnect"];
+    } else {
+        UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"iPhone" bundle:nil];
+        vc = [storyboard instantiateViewControllerWithIdentifier:@"EmailConnect"];
+    }
+    [self presentViewController:vc animated:YES completion:nil];
 }
 
 - (void)viewDidUnload

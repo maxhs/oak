@@ -48,9 +48,6 @@
     [self.timeLabel setText:[Utilities timeIntervalSinceStartDate:comment.date]];
 }
 
--(void)yupTapped {
-    NSLog(@"yup, tapped");
-}
 + (CGFloat)heightForComment:(FDComment *)comment {
     CGSize bodySize = [comment.body sizeWithFont:[UIFont fontWithName:@"AvenirNextCondensed-Medium" size:16] constrainedToSize:CGSizeMake(207, 100000)];
     return MAX(33 + bodySize.height + 5.f, 60.f);

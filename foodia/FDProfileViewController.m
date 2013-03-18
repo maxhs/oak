@@ -26,7 +26,7 @@
 #import "FDCustomSheet.h"
 #import "FDPlaceViewController.h"
 @interface FDProfileViewController() <MFMessageComposeViewControllerDelegate, MFMailComposeViewControllerDelegate, UIActionSheetDelegate>
-
+@property BOOL myProfile;
 @property (nonatomic) BOOL canLoadMore;
 @property int tableViewHeight;
 @property (nonatomic, weak) IBOutlet UIBarButtonItem *activateSearchButton;
@@ -39,6 +39,7 @@
 @synthesize profileButton;
 @synthesize postList;
 //@synthesize posts;
+@synthesize myProfile = _myProfile;
 @synthesize user;
 @synthesize userId;
 @synthesize profileContainerView;
@@ -137,7 +138,14 @@
 }
 
 - (void)viewDidLoad {
-    //if (!self.userId)[self initWithUserId:[[NSUserDefaults standardUserDefaults] objectForKey:@"FacebookID"]];
+    if (!self.userId){
+        self.myProfile = YES;
+        [self initWithUserId:[[NSUserDefaults standardUserDefaults] objectForKey:@"FacebookID"]];
+        [self.socialButton setHidden:YES];
+        [self.profileDetailsContainerView setFrame:CGRectMake(0, -18, 320, 76)];
+        [self.profileButton setFrame:CGRectMake(5, 23, 60, 60)];
+        [self.mapView setFrame:CGRectMake(255, 23, 60, 60)];
+    }
     currTab = 0;
     [self.navigationController setNavigationBarHidden:NO];
     self.mapView.layer.cornerRadius = 5.0f;
@@ -672,8 +680,8 @@
     self.canLoadMore = NO;
     self.currTab = 0;
     [self resetCategoryButtons];
-    //[self.eatingButton setTitleColor:[UIColor redColor] forState:UIControlStateNormal];
-    [self.eatingButton setBackgroundColor:[UIColor lightGrayColor]];
+    [self.eatingButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    [self.eatingButton setBackgroundColor:[UIColor darkGrayColor]];
 
     self.feedRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getProfileFeedForCategory:@"Eating" forProfile:self.userId success:^(NSMutableArray *categoryPosts) {
         if (categoryPosts.count == 0){
@@ -694,9 +702,8 @@
     self.canLoadMore = NO;
     self.currTab = 0;
     [self resetCategoryButtons];
-    //[self.drinkingButton setTitleColor:[UIColor redColor] forState:UIControlStateNormal];
-    [self.drinkingButton setBackgroundColor:[UIColor lightGrayColor]];
-
+    [self.drinkingButton setBackgroundColor:[UIColor darkGrayColor]];
+    [self.drinkingButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     self.feedRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getProfileFeedForCategory:@"Drinking" forProfile:self.userId success:^(NSMutableArray *categoryPosts) {
         if (categoryPosts.count == 0){
             self.canLoadMore = NO;
@@ -715,8 +722,8 @@
     self.canLoadMore = NO;
     self.currTab = 0;
     [self resetCategoryButtons];
-    //[self.makingButton setTitleColor:[UIColor redColor] forState:UIControlStateNormal];
-    [self.makingButton setBackgroundColor:[UIColor lightGrayColor]];
+    [self.makingButton setBackgroundColor:[UIColor darkGrayColor]];
+    [self.makingButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     self.feedRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getProfileFeedForCategory:@"Making" forProfile:self.userId success:^(NSMutableArray *categoryPosts) {
         if (categoryPosts.count == 0){
             self.canLoadMore = NO;
@@ -733,8 +740,8 @@
 - (IBAction)getFeedForShopping {
     [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
     [self resetCategoryButtons];
-    //[self.shoppingButton setTitleColor:[UIColor redColor] forState:UIControlStateNormal];
-    [self.shoppingButton setBackgroundColor:[UIColor lightGrayColor]];
+    [self.shoppingButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    [self.shoppingButton setBackgroundColor:[UIColor darkGrayColor]];
     self.canLoadMore = NO;
     self.currTab = 0;
     self.feedRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getProfileFeedForCategory:@"Shopping" forProfile:self.userId success:^(NSMutableArray *categoryPosts) {
@@ -801,7 +808,11 @@
         [UIView animateWithDuration:UINavigationControllerHideShowBarDuration animations:^{
             self.searchDisplayController.searchBar.alpha = 1.0f;
             [self.searchDisplayController.searchBar setFrame:CGRectMake(0,0,320,44)];
-            self.profileDetailsContainerView.frame = CGRectMake(0,44,320,self.profileDetailsContainerView.bounds.size.height);
+            if (self.myProfile == YES){
+                self.profileDetailsContainerView.frame = CGRectMake(0,22,320,self.profileDetailsContainerView.bounds.size.height);
+            } else {
+                self.profileDetailsContainerView.frame = CGRectMake(0,44,320,self.profileDetailsContainerView.bounds.size.height);
+            }
             self.makingButton.alpha = 0.0f;
             self.shoppingButton.alpha = 0.0f;
             self.drinkingButton.alpha = 0.0f;
@@ -818,6 +829,11 @@
             self.drinkingButton.alpha = 1.0f;
             self.eatingButton.alpha = 1.0f;
             self.buttonBackground.alpha = 1.0f;
+            if (self.myProfile == YES){
+            [self.profileDetailsContainerView setFrame:CGRectMake(0, -18, 320, 76)];
+            [self.profileButton setFrame:CGRectMake(5, 23, 60, 60)];
+            [self.mapView setFrame:CGRectMake(255, 23, 60, 60)];
+            }
         }];
     }
 }
@@ -870,6 +886,11 @@
     
     // Return YES to cause the search result table view to be reloaded.
     return YES;
+}
+
+- (IBAction)revealMenu:(UIBarButtonItem *)sender {
+    [self.slidingViewController anchorTopViewTo:ECRight];
+    [(FDAppDelegate *)[UIApplication sharedApplication].delegate removeFacebookWallPost];
 }
 
 - (void)viewWillDisappear:(BOOL)animated {

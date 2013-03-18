@@ -7,10 +7,10 @@
 //
 
 #import "FDPostCategoryViewController.h"
+#import "FDNewPostViewController.h"
 #import "AFNetworking.h"
 #import "FDAPIClient.h"
 #import "FDCache.h"
-#import "FDPost.h"
 #import "UIButton+WebCache.h"
 #import "SDImageCache.h"
 #import <QuartzCore/QuartzCore.h>
@@ -39,7 +39,6 @@
 @property (nonatomic, strong) NSDictionary  *categoryImageURLs;
 @property (nonatomic, strong) NSString      *objectType;
 @property (strong, nonatomic) IBOutlet UIBarButtonItem *nextButtonItem;
-
 @property (nonatomic, strong) AFHTTPRequestOperation *categoryImageRequestOpertaion;
 @property (nonatomic, strong) AFHTTPRequestOperation *objectSearchRequestOperation;
 - (void)showCategories;
@@ -60,6 +59,7 @@
 
 @implementation FDPostCategoryViewController
 
+@synthesize thePost;
 @synthesize dummyView;
 @synthesize eatingContainerView;
 @synthesize drinkingContainerView;
@@ -89,8 +89,10 @@
 {
     [super viewDidLoad];
     self.navigationItem.rightBarButtonItem = nil;
-    FDPost *newPost = [[FDPost alloc] init];
-    [FDPost setUserPost:newPost];
+    if (self.isEditing == NO) {
+        self.thePost = [[FDPost alloc] init];
+    }
+    [FDPost setUserPost:self.thePost];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -497,6 +499,9 @@
         cell.textLabel.text = [NSString stringWithFormat:@"Add \"%@\"", self.objectTextField.text];
     }
     else cell.textLabel.text = [self.searchResults objectAtIndex:indexPath.row];
+    UIView *cellbg = [[UIView alloc] init];
+    [cellbg setBackgroundColor:[UIColor darkGrayColor]];
+    cell.selectedBackgroundView = cellbg;
     return cell;
 }
 
@@ -506,7 +511,11 @@
     } else {
         self.objectTextField.text = [self.searchResults objectAtIndex:indexPath.row];
     }
-    [self performSegueWithIdentifier:@"NewPost" sender:nil];
+    if (self.isEditing == NO)[self performSegueWithIdentifier:@"NewPost" sender:nil];
+    else {
+        FDPost.userPost.foodiaObject = self.objectTextField.text;
+        [self.navigationController popViewControllerAnimated:YES];
+    }
 }
 
 @end

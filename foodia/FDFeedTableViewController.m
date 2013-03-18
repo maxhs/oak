@@ -24,6 +24,7 @@
 
 -(void)viewDidLoad {
     [super viewDidLoad];
+    [self refresh];
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(updatePostNotification:)
                                                  name:@"UpdatePostNotification"
@@ -112,7 +113,7 @@
 - (void)viewDidAppear:(BOOL)animated {
     //if([self.posts count] != 0) [self refresh];
     //else [self loadFromCache];
-    [self refresh];
+    
     //[super.tableView reloadData];
 }
 

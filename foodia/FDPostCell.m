@@ -24,7 +24,6 @@
 @property (nonatomic,strong) AFJSONRequestOperation *postRequestOperation;
 @property (nonatomic,strong) NSString *postId;
 //@property (weak, nonatomic) IBOutlet UILabel *objectLabel;
-@property (weak, nonatomic) IBOutlet UIImageView *photoImageView;
 @property (weak, nonatomic) IBOutlet UILabel *timeLabel;
 @property (weak, nonatomic) IBOutlet UILabel *likeCountLabel;
 @property (weak, nonatomic) IBOutlet UILabel *recCountLabel;
@@ -88,9 +87,8 @@ static NSDictionary *placeholderImages;
             self.photoImageView.layer.shadowRadius = 2.0;
         }];
     } else {
-        NSLog(@"self.post.feedimageurl: %@",self.post.feedImageUrlString);
         [self.photoImageView setImageWithURL:self.post.feedImageURL completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType) {
-            if (image) {
+            if (image && !error) {
                 self.photoImageView.image = image;
                 CGPathRef path = [UIBezierPath bezierPathWithRect:self.photoImageView.bounds].CGPath;
                 [UIView animateWithDuration:.25 animations:^{

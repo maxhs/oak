@@ -19,6 +19,8 @@ typedef void(^RequestSuccess)(id result);
 
 @property (nonatomic, copy) NSString *facebookID;
 @property (nonatomic, copy) NSString *facebookAccessToken;
+@property (nonatomic, copy) NSString *email;
+@property (nonatomic, copy) NSString *password;
 @property (nonatomic, copy) NSData *deviceToken;
 
 + (FDAPIClient *)sharedClient;

@@ -68,9 +68,8 @@
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-    if (section == 0)return 4;
+    if (section == 0)return 5;
     else {
-        NSLog(@"activityItems: %d", self.notifications.count);
         return self.notifications.count;
     }
 }
@@ -80,20 +79,25 @@
     if (indexPath.section == 0) {
         static NSString *CellIdentifier = @"MenuCell";
         UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
-        cell.selectionStyle = UITableViewCellSelectionStyleGray;
+        UIView *cellbg = [[UIView alloc] init];
+        [cellbg setBackgroundColor:[UIColor darkGrayColor]];
+        cell.selectedBackgroundView = cellbg;
             switch (indexPath.row) {
                 case 0:
                     cell.textLabel.text = @"HOME";
                 break;
                 case 1:
+                    cell.textLabel.text = @"MY POSTS";
+                    break;
+                case 2:
                     cell.textLabel.text = @"FRIENDS & INVITES";
                 break;
-                case 2:
+                case 3:
                     cell.textLabel.text = @"FEEDBACK";
                 break;
-                case 3:
+                case 4:
                     cell.textLabel.text = @"LOG OUT";
-                break;
+                    break;
                 default:
                 break;
         }
@@ -101,8 +105,10 @@
     } else {
         static NSString *CellIdentifier = @"NotificationCell";
         UITableViewCell *cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CellIdentifier];
+        UIView *cellbg = [[UIView alloc] init];
+        [cellbg setBackgroundColor:[UIColor darkGrayColor]];
+        cell.selectedBackgroundView = cellbg;
         FDNotification *notification = [self.notifications objectAtIndex:indexPath.row];
-        
         UIButton *profileButton = [UIButton buttonWithType:UIButtonTypeCustom];
         UIImageView *profileImageView = [[UIImageView alloc] initWithFrame:CGRectMake(5,7,36,36)];
         [profileImageView setImageWithURL:[Utilities profileImageURLForFacebookID:notification.fromUserFbid]];
@@ -120,6 +126,7 @@
         messageLabel.numberOfLines = 2;
         messageLabel.backgroundColor = [UIColor clearColor];
         [messageLabel setText:notification.message];
+        messageLabel.highlightedTextColor = [UIColor whiteColor];
         
         // show the time stamp
         UILabel *timeLabel = [[UILabel alloc] initWithFrame:CGRectMake(220,14,30,21)];
@@ -127,6 +134,7 @@
         timeLabel.textAlignment = NSTextAlignmentRight;
         [timeLabel setFont:[UIFont fontWithName:@"AvenirNextCondensed-Medium" size:14]];
         timeLabel.backgroundColor = [UIColor clearColor];
+        timeLabel.highlightedTextColor = [UIColor whiteColor];
         if([notification.postedAt timeIntervalSinceNow] > 0) {
             timeLabel.text = @"0s";
         } else {
@@ -148,7 +156,7 @@
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    if (indexPath.section == 0) return 60.0f;
+    if (indexPath.section == 0) return 54.0f;
     else return 50.0f;
 }
 
@@ -170,12 +178,15 @@
             [self showTopViewControllerWithIdentifier:@"FeedNavigation"];
             break;
         case 1:
-            [self showTopViewControllerWithIdentifier:@"SocialNavigation"];
+            [self showTopViewControllerWithIdentifier:@"ProfileNavigation"];
             break;
         case 2:
-            [self leaveFeedback:nil];
+            [self showTopViewControllerWithIdentifier:@"SocialNavigation"];
             break;
         case 3:
+            [self leaveFeedback:nil];
+            break;
+        case 4:
             [FDCache clearCache];
             [FBSession.activeSession closeAndClearTokenInformation];
             [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];

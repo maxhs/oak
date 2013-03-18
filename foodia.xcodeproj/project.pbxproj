@@ -237,8 +237,6 @@
 		F27E0B4B164728310070F094 /* featuredCallout.png in Resources */ = {isa = PBXBuildFile; fileRef = F27E0B49164728310070F094 /* featuredCallout.png */; };
 		F27E0B4C164728310070F094 /* featuredCallout@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F27E0B4A164728310070F094 /* featuredCallout@2x.png */; };
 		F281344216459B2A00623BA4 /* FDPlaceViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F281344116459B2A00623BA4 /* FDPlaceViewController.m */; };
-		F28FE26416B9013A0065F720 /* test_icon@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F28FE26316B9013A0065F720 /* test_icon@2x.png */; };
-		F28FE26616B901490065F720 /* test_icon.png in Resources */ = {isa = PBXBuildFile; fileRef = F28FE26516B901490065F720 /* test_icon.png */; };
 		F28FE27D16B9F35F0065F720 /* MKAnnotationView+WebCache.m in Sources */ = {isa = PBXBuildFile; fileRef = F28FE26916B9F35E0065F720 /* MKAnnotationView+WebCache.m */; };
 		F28FE27E16B9F35F0065F720 /* SDImageCache.m in Sources */ = {isa = PBXBuildFile; fileRef = F28FE26B16B9F35E0065F720 /* SDImageCache.m */; };
 		F28FE27F16B9F35F0065F720 /* SDWebImageCompat.m in Sources */ = {isa = PBXBuildFile; fileRef = F28FE26D16B9F35E0065F720 /* SDWebImageCompat.m */; };
@@ -290,6 +288,7 @@
 		F2C16417165D54040018A8F8 /* libFlurry.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F2C16415165D54030018A8F8 /* libFlurry.a */; };
 		F2C1641C16612D4D0018A8F8 /* FeedLoadingCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = F2C1641B16612D4D0018A8F8 /* FeedLoadingCell.xib */; };
 		F2C1641D16612D4D0018A8F8 /* FeedLoadingCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = F2C1641B16612D4D0018A8F8 /* FeedLoadingCell.xib */; };
+		F2C249AC16E566EF00B86D76 /* overlay4.png in Resources */ = {isa = PBXBuildFile; fileRef = F2C249AB16E566EF00B86D76 /* overlay4.png */; };
 		F2C2CA20169F58CD003906D8 /* myPosts@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F2C2CA1F169F58CD003906D8 /* myPosts@2x.png */; };
 		F2C2CA22169F5A3D003906D8 /* myPosts.png in Resources */ = {isa = PBXBuildFile; fileRef = F2C2CA21169F5A3D003906D8 /* myPosts.png */; };
 		F2CB42C11648B83100FD6282 /* facebookGray.png in Resources */ = {isa = PBXBuildFile; fileRef = F2CB42BF1648B83100FD6282 /* facebookGray.png */; };
@@ -325,6 +324,7 @@
 		F2D7005616BDD9BC007D6D62 /* MagicalRecord+Setup.m in Sources */ = {isa = PBXBuildFile; fileRef = F2D7003816BDD9BC007D6D62 /* MagicalRecord+Setup.m */; };
 		F2D7005716BDD9BC007D6D62 /* MagicalRecord+ShorthandSupport.m in Sources */ = {isa = PBXBuildFile; fileRef = F2D7003A16BDD9BC007D6D62 /* MagicalRecord+ShorthandSupport.m */; };
 		F2D7005816BDD9BC007D6D62 /* MagicalRecord.m in Sources */ = {isa = PBXBuildFile; fileRef = F2D7003C16BDD9BC007D6D62 /* MagicalRecord.m */; };
+		F2DC264116F649E400C7D586 /* FDEmailConnectViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F2DC264016F649E400C7D586 /* FDEmailConnectViewController.m */; };
 		F2E4CC2115F645C2004C7072 /* FDSettingsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F2E4CC2015F645C2004C7072 /* FDSettingsViewController.m */; };
 		F2E4CC3415F656BA004C7072 /* facebook.png in Resources */ = {isa = PBXBuildFile; fileRef = F2E4CC2615F656BA004C7072 /* facebook.png */; };
 		F2E4CC3515F656BA004C7072 /* facebook@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F2E4CC2715F656BA004C7072 /* facebook@2x.png */; };
@@ -700,8 +700,6 @@
 		F27E0B4A164728310070F094 /* featuredCallout@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "featuredCallout@2x.png"; sourceTree = "<group>"; };
 		F281344016459B2A00623BA4 /* FDPlaceViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FDPlaceViewController.h; sourceTree = "<group>"; };
 		F281344116459B2A00623BA4 /* FDPlaceViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FDPlaceViewController.m; sourceTree = "<group>"; };
-		F28FE26316B9013A0065F720 /* test_icon@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "test_icon@2x.png"; sourceTree = "<group>"; };
-		F28FE26516B901490065F720 /* test_icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = test_icon.png; sourceTree = "<group>"; };
 		F28FE26816B9F35E0065F720 /* MKAnnotationView+WebCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "MKAnnotationView+WebCache.h"; sourceTree = "<group>"; };
 		F28FE26916B9F35E0065F720 /* MKAnnotationView+WebCache.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "MKAnnotationView+WebCache.m"; sourceTree = "<group>"; };
 		F28FE26A16B9F35E0065F720 /* SDImageCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SDImageCache.h; sourceTree = "<group>"; };
@@ -804,6 +802,7 @@
 		F2C16414165D54030018A8F8 /* Flurry.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Flurry.h; path = foodia/Flurry/Flurry.h; sourceTree = "<group>"; };
 		F2C16415165D54030018A8F8 /* libFlurry.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libFlurry.a; path = foodia/Flurry/libFlurry.a; sourceTree = "<group>"; };
 		F2C1641B16612D4D0018A8F8 /* FeedLoadingCell.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = FeedLoadingCell.xib; sourceTree = "<group>"; };
+		F2C249AB16E566EF00B86D76 /* overlay4.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = overlay4.png; sourceTree = "<group>"; };
 		F2C2CA1F169F58CD003906D8 /* myPosts@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "myPosts@2x.png"; sourceTree = "<group>"; };
 		F2C2CA21169F5A3D003906D8 /* myPosts.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = myPosts.png; sourceTree = "<group>"; };
 		F2CB42BF1648B83100FD6282 /* facebookGray.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = facebookGray.png; sourceTree = "<group>"; };
@@ -869,6 +868,8 @@
 		F2D7003D16BDD9BC007D6D62 /* MagicalRecordShorthand.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MagicalRecordShorthand.h; sourceTree = "<group>"; };
 		F2D7003E16BDD9BC007D6D62 /* CoreData+MagicalRecord.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "CoreData+MagicalRecord.h"; sourceTree = "<group>"; };
 		F2D7FFFF16BCB825007D6D62 /* newBlackLogo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = newBlackLogo.png; sourceTree = "<group>"; };
+		F2DC263F16F649E400C7D586 /* FDEmailConnectViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FDEmailConnectViewController.h; sourceTree = "<group>"; };
+		F2DC264016F649E400C7D586 /* FDEmailConnectViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FDEmailConnectViewController.m; sourceTree = "<group>"; };
 		F2E4CC1F15F645C2004C7072 /* FDSettingsViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FDSettingsViewController.h; sourceTree = "<group>"; };
 		F2E4CC2015F645C2004C7072 /* FDSettingsViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FDSettingsViewController.m; sourceTree = "<group>"; };
 		F2E4CC2615F656BA004C7072 /* facebook.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = facebook.png; sourceTree = "<group>"; };
@@ -1252,8 +1253,6 @@
 				F25102B216D492940003FA3B /* FOODIA-app-icon@2x.png */,
 				F2FE147816C5FAAA006F8ACD /* icon.png */,
 				F2FE147616C5FAA6006F8ACD /* icon@2x.png */,
-				F28FE26516B901490065F720 /* test_icon.png */,
-				F28FE26316B9013A0065F720 /* test_icon@2x.png */,
 				78101A8F15FE33530093BCFC /* PostsModel.xcdatamodeld */,
 				F2C16414165D54030018A8F8 /* Flurry.h */,
 				F2C16415165D54030018A8F8 /* libFlurry.a */,
@@ -1374,6 +1373,8 @@
 				89AECEF615CDCA3E000EE88E /* New Post */,
 				897CB96315BB699400DB53F7 /* FDLoginViewController.h */,
 				897CB96415BB699400DB53F7 /* FDLoginViewController.m */,
+				F2DC263F16F649E400C7D586 /* FDEmailConnectViewController.h */,
+				F2DC264016F649E400C7D586 /* FDEmailConnectViewController.m */,
 				F281344016459B2A00623BA4 /* FDPlaceViewController.h */,
 				F281344116459B2A00623BA4 /* FDPlaceViewController.m */,
 				894FC75A15BC6EEC006C20E5 /* FDPostViewController.h */,
@@ -1389,6 +1390,7 @@
 		897CB9A715BB6A7300DB53F7 /* images */ = {
 			isa = PBXGroup;
 			children = (
+				F2C249AB16E566EF00B86D76 /* overlay4.png */,
 				F23D45DB16C6C60C003B63B4 /* plusButtonv2.png */,
 				F23D45DC16C6C60C003B63B4 /* plusButtonv2@2x.png */,
 				F2FE146A16C5D5CC006F8ACD /* FOODIA-black.png */,
@@ -2037,8 +2039,6 @@
 				F2F7EE2B16B7BF5B00AAE377 /* Default-568h@2x.png in Resources */,
 				F2F7EE2D16B7BF6200AAE377 /* Default@2x.png in Resources */,
 				F2F7EE2F16B7BFA800AAE377 /* Default.png in Resources */,
-				F28FE26416B9013A0065F720 /* test_icon@2x.png in Resources */,
-				F28FE26616B901490065F720 /* test_icon.png in Resources */,
 				F28FE28916BAE5AE0065F720 /* newNewFoodiaHeader@2x.png in Resources */,
 				F2D7000116BCB837007D6D62 /* newBlackLogo.png in Resources */,
 				F2D7000216BCB837007D6D62 /* newBlackLogo@2x.png in Resources */,
@@ -2060,6 +2060,7 @@
 				F23C051116D56B050075AB19 /* FOODIA app icon_58.png in Resources */,
 				F23C051216D56B050075AB19 /* FOODIA app icon_512.png in Resources */,
 				F23C051316D56B050075AB19 /* FOODIA app icon_1024.png in Resources */,
+				F2C249AC16E566EF00B86D76 /* overlay4.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2221,6 +2222,7 @@
 				F2D7005716BDD9BC007D6D62 /* MagicalRecord+ShorthandSupport.m in Sources */,
 				F2D7005816BDD9BC007D6D62 /* MagicalRecord.m in Sources */,
 				F2929C4E16C03E990052205D /* FDWebViewController.m in Sources */,
+				F2DC264116F649E400C7D586 /* FDEmailConnectViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2266,7 +2268,7 @@
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				CODE_SIGN_IDENTITY = "iPhone Developer: Max Haines-Stiles (QKJE3TUQ3S)";
+				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer: Max Haines-Stiles (QKJE3TUQ3S)";
 				COPY_PHASE_STRIP = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
@@ -2283,7 +2285,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 6.0;
 				ONLY_ACTIVE_ARCH = NO;
-				PROVISIONING_PROFILE = "F3D660E3-FC76-420C-8FE9-867945C47F01";
+				PROVISIONING_PROFILE = "";
 				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "F3D660E3-FC76-420C-8FE9-867945C47F01";
 				SDKROOT = iphoneos;
 			};
@@ -2321,6 +2323,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_IDENTITY = "iPhone Developer: Max Haines-Stiles (QKJE3TUQ3S)";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer: Max Haines-Stiles (QKJE3TUQ3S)";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)\"",
@@ -2348,7 +2351,8 @@
 					"-all_load",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE = "F3D660E3-FC76-420C-8FE9-867945C47F01";
+				PROVISIONING_PROFILE = "BC171BCF-3FE7-4E2A-A9FB-D6723EACD2AF";
+				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "BC171BCF-3FE7-4E2A-A9FB-D6723EACD2AF";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = NO;
 				WRAPPER_EXTENSION = app;
@@ -2359,6 +2363,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_IDENTITY = "iPhone Distribution: Foodia, Inc.";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution: Foodia, Inc.";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)\"",
@@ -2386,7 +2391,8 @@
 					"-all_load",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE = "443250C0-EE5D-4855-AA38-FE41CD89C4D6";
+				PROVISIONING_PROFILE = "02385A1D-0673-49B0-8B77-C593275AF107";
+				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "02385A1D-0673-49B0-8B77-C593275AF107";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = NO;
 				VALIDATE_PRODUCT = YES;
@@ -2470,6 +2476,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_IDENTITY = "iPhone Distribution: Foodia, Inc.";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution: Foodia, Inc.";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)\"",
@@ -2497,7 +2504,8 @@
 					"-all_load",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE = "443250C0-EE5D-4855-AA38-FE41CD89C4D6";
+				PROVISIONING_PROFILE = "B72471FC-A4E6-43DD-B959-1DFA4EBECA52";
+				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "B72471FC-A4E6-43DD-B959-1DFA4EBECA52";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = NO;
 				VALIDATE_PRODUCT = NO;

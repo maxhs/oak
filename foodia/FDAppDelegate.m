@@ -205,19 +205,20 @@
 - (void)showLoadingOverlay
 {
     if (![[NSUserDefaults standardUserDefaults] boolForKey:@"Loading"]){
-        CGFloat halfWidth = [[UIScreen mainScreen] bounds].size.width / 2;
-        CGFloat halfHeight = [[UIScreen mainScreen] bounds].size.height / 2;
-        UIImageView *imgOverlay = [[UIImageView alloc] initWithFrame:CGRectMake((halfWidth - 60), (halfHeight - 60), 120, 120)];
-        [imgOverlay setImage:[UIImage imageNamed:@"loading"]];
+        CGFloat width = [[UIScreen mainScreen] bounds].size.width;
+        CGFloat height = [[UIScreen mainScreen] bounds].size.height;
+        UIImageView *imgOverlay = [[UIImageView alloc] initWithFrame:CGRectMake(0,0, width, height)];
+        [imgOverlay setImage:[UIImage imageNamed:@"overlay4"]];
         UIActivityIndicatorView *activityIndicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
-        activityIndicator.center = CGPointMake(60, 60);
         activityIndicator.hidesWhenStopped = YES;
-        [imgOverlay addSubview:activityIndicator];
-        [imgOverlay setTag:99999991];
+        [activityIndicator startAnimating];
+        activityIndicator.center = CGPointMake(width/2, height/2);
+        
+        [imgOverlay setTag:23];
         [imgOverlay setAlpha:0];
+        [imgOverlay addSubview:activityIndicator];
         
         [self.window addSubview:imgOverlay];
-        [activityIndicator startAnimating];
         
         [UIView animateWithDuration:0.4 animations:^{
             imgOverlay.alpha = 1;
@@ -228,10 +229,9 @@
 
 - (void)hideLoadingOverlay
 {
-    UIView *imgOverlay = [self.window viewWithTag:99999991];
+    UIView *imgOverlay = [self.window viewWithTag:23];
     [UIView animateWithDuration:0.3 animations:^{
         imgOverlay.alpha = 0.0;
-        imgOverlay.transform = CGAffineTransformMakeScale(0.0001, 0.0001);
     } completion:^(BOOL finished) {
         [imgOverlay removeFromSuperview];
         [[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"Loading"];

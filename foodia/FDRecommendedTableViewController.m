@@ -155,7 +155,10 @@
         // otherwise, get the intial feed
     } else {
         self.feedRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getRecommendedPostsSuccess:^(NSMutableArray *posts) {
-            
+            if (posts.count == 0){
+                [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
+                return;
+            }
             self.posts = posts;
             [self reloadData];
             self.feedRequestOperation = nil;

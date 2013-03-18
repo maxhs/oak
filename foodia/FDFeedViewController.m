@@ -61,7 +61,7 @@
     self.feedTableViewController        = [[FDFeedTableViewController alloc]        initWithDelegate:self];
     // initialize the table view controller for the various feeds
     self.featuredGridViewController    = [[FDFeaturedGridViewController alloc]    initWithDelegate:self];
-    self.profileViewController          = [[FDNewProfileViewController alloc]  initWithDelegate:self];
+    //self.profileViewController          = [[FDNewProfileViewController alloc]  initWithDelegate:self];
     self.placesViewController      = [[FDPlacesViewController alloc] initWithDelegate:self];
     self.recommendedTableViewController = [[FDRecommendedTableViewController alloc] initWithDelegate:self];
     
@@ -142,7 +142,7 @@
 	_scrollView.pagingEnabled = YES;
 	_scrollView.showsHorizontalScrollIndicator = NO;
     _scrollView.delegate = self;
-    [_scrollView setContentSize:CGSizeMake(440,88)];
+    [_scrollView setContentSize:CGSizeMake(352,88)];
     
 }
 
@@ -165,25 +165,25 @@
             [self hideLabelsExcept:self.feedLabel];
             break;
         case 1:
-            [self showNearby];
-            [self.addPostButton setFrame:CGRectMake(130,self.view.frame.size.height,55,55)];
-            [self hideLabelsExcept:self.nearbyLabel];
-            break;
-        case 2:
             [self showFeatured];
             [self.addPostButton setFrame:CGRectMake(130,self.view.frame.size.height,55,55)];
             [self hideLabelsExcept:self.featuredLabel];
+            break;
+        case 2:
+            [self showNearby];
+            [self.addPostButton setFrame:CGRectMake(130,self.view.frame.size.height,55,55)];
+            [self hideLabelsExcept:self.nearbyLabel];
             break;
         case 3:
             [self showRecommended];
             [self.addPostButton setFrame:CGRectMake(130,self.view.frame.size.height-55,55,55)];
             [self hideLabelsExcept:self.recLabel];
             break;
-        case 4:
+        /*case 4:
             [self showProfile];
             [self.addPostButton setFrame:CGRectMake(130,self.view.frame.size.height-55,55,55)];
             [self hideLabelsExcept:self.myPostsLabel];
-            break;
+            break;*/
         default:
             break;
     }
@@ -254,9 +254,9 @@
         case 3:
             [self hideLabelsExcept:self.recLabel];
             break;
-        case 4:
+        /*case 4:
             [self hideLabelsExcept:self.myPostsLabel];
-            break;
+            break;*/
         default:
             break;
     }
@@ -265,7 +265,7 @@
     [UIView animateWithDuration:.25f animations:^{
         self.feedLabel.alpha = 1.0;
         self.featuredLabel.alpha = 1.0;
-        self.myPostsLabel.alpha = 1.0;
+        //self.myPostsLabel.alpha = 1.0;
         self.nearbyLabel.alpha = 1.0;
         self.recLabel.alpha = 1.0;
     }];
@@ -307,6 +307,7 @@
         FDPostViewController *vc = segue.destinationViewController;
         [vc setPostIdentifier:[(FDPost *)sender identifier]];
     } else if ([segue.identifier isEqualToString:@"AddPost"]) {
+        [(FDAppDelegate*)[UIApplication sharedApplication].delegate hideLoadingOverlay];
         [FDPost resetUserPost];
     } else if ([segue.identifier isEqualToString:@"ShowMap"]) {
         FDPlaceViewController *vcForMap = segue.destinationViewController;
@@ -444,11 +445,9 @@
 
 - (void)searchDisplayController:(UISearchDisplayController *)controller didLoadSearchResultsTableView:(UITableView *)tableView
 {
-    //if ([controller isEqual:self.searchDisplay.searchResultsTableView]) {
-        NSLog(@"yup, that tableview");
-        [tableView setHidden:YES];
-        NSLog(@"controller searchBar text: %@",controller.searchBar.text);
-    //}
+    [tableView setHidden:YES];
+    NSLog(@"controller searchBar text: %@",controller.searchBar.text);
+
 }
 
 #pragma mark - FDPostTableViewControllerDelegate Methods

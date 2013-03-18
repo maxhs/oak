@@ -46,6 +46,7 @@
     [super viewDidLoad];
     isRefreshing_ = NO;
     self.tableView.rowHeight = [FDPostGridCell cellHeight];
+    self.tableView.showsVerticalScrollIndicator = NO;
     [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
     self.canLoadAdditionalPosts = YES;
     

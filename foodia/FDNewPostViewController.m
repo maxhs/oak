@@ -7,6 +7,7 @@
 //
 
 #import "FDNewPostViewController.h"
+#import "FDPostCategoryViewController.h"
 #import "FDPost.h"
 #import "FDUser.h"
 #import "FDAPIClient.h"
@@ -18,6 +19,7 @@
 #import <AssetsLibrary/AssetsLibrary.h>
 #import <Twitter/Twitter.h>
 #import <Accounts/Accounts.h>
+#import "FDPostViewController.h"
 #import "Constants.h"
 #import "FDProfileViewController.h"
 
@@ -50,6 +52,7 @@ NSString *const kPlaceholderAddPostCommentPrompt = @"I'M THINKING...";
 @property (nonatomic, readwrite, retain) UIWebView *webView;
 @property (strong, atomic) ALAssetsLibrary *library;
 @property UIImageOrientation *imageOrientationWhenAddedToScreen;
+@property BOOL isEditing;
 - (IBAction)editPhoto:(id)sender;
 - (IBAction)addPhoto:(id)sender;
 - (IBAction)submitPost:(id)sender;
@@ -70,6 +73,7 @@ NSString *const kPlaceholderAddPostCommentPrompt = @"I'M THINKING...";
 @synthesize webView = _webView;
 @synthesize library;
 @synthesize imageOrientationWhenAddedToScreen;
+@synthesize isEditing = _isEditing;
 
 static NSDictionary *categoryImages = nil;
 
@@ -91,6 +95,7 @@ static NSDictionary *categoryImages = nil;
     [super viewDidLoad];
     if ([self.navigationItem.rightBarButtonItem.title isEqualToString:@"SAVE"]){
         NSLog(@"edit post status... showing delete button");
+        self.isEditing = YES;
         self.deleteButton.layer.cornerRadius = 17.0;
         self.deleteButton.layer.borderColor = [UIColor lightGrayColor].CGColor;
         self.deleteButton.layer.borderWidth = 0.5;
@@ -100,6 +105,7 @@ static NSDictionary *categoryImages = nil;
         [self.twitterButton setHidden:YES];
         [self.instagramButton setHidden:YES];
     } else {
+        self.isEditing = NO;
         self.navigationItem.backBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"POST" style:UIBarButtonItemStyleBordered target:nil action:nil];
 
     }
@@ -187,7 +193,11 @@ static NSDictionary *categoryImages = nil;
         FDProfileViewController *vc = [segue destinationViewController];
         UIButton *button = (UIButton *)sender;
         [vc initWithUserId:button.titleLabel.text];
-    } 
+    } else if ([segue.identifier isEqualToString:@"editCategory"]) {
+        FDPostCategoryViewController *vc = [segue destinationViewController];
+        [vc setIsEditing:YES];
+        [vc setThePost:FDPost.userPost];
+    }
 }
 
 #pragma mark - CLLocationManagerDelegate Methods
@@ -608,8 +618,11 @@ static NSDictionary *categoryImages = nil;
                     [errorToShare show];
                 }
             }
+            //success posting image. now remove loading, notify the feed view to refres, then pop the views.
             [((FDAppDelegate *)[UIApplication sharedApplication].delegate) hideLoadingOverlay];
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"RefreshFeed" object:nil];
             [self.navigationController dismissViewControllerAnimated:YES completion:nil];
+            
         } failure:^(NSError *error) {
              self.postButtonItem.enabled = YES;
              self.navigationItem.leftBarButtonItem.enabled = YES;
@@ -619,7 +632,9 @@ static NSDictionary *categoryImages = nil;
         }];
     } else {
         [[FDAPIClient sharedClient] editPost:FDPost.userPost success:^(id result) {
+            //success editing post. now go back to the original feedview instead 
             [((FDAppDelegate *)[UIApplication sharedApplication].delegate) hideLoadingOverlay];
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"RefreshFeed" object:nil];
             [self.navigationController popViewControllerAnimated:YES];
         } failure:^(NSError *error) {
             NSLog(@"error editing post: %@",error.description);
@@ -683,7 +698,9 @@ static NSDictionary *categoryImages = nil;
 }
 
 - (IBAction)editCategory:(id)sender {
-    [self.navigationController popViewControllerAnimated:YES];
+    if (self.isEditing == YES) {
+        [self performSegueWithIdentifier:@"editCategory" sender:self];
+    } else [self.navigationController popViewControllerAnimated:YES];
 }
 
 - (void)viewDidUnload {
@@ -754,6 +771,7 @@ static NSDictionary *categoryImages = nil;
 {
     if ([[alertView buttonTitleAtIndex:buttonIndex] isEqualToString:@"Delete"]){
         [[FDAPIClient sharedClient]deletePost:self.post success:^(id result){
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"RefreshFeed" object:nil];
             [self.navigationController popToRootViewControllerAnimated:YES];
         }failure:^(NSError *error) {
             NSLog(@"error");

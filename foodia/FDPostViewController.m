@@ -54,8 +54,9 @@ static NSDictionary *placeholderImages;
 @property (weak, nonatomic) IBOutlet UITableView *tableView;
 @property (weak,nonatomic) IBOutlet UILabel *postTitle;
 @property (weak,nonatomic) IBOutlet UIView *titleView;
+@property (strong, nonatomic) FDComment *posterComment;
 @property (weak, nonatomic) IBOutlet UIProgressView *progressView;
-@property (nonatomic) UITapGestureRecognizer *doubleTap;
+//@property (nonatomic) UITapGestureRecognizer *doubleTap;
 @property (nonatomic, strong) FDPost *post;
 @property (nonatomic, strong) NSArray *comments;
 @property (strong, nonatomic) NSString *likerFacebookId;
@@ -72,8 +73,9 @@ static NSDictionary *placeholderImages;
 
 @implementation FDPostViewController
 
-@synthesize likersScrollView, addComment, likerFacebookId, commenterFacebookId, captionRect, socialLabelRect, newTableHeaderView, whiteCaption, foodiaObjectTextView, screenRect, screenWidth, screenHeight, doubleTap, photoImageViewY, photoImageViewX;
+@synthesize likersScrollView, addComment, likerFacebookId, commenterFacebookId, captionRect, socialLabelRect, newTableHeaderView, whiteCaption, screenRect, screenWidth, screenHeight, /*doubleTap, */photoImageViewY, photoImageViewX;
 @synthesize post = _post;
+@synthesize posterComment = _posterComment;
 
 + (void)initialize {
     if (self == [FDPostViewController class]) {
@@ -102,11 +104,12 @@ static NSDictionary *placeholderImages;
                                             forKey:kDefaultsEnlargePhoto];
     [[NSUserDefaults standardUserDefaults] setBool:false
                                             forKey:kDefaultsBlackView];
+    self.posterComment = [[FDComment alloc] init];
     self.screenRect = [[UIScreen mainScreen] bounds];
     self.screenWidth = screenRect.size.width;
     self.screenHeight = screenRect.size.height;
-    self.doubleTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(zoomPhoto:)];
-    self.doubleTap.numberOfTapsRequired = 2;
+    //self.doubleTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(zoomPhoto:)];
+    //self.doubleTap.numberOfTapsRequired = 2;
     self.photoImageViewX = 0;
     self.tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
     
@@ -115,10 +118,20 @@ static NSDictionary *placeholderImages;
     self.recButton.backgroundColor = [UIColor clearColor];
     self.recButton.layer.cornerRadius = 17.0f;
     
-    self.likeButton.layer.borderColor = [UIColor colorWithWhite:1.0 alpha:.4].CGColor;
+    
+    UIImage *likeButtonImage;
+    if ([self.post isLikedByUser]) {
+        likeButtonImage = [UIImage imageNamed:@"feedLikeButtonRed.png"];
+    } else {
+        likeButtonImage = [UIImage imageNamed:@"feedLikeButtonGray.png"];
+    }
+    self.likeButton.layer.borderColor = [UIColor colorWithWhite:.1 alpha:.1].CGColor;
+    [self.likeButton setImage:likeButtonImage forState:UIControlStateNormal];
     self.likeButton.layer.borderWidth = 1.0f;
-    self.likeButton.backgroundColor = [UIColor clearColor];
+    self.likeButton.backgroundColor = [UIColor whiteColor];
     self.likeButton.layer.cornerRadius = 17.0f;
+    self.likeButton.layer.shouldRasterize = YES;
+    self.likeButton.layer.rasterizationScale = [UIScreen mainScreen].scale;
     
     /*BOOL existingUserPost = [[NSUserDefaults standardUserDefaults] boolForKey:@"existingUserPost"];
     if (!existingUserPost) {
@@ -336,6 +349,9 @@ static NSDictionary *placeholderImages;
                     self.photoImageView.layer.shadowOpacity = 1;
                     self.photoImageView.layer.shadowRadius = 3.0;
                     self.photoImageView.clipsToBounds = NO;
+                    [self.likeButton setAlpha:1.0];
+                    [self.likeCountLabel setAlpha:1.0];
+                    [self.likersScrollView setAlpha:1.0];
                 }];
                 [self.navigationItem.rightBarButtonItem setEnabled:YES];
             }
@@ -353,18 +369,18 @@ static NSDictionary *placeholderImages;
     }
     
     self.postTitle.text = [Utilities postedAt:self.post.postedAt];
-    //self.socialLabel.text   = self.post.detailString;
+    self.socialLabel.text   = self.post.detailString;
     self.captionTextView.text  = [NSString stringWithFormat:@"\"%@\"", self.post.caption];
     self.likeCountLabel.text = [NSString stringWithFormat:@"%@", self.post.likeCount];
     self.recCountLabel.text = [NSString stringWithFormat:@"%d", [self.post.recommendedTo count]];
     //set social label frame size
-    /*if(CGRectIsEmpty(socialLabelRect)) {
+    if(CGRectIsEmpty(socialLabelRect)) {
         socialLabelRect = self.socialLabel.frame;
         socialLabelRect.size.height = self.socialLabel.contentSize.height;
         self.socialLabel.frame = socialLabelRect;
     }
     //set caption/message height
-    if (CGRectIsEmpty(captionRect) && self.post.caption.length){
+    /*if (CGRectIsEmpty(captionRect) && self.post.caption.length){
         captionRect = self.captionTextView.frame;
         captionRect.size.height = self.captionTextView.contentSize.height;
         captionRect.origin.y += self.socialLabel.contentSize.height;
@@ -374,7 +390,7 @@ static NSDictionary *placeholderImages;
         captionRect.size.height = 0;
         captionRect.origin.y += self.socialLabel.contentSize.height-12;
         self.captionTextView.frame = captionRect;
-    }
+    }*/
     
     //set the tableHeaderView frame according to social label and caption
     if (CGRectIsEmpty(newTableHeaderView)){
@@ -382,14 +398,14 @@ static NSDictionary *placeholderImages;
         [self.tableHeaderView setBounds:CGRectMake(newTableHeaderView.origin.x,
                                                    newTableHeaderView.origin.y,
                                                    newTableHeaderView.size.width,
-                                                   newTableHeaderView.size.height+self.captionTextView.frame.size.height+self.socialLabel.frame.size.height+8)];
+                                                   newTableHeaderView.size.height/*+self.captionTextView.frame.size.height*/+self.socialLabel.frame.size.height+8)];
         [self.photoImageView setFrame:CGRectMake(5,5,310,310)];
         [self.posterButton setFrame:CGRectMake(267,3,50,50)];
-    }*/
+    }
     
     //hide quotes if appropriate
-    //if (self.post.caption.length) self.captionTextView.hidden = NO;
-    //else self.captionTextView.hidden = YES;
+    /*if (self.post.caption.length) self.captionTextView.hidden = NO;
+    else self.captionTextView.hidden = YES;*/
     
     UIImage *likeButtonImage;
     if (self.post.isLikedByUser) likeButtonImage = [UIImage imageNamed:@"feedLikeButtonRed.png"];
@@ -403,7 +419,7 @@ static NSDictionary *placeholderImages;
 }
 
 - (void)showComments {
-    self.comments = [self.post.comments sortedArrayUsingDescriptors:@[[NSSortDescriptor sortDescriptorWithKey:@"epochTime" ascending:NO]]];
+    self.comments = [self.post.comments sortedArrayUsingDescriptors:@[[NSSortDescriptor sortDescriptorWithKey:@"epochTime" ascending:YES]]];
     [self.tableView reloadData];
 }
 
@@ -444,25 +460,21 @@ static NSDictionary *placeholderImages;
 -(void)makeBlackView {
     UIView *blackView = [[UIView alloc] initWithFrame:CGRectMake(0,0,self.screenWidth,self.screenHeight)];
     self.whiteCaption.text = self.captionTextView.text;
-    self.foodiaObjectTextView.text = self.post.detailString;
     self.whiteCaption.textAlignment = NSTextAlignmentCenter;
     self.whiteCaption.textColor = [UIColor whiteColor];
     [blackView setTag:99999992];
     [blackView setBackgroundColor:[UIColor clearColor]];
     [self.view insertSubview:blackView belowSubview:self.photoImageView];
     [self.view insertSubview:self.whiteCaption aboveSubview:blackView];
-    [self.view insertSubview:self.foodiaObjectTextView aboveSubview:blackView];
-    [self.view insertSubview:self.likeButton aboveSubview:blackView];
-    [self.view insertSubview:self.recButton aboveSubview:blackView];
+    //[self.view insertSubview:self.foodiaObjectTextView aboveSubview:blackView];
     [self.view insertSubview:self.locationButton aboveSubview:blackView];
-    [self.view insertSubview:self.recCountLabel aboveSubview:blackView];
-    [self.view insertSubview:self.likeCountLabel aboveSubview:blackView];
+
     
     //hide quotes if appropriate
     if (self.post.caption.length) self.whiteCaption.hidden = NO;
     else self.whiteCaption.hidden = YES;
     
-    [UIView animateWithDuration:0.35
+    [UIView animateWithDuration:.3
                      animations:^{
                          [blackView setBackgroundColor:[UIColor colorWithRed:0 green:0 blue:0 alpha:0.9]];
                          if ([UIScreen mainScreen].bounds.size.height == 568){
@@ -470,11 +482,8 @@ static NSDictionary *placeholderImages;
                          } else {
                              self.whiteCaption.frame = CGRectMake(0,(self.screenHeight/2)+90,self.screenWidth,self.whiteCaption.contentSize.height);
                          }
-                         [self.foodiaObjectTextView setFrame:CGRectMake(0, 0, 320, 66)];
-                         [self.likeButton setFrame:CGRectMake(10,self.screenHeight-60, 70,34)];
-                         [self.likeCountLabel setFrame:CGRectMake(10,self.screenHeight-90, 70,34)];
-                         [self.recButton setFrame:CGRectMake(90,self.screenHeight-60, 70,34)];
-                         [self.recCountLabel setFrame:CGRectMake(90,self.screenHeight-90, 70,34)];
+                         //[self.foodiaObjectTextView setFrame:CGRectMake(0, 0, 320, 66)];
+                       
                          [self.locationButton setFrame:CGRectMake(170,self.screenHeight-60, 140,34)];
                      }
                      completion:^(BOOL finished){
@@ -484,16 +493,12 @@ static NSDictionary *placeholderImages;
 
 -(void)removeBlackView {
     UIView *blackView = [self.view viewWithTag:99999992];
-    [UIView animateWithDuration:0.3
+    [UIView animateWithDuration:UINavigationControllerHideShowBarDuration
                      animations:^{
                          [blackView setBackgroundColor:[UIColor colorWithRed:0 green:0 blue:0 alpha:0.0]];
                          self.whiteCaption.frame = CGRectMake(0,self.screenHeight,self.screenWidth,self.captionTextView.contentSize.height);
-                         [self.foodiaObjectTextView setFrame:CGRectMake(0, -66, 320, 66)];
                          CGRect frame = CGRectMake(130,568,34,34);
-                         [self.likeButton setFrame:frame];
-                         [self.likeCountLabel setFrame:frame];
-                         [self.recCountLabel setFrame:frame];
-                         [self.recButton setFrame:frame];
+
                          [self.locationButton setFrame:frame];
                      }
                      completion:^(BOOL finished){
@@ -507,7 +512,7 @@ static NSDictionary *placeholderImages;
     if ([[NSUserDefaults standardUserDefaults] boolForKey:kDefaultsEnlargePhoto]) {
         [self.navigationController setNavigationBarHidden:YES animated:YES];
         [self makeBlackView];
-        [UIView animateWithDuration:0.40
+        [UIView animateWithDuration:0.425
                           delay:0.0
                         options: UIViewAnimationOptionCurveEaseInOut
                      animations:^{
@@ -516,6 +521,7 @@ static NSDictionary *placeholderImages;
                          self.photoImageView.layer.shadowOpacity = 0;
                          self.photoImageView.layer.shadowRadius = 0;
                          self.photoImageView.clipsToBounds = NO;
+                         [self.posterButton setAlpha:0.0];
                          if ([UIScreen mainScreen].bounds.size.height == 568) {
                              [self.photoImageView setFrame:CGRectMake(0,halfScreenHeight-170,320,320)];
                              self.photoButton.frame = CGRectMake(0,0,self.screenWidth,self.screenHeight-60);
@@ -532,8 +538,8 @@ static NSDictionary *placeholderImages;
                                                                  forKey:kDefaultsEnlargePhoto];
                          [[NSUserDefaults standardUserDefaults] setBool:true
                                                                  forKey:kDefaultsBlackView];
-                         [self.view addGestureRecognizer:doubleTap];
-                         doubleTap.enabled = YES;
+                         /*[self.view addGestureRecognizer:doubleTap];
+                         self.doubleTap.enabled = YES;*/
                          self.photoImageViewY = self.photoImageView.frame.origin.y;
                          self.photoImageViewX = 0;
                      }];
@@ -548,6 +554,7 @@ static NSDictionary *placeholderImages;
                              self.photoImageView.layer.shadowOpacity = 1;
                              self.photoImageView.layer.shadowRadius = 3.0;
                              self.photoImageView.clipsToBounds = NO;
+                             [self.posterButton setAlpha:1.0];
                              [self.photoImageView setFrame:CGRectMake(5,5,310,310)];
                              [self.photoButton setFrame:CGRectMake(5,5,310,310)];
                              [self.tableHeaderView addSubview:self.photoImageView];
@@ -561,8 +568,8 @@ static NSDictionary *placeholderImages;
                                                                      forKey:kDefaultsEnlargePhoto];
                              [[NSUserDefaults standardUserDefaults] setBool:false
                                                                      forKey:kDefaultsBlackView];
-                             doubleTap.enabled = NO;
-                             [self.view removeGestureRecognizer:doubleTap];
+                             //self.doubleTap.enabled = NO;
+                             //[self.view removeGestureRecognizer:doubleTap];
                              
                          }];
         [self.view addSubview:self.tableView];
@@ -574,7 +581,7 @@ static NSDictionary *placeholderImages;
     self.photoImageViewX = scrollView.contentOffset.x;
 }
 
-- (void)zoomPhoto:(UITapGestureRecognizer *)sender {
+/*- (void)zoomPhoto:(UITapGestureRecognizer *)sender {
     if (sender.state == UIGestureRecognizerStateRecognized) {
         UIScrollView *zoomPhotoScroll = [[UIScrollView alloc] initWithFrame:CGRectMake(0,0,self.screenWidth, self.screenHeight)];
         [zoomPhotoScroll setContentSize:CGSizeMake(self.screenHeight,self.screenHeight)];
@@ -599,8 +606,8 @@ static NSDictionary *placeholderImages;
                          self.photoImageViewY = self.photoImageView.frame.origin.y;
                          [self.view removeGestureRecognizer:doubleTap];
                      }];
-    } 
-}
+    }
+}*/
 
 #pragma mark - Display likers
 
@@ -610,7 +617,7 @@ static NSDictionary *placeholderImages;
     [self.likersScrollView.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
     self.likersScrollView.showsHorizontalScrollIndicator=NO;
     
-    float imageSize = 36.0;
+    float imageSize = 34.0;
     float space = 10.0;
     int index = 0;
     
@@ -631,7 +638,7 @@ static NSDictionary *placeholderImages;
         likerView.clipsToBounds = YES;
         likerView.layer.cornerRadius = 5.0;
         likerView.frame = CGRectMake(((space+imageSize)*index),0,imageSize, imageSize);
-        heart.frame = CGRectMake((((space+imageSize)*index)+22),18,20,20);
+        heart.frame = CGRectMake((((space+imageSize)*index)+20),16,20,20);
         [likerButton setFrame:likerView.frame];
         heart.clipsToBounds = NO;
         [self.likersScrollView addSubview:likerView];
@@ -653,16 +660,24 @@ static NSDictionary *placeholderImages;
 #pragma mark - TableViewDelegate Methods
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
-    return 2;
+    if (self.post.caption.length > 0) return 3;
+    else return 2;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    if (section == 1) {
+    if (tableView.numberOfSections == 3 && section == 2) {
         return self.post.comments.count;
-    } else return 1;
+    } else if (tableView.numberOfSections == 2 && section == 1) return self.post.comments.count;
+    else return 1;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+    static NSString *CellIdentifier = @"CommentCell";
+    FDCommentCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
+    if (cell == nil) {
+        cell = [[[NSBundle mainBundle] loadNibNamed:@"FDCommentCell" owner:self options:nil] lastObject];
+    }
+    
     if (indexPath.section == 0) {
         UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"AddComment"];
         UIImageView *imageView = (UIImageView *)[cell viewWithTag:66];
@@ -675,13 +690,22 @@ static NSDictionary *placeholderImages;
         textView.clipsToBounds = YES;
         textView.layer.borderWidth = 0.5f;
         return cell;
-    }
+    } else if (self.post.caption.length > 0 && indexPath.section == 1) {
+        UIButton *commenterButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        [self.posterComment setBody:self.post.caption];
+        [self.posterComment setUser:self.post.user];
+        [self.posterComment setEpochTime:self.post.epochTime];
+        [cell configureForComment:self.posterComment];
+        cell.profileImageView.layer.cornerRadius = 3.0;
+        commenterButton.titleLabel.text = self.posterComment.user.facebookId;
+        commenterButton.titleLabel.hidden = YES;
+        self.commenterFacebookId = self.posterComment.user.facebookId;
+        commenterButton.frame = cell.cellPhotoRect;
+        [commenterButton addTarget:self action:@selector(profileTappedFromComment:) forControlEvents:UIControlEventTouchUpInside];
+        [cell addSubview:commenterButton];
+        return cell;
+    } else {
     
-    static NSString *CellIdentifier = @"CommentCell";
-    FDCommentCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
-    if (cell == nil) {
-        cell = [[[NSBundle mainBundle] loadNibNamed:@"FDCommentCell" owner:self options:nil] lastObject];
-    }
     UIButton *commenterButton = [UIButton buttonWithType:UIButtonTypeCustom];
     FDComment *comment = [self.comments objectAtIndex:indexPath.row];
     [cell configureForComment:comment];
@@ -694,14 +718,23 @@ static NSDictionary *placeholderImages;
     [cell addSubview:commenterButton];
     [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
     return cell;
+    }
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
     if (indexPath.section == 0) return 66.f;
+    else if (self.post.caption.length > 0 && indexPath.section == 1) {
+        return [self heightForPosterComment];
+    }
     else {
         FDComment *comment = [self.comments objectAtIndex:indexPath.row];
         return [FDCommentCell heightForComment:comment];
     }
+}
+
+- (CGFloat)heightForPosterComment {
+    CGSize bodySize = [self.post.caption sizeWithFont:[UIFont fontWithName:@"AvenirNextCondensed-Medium" size:16] constrainedToSize:CGSizeMake(207, 100000)];
+    return MAX(33 + bodySize.height + 5.f, 60.f);
 }
 
 #pragma mark - UITextViewDelegate Methods

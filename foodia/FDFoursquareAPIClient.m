@@ -98,7 +98,7 @@ static FDFoursquareAPIClient *singleton;
     
     NSString *coordinateString = [NSString stringWithFormat:@"%f,%f",location.coordinate.latitude, location.coordinate.longitude];
     
-    NSDictionary *parameters = @{@"ll" : coordinateString, @"query" : query};
+    NSDictionary *parameters = @{@"ll" : coordinateString, @"query" : query, @"radius":@"100000"};
     
     _isUpdating = YES;
     

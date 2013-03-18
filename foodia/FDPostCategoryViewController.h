@@ -6,6 +6,10 @@
 //  Copyright (c) 2012 FOODIA. All rights reserved.
 //
 
+#import "FDPost.h"
+
 @interface FDPostCategoryViewController : UIViewController
 @property (nonatomic, strong) UIImage *dummyImage;
+@property BOOL isEditing;
+@property (strong, nonatomic) FDPost *thePost;
 @end

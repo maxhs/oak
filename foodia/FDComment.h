@@ -11,8 +11,8 @@
 @class FDUser;
 
 @interface FDComment : FDRecord
-@property (nonatomic, retain) FDUser *user;
-@property (nonatomic, retain) NSString *body;
-@property (nonatomic, retain) NSNumber *epochTime;
+@property (nonatomic, strong) FDUser *user;
+@property (nonatomic, strong) NSString *body;
+@property (nonatomic, strong) NSNumber *epochTime;
 - (NSDate *)date;
 @end

@@ -28,7 +28,7 @@
 #import "FDAppDelegate.h"
 
 
-#define BASE_URL @"http://posts.foodia.com/api/v2"
+#define BASE_URL @"http://posts.foodia.com/api/v3"
 #define CONNECTIVITY_PATH @"apn_registrations"
 #define REGISTER_PATH @"register"
 #define FEED_PATH @"posts.json"
@@ -43,7 +43,7 @@
 #define POST_UPDATE_PATH @"posts"
 #define LIKE_PATH @"likes"
 #define COMMENT_PATH @"comments"
-#define NEARBY_PATH @"posts/nearby.json"
+#define MAP_PATH @"posts/map.json"
 #define PLACES_PATH @"posts/places.json"
 #define PEOPLE_PATH @"follows"
 #define RECOMMEND_PATH @"recommendations"
@@ -57,7 +57,7 @@ typedef void(^OperationFailure)(AFHTTPRequestOperation *operation, NSError *erro
 
 @implementation FDAPIClient
 
-@synthesize facebookID, facebookAccessToken, deviceToken;
+@synthesize facebookID, facebookAccessToken, deviceToken, email, password;
 
 static FDAPIClient *singleton;
 
@@ -224,8 +224,7 @@ return [self requestOperationWithMethod:@"GET"
                                       failure:(RequestFailure)failure
 {
     
-    NSDictionary *parameters = [NSDictionary dictionaryWithObjectsAndKeys:uid,@"for_map", nil];
-    
+    NSDictionary *parameters = @{@"user_id":uid};
     OperationSuccess opSuccess = ^(AFHTTPRequestOperation *operation, id responseObject) {
         success([self postsFromJSONArray:[responseObject objectForKey:@"posts"]]);
     };
@@ -233,7 +232,7 @@ return [self requestOperationWithMethod:@"GET"
         failure(error);
     };
     AFHTTPRequestOperation *op = [self requestOperationWithMethod:@"GET"
-                                                             path:FEED_PATH
+                                                             path:MAP_PATH
                                                        parameters:parameters
                                                           success:opSuccess
                                                           failure:opFailure];
@@ -580,7 +579,7 @@ return [self requestOperationWithMethod:@"GET"
     
 }
 
-#pragma mark - Nearby Posts
+/*#pragma mark - Nearby Posts
 
 - (AFJSONRequestOperation *)getPostsNearLocation:(CLLocation *)location
                                           success:(RequestSuccess)success
@@ -600,7 +599,7 @@ return [self requestOperationWithMethod:@"GET"
                                  parameters:parameters
                                     success:opSuccess
                                     failure:opFailure];
-}
+}*/
 
 #pragma mark - Posts for Nearby Place
 
@@ -826,7 +825,7 @@ return [self requestOperationWithMethod:@"GET"
 
 
 - (AFJSONRequestOperation *)registerUser {
-    
+    if (self.facebookAccessToken && self.facebookID){
     return [self requestOperationWithMethod:@"POST"
                                        path:REGISTER_PATH
                                  parameters:[NSDictionary dictionaryWithObjectsAndKeys:self.facebookAccessToken,@"access_token",self.facebookID,@"facebook_id", nil]
@@ -834,9 +833,23 @@ return [self requestOperationWithMethod:@"GET"
                                     
                                     }
                                     failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-                                        //NSLog(@"Register Failed. %@ ... %@",operation.responseString, error.description);
+                                        NSLog(@"Register Failed. %@ ... %@",operation.responseString, error.description);
                                     }
             ];
+    } else {
+        NSMutableDictionary *parameters = [NSMutableDictionary dictionaryWithObjectsAndKeys:self.email, @"email", self.password, @"password", nil];
+        NSDictionary *rootParameters = [NSDictionary dictionaryWithObject:parameters forKey:@"user"];
+        return [self requestOperationWithMethod:@"POST"
+                                           path:REGISTER_PATH
+                                     parameters:rootParameters
+                                        success:^(AFHTTPRequestOperation *operation, id result) {
+                                            NSLog(@"result from register email method: %@",result);
+                                        }
+                                        failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+                                            NSLog(@"Register Failed. %@ ... %@",operation.responseString, error.description);
+                                        }
+                ];
+    }
 }
 
 

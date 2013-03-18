@@ -15,12 +15,12 @@
 #import "Facebook.h"
 
 @interface FDPeopleTableViewController ()
+
 @end
 
 @implementation FDPeopleTableViewController
 
 @synthesize stillRunning;
-
 @synthesize delegate = delegate_;
 
 - (id)initWithDelegate:(id)delegate {

@@ -74,6 +74,10 @@
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     FDUserCell *cell = (FDUserCell *)[super tableView:tableView cellForRowAtIndexPath:indexPath];
+    UIView *cellbg = [[UIView alloc] init];
+    [cellbg setBackgroundColor:[UIColor darkGrayColor]];
+    cell.selectedBackgroundView = cellbg;
+
     cell.button.hidden = YES;
     if(self.searchDisplayController.searchBar.text.length == 0) {
         FDUser *friend = [self.people objectAtIndex:indexPath.row];
@@ -90,7 +94,6 @@
             cell.accessoryType = UITableViewCellAccessoryNone;
         }
     }
-    cell.selectionStyle = UITableViewCellSelectionStyleGray;
     return cell;
 }
 

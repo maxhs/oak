@@ -22,6 +22,7 @@
 
 @implementation FDProfileMapViewController
 @synthesize uid, feedRequestOperation,morePostsRequestOperation, canLoadMore;
+
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
 {
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
@@ -65,8 +66,13 @@
 -(void)loadPosts:(NSString *)userID{
     self.posts = [NSMutableArray array];
     self.feedRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getMapForProfile:userID success:^(NSMutableArray *newPosts) {
+        if (newPosts.count == 0){
+            [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
+            return;
+        }
         for (FDPost *post in newPosts){
-            if (post.location.coordinate.latitude != 0){
+            if (post.latitude != 0){
+                NSLog(@"post.locationname: %@",post.locationName);
                 [self.posts addObject:post];
             }
         }
@@ -87,6 +93,7 @@
 
 - (void)viewDidDisappear:(BOOL)animated {
     [super viewDidDisappear:YES];
+    [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
     self.feedRequestOperation = nil;
 }
 
@@ -165,6 +172,7 @@
         [vc setPostIdentifier:[(FDPost *)sender identifier]];
     }
 }
+
 
 #pragma mark - CLLocationManagerDelegateMethods
 
