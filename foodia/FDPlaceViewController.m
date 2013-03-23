@@ -241,7 +241,7 @@
         [cell.detailPhotoButton addTarget:self action:@selector(didSelectRow:) forControlEvents:UIControlEventTouchUpInside];
         
         UIButton *recButton = [UIButton buttonWithType:UIButtonTypeCustom];
-        [recButton setFrame:CGRectMake(276,52,70,34)];
+        [recButton setFrame:CGRectMake(276,52,60,34)];
         [recButton addTarget:self action:@selector(recommend:) forControlEvents:UIControlEventTouchUpInside];
         [recButton setTitle:@"Rec" forState:UIControlStateNormal];
         recButton.layer.borderColor = [UIColor colorWithWhite:.1 alpha:.1].CGColor;

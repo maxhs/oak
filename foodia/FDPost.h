@@ -28,6 +28,7 @@
 @property (nonatomic, retain) NSNumber * featured;
 @property (nonatomic, retain) NSNumber * recCount;
 @property (nonatomic, retain) NSNumber * likeCount;
+@property (nonatomic, retain) NSNumber * viewCount;
 @property (nonatomic, retain) NSString * locationName;
 @property (nonatomic, retain) NSString * locationHours;
 @property (nonatomic, retain) NSString * address;
@@ -38,6 +39,7 @@
 @property (nonatomic, retain) NSNumber * recommendedEpochTime;
 @property (nonatomic, retain) NSNumber * featuredEpochTime;
 @property (nonatomic, retain) NSDictionary    * likers;
+@property (nonatomic, retain) NSDictionary    * viewers;
 @property (nonatomic, retain) NSSet    * comments;
 @property (nonatomic, retain) FDVenue  * venue;
 @property (nonatomic, retain) NSString *FDVenueId;

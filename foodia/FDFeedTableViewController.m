@@ -15,6 +15,7 @@
 #import "FDAPIClient.h"
 #import "Facebook.h"
 #import "FDAppDelegate.h"
+#import "Flurry.h"
 
 @interface FDFeedTableViewController ()
 @end
@@ -25,10 +26,11 @@
 -(void)viewDidLoad {
     [super viewDidLoad];
     [self refresh];
-    [[NSNotificationCenter defaultCenter] addObserver:self
+    [Flurry logPageView];
+    /*[[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(updatePostNotification:)
                                                  name:@"UpdatePostNotification"
-                                               object:nil];
+                                               object:nil];*/
 }
 
 
@@ -126,6 +128,7 @@
 }
 
 - (void)loadAdditionalPosts {
+    NSLog(@"loading additional posts");
         self.feedRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getFeedBeforePost:self.posts.lastObject success:^(NSMutableArray *posts) {
             if (posts.count == 0) {
                 self.canLoadAdditionalPosts = NO;

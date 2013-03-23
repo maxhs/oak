@@ -10,4 +10,5 @@
 @class FDPost;
 @interface FDRecommendViewController : FDPeopleTableViewController
 @property (nonatomic, retain) FDPost *post;
+@property BOOL postingToFacebook;
 @end

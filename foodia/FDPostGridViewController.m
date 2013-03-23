@@ -14,11 +14,13 @@
 #import "AFNetworking.h"
 #import "ECSlidingViewController.h"
 #import "FDPostViewController.h"
+#import "FDMenuViewController.h"
 
 @interface FDPostGridViewController () <EGORefreshTableHeaderDelegate>
 @property (nonatomic,strong) EGORefreshTableHeaderView *refreshHeaderView;
 @property (nonatomic) BOOL isRefreshing;
 @property (nonatomic,strong) AFJSONRequestOperation *postRequestOperation;
+@property (nonatomic,strong) AFJSONRequestOperation *notificationRequestOperation;
 @property CGFloat previousContentDelta;
 @property (nonatomic, assign) int lastContentOffsetY;
 
@@ -34,6 +36,7 @@
 @synthesize cellPosts;
 @synthesize lastContentOffsetY = _lastContentOffsetY;
 @synthesize previousContentDelta;
+@synthesize notificationsPending;
 
 - (id)initWithDelegate:(id)delegate {
     if (self = [super initWithStyle:UITableViewStylePlain]) {
@@ -49,7 +52,7 @@
     self.tableView.showsVerticalScrollIndicator = NO;
     [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
     self.canLoadAdditionalPosts = YES;
-    
+    [self refresh];
     // set up the pull-to-refresh header
     if (refreshHeaderView_ == nil) {
         
@@ -64,7 +67,6 @@
         view.delegate = self;
         [self.tableView addSubview:view];
         refreshHeaderView_ = view;
-        //self.view.backgroundColor = [UIColor colorWithPatternImage:[UIImage imageNamed:@"foodiaBackground.png"]];
         self.tableView.separatorColor = [UIColor clearColor];
         UITableViewCell *emptyCell = [self.tableView dequeueReusableCellWithIdentifier:@"emptyCell"];
         if (emptyCell == nil) {
@@ -82,7 +84,8 @@
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
-    [self refresh];
+    [self getNotificationCount];
+    NSLog(@"notifications pending: %i", self.notificationsPending);
 }
 
 - (void)viewWillDisappear:(BOOL)animated {
@@ -99,27 +102,58 @@
  
 }
 
+-(void)getNotificationCount{
+    self.notificationRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getActivityCountSuccess:^(NSString *notifications) {
+        self.notificationsPending = [notifications integerValue];
+        self.notificationRequestOperation = nil;
+        //[self.tableView reloadSections:[NSIndexSet indexSetWithIndex:1] withRowAnimation:UITableViewRowAnimationAutomatic];
+    } failure:^(NSError *error) {
+        self.notificationRequestOperation = nil;
+        NSLog(@"Refreshing Failed");
+    }];
+}
 
 #pragma mark - Table view data source
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
 {
-    return 1;
+    return 2;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-    if (section == 0) {
+    if(section == 0) {
+        if (notificationsPending == 0)
+            return 0;
+        else
+            return 1;
+    } else if (section == 1) {
         double amt = self.posts.count / 3;
         amt = ceil(amt);
         NSInteger tmp = amt;
         return tmp;
-    }
-    else return 1;
+    } else return 1;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
+    if (indexPath.section == 0) {
+        static NSString *NotificationCellIdentifier = @"NotificationCellIdenfitier";
+        UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:NotificationCellIdentifier];
+        if (cell == nil) {
+            cell = [[[NSBundle mainBundle] loadNibNamed:@"NotificationCell" owner:self options:nil] lastObject];
+        }
+        [((UIButton *)[cell viewWithTag:1]) addTarget:self action:@selector(revealMenu) forControlEvents:UIControlEventTouchUpInside];
+        NSLog(@"notifications pending from gridview: %i",notificationsPending);
+        if (notificationsPending == 1) {
+            [((UIButton *)[cell viewWithTag:1]) setTitle:[NSString stringWithFormat:@"You have a new notification!"] forState:UIControlStateNormal];
+        } else if (notificationsPending >1 ){
+            [((UIButton *)[cell viewWithTag:1]) setTitle:[NSString stringWithFormat:@"You have %d new notifications!",notificationsPending] forState:UIControlStateNormal];
+        }
+        cell.selectionStyle = UITableViewCellSelectionStyleNone;
+        return cell;
+    } else {
+    
     static NSString *PostGridCellIdentifier = @"PostGridCell";
     FDPostGridCell *cell = (FDPostGridCell *)[tableView dequeueReusableCellWithIdentifier:PostGridCellIdentifier];
     if (cell == nil) {
@@ -151,6 +185,7 @@
     
     [cell configureForPost:cellPosts];
     return cell;
+    }
 }
 
 -(void) tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath
@@ -173,6 +208,18 @@
     }
 }
 
+- (void)revealMenu {
+    [self.slidingViewController anchorTopViewTo:ECRight];
+    NSLog(@"just revealed the menu from the notification button");
+    [(FDMenuViewController *)self.slidingViewController.underLeftViewController refresh];
+    int badgeCount = 0;
+    // Resets the badge count when the view is opened
+    [[UIApplication sharedApplication] setApplicationIconBadgeNumber:badgeCount];
+    [[UIApplication sharedApplication] cancelAllLocalNotifications];
+    self.notificationsPending = 0;
+    [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationAutomatic];
+}
+
 /*-(void)refreshPostWithId:(NSString *)postId withIndexPathRow:(NSInteger)indexPathRow {
     self.postRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getDetailsForPostWithIdentifier:postId success:^(FDPost *post) {
         //[self.posts insertObject:post atIndex:indexPathRow];
@@ -183,7 +230,8 @@
 }*/
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    return 105;
+    if(indexPath.section == 0) return 48;
+    else return 105;
 }
 
 #pragma mark - public methods
@@ -201,12 +249,17 @@
     [self.tableView reloadData];
 }
 
+- (void)didShowLastRow {
+    NSLog(@"you've hit the last row");
+}
+
 #pragma mark - UIScrollViewDelegate Methods
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
 	[self.refreshHeaderView egoRefreshScrollViewDidScroll:scrollView];
     
-    if (scrollView.contentOffset.y + scrollView.bounds.size.height > scrollView.contentSize.height - [(UITableView *)scrollView rowHeight]) {
+    if (scrollView.contentOffset.y + scrollView.bounds.size.height > scrollView.contentSize.height - [(UITableView*)scrollView rowHeight]*10) {
+        [self didShowLastRow];
     }
     
     CGFloat prevDelta = self.previousContentDelta;

@@ -20,7 +20,7 @@
 - (void)viewWillAppear:(BOOL)animated
 {
     [super viewWillAppear:animated];
-    
+    [Flurry logAllPageViews:self];
     if (![self.slidingViewController.underLeftViewController isKindOfClass:[FDMenuViewController class]]) {
         self.slidingViewController.underLeftViewController  = [self.storyboard instantiateViewControllerWithIdentifier:@"Menu"];
     }

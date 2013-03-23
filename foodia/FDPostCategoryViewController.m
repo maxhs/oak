@@ -290,8 +290,10 @@
             self.shoppingContainerView.userInteractionEnabled    = YES;
             self.eatingContainerView.userInteractionEnabled      = YES;
         }];
-    } else {
+    } else if (self.isEditing == NO) {
         [self dismissViewControllerAnimated:YES completion:nil];
+    } else {
+        [self.navigationController popViewControllerAnimated:YES];
     }
 }
 

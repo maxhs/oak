@@ -7,6 +7,7 @@
 //
 
 #import "FDLoginViewController.h"
+#import "Constants.h"
 #import "Facebook.h"
 #import "FDAPIClient.h"
 #import "Utilities.h"
@@ -19,10 +20,17 @@ static NSArray *tagLines;
 
 @interface FDLoginViewController () <UIScrollViewDelegate, UIAlertViewDelegate>
 @property (weak, nonatomic) IBOutlet UIButton *loginButton;
+@property (weak, nonatomic) IBOutlet UIButton *emailButton;
 @property (weak, nonatomic) IBOutlet UIPageControl *pageControl;
 @property (weak, nonatomic) IBOutlet UIScrollView *previewScrollView;
 @property (nonatomic, retain) NSArray *previewPosts;
 @property (nonatomic, retain) NSTimer *previewTimer;
+@property (weak, nonatomic) IBOutlet UITextField *emailTextField;
+@property (weak, nonatomic) IBOutlet UITextField *passwordTextField;
+@property (weak, nonatomic) IBOutlet UIView *emailContainerView;
+@property (weak, nonatomic) IBOutlet UIImageView *logoImageView;
+@property (weak, nonatomic) IBOutlet UIButton *submitEmailButton;
+@property (weak, nonatomic) IBOutlet UIButton *cancelEmailButton;
 
 @end
 
@@ -31,12 +39,12 @@ static NSArray *tagLines;
 + (void)initialize {
     if (self == [FDLoginViewController class]) {
         tagLines = @[
-        @"Remember your amazing food moments",
+        @"A food journal you can share",
         @"Discover new food, curated by folks you trust",
-        @"Check in anywhere, anytime…",
+        @"Remember those great food moments",
         @"Recommend great food to your friends",
-        @"Spend less time with your phone,\n and more time with your food…",
-        @"…all from one, simple, easy to use app."];
+        @"Spend less time with your phone…",
+        @"…and more time with your food."];
     }
 }
 
@@ -44,20 +52,31 @@ static NSArray *tagLines;
 {
     [super viewDidLoad];
 	// Do any additional setup after loading the view.
-
+    self.loginButton.alpha = 0.0f;
+    self.loginButton.layer.shadowColor = [UIColor blackColor].CGColor;
+    self.loginButton.layer.shadowOffset = CGSizeMake(0,0);
+    self.loginButton.layer.shadowOpacity = .4;
+    self.loginButton.layer.shadowRadius = 1.0;
+    self.emailButton.alpha = 0.0f;
+    self.emailButton.layer.cornerRadius = 5.0f;
+    self.emailButton.layer.borderColor = [UIColor colorWithWhite:.1 alpha:.1].CGColor;
+    self.emailButton.layer.borderWidth = 1.0;
+    self.emailButton.clipsToBounds = YES;
+    //[self.emailButton setBackgroundColor:[UIColor whiteColor]];
+    self.emailButton.layer.shadowColor = [UIColor blackColor].CGColor;
+    self.emailButton.layer.shadowOffset = CGSizeMake(0,0);
+    self.emailButton.layer.shadowOpacity = .4;
+    self.emailButton.layer.shadowRadius = 1.0;
 }
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
-    self.loginButton.alpha = 0.0f;
+    
     self.loginButton.showsTouchWhenHighlighted = YES;
     if (self.previewPosts.count == 0) [self loadPreviewPosts];
     [UIView animateWithDuration:0.5f animations:^{
         self.loginButton.alpha = 1.f;
-        self.loginButton.layer.shadowColor = [UIColor blackColor].CGColor;
-        self.loginButton.layer.shadowOffset = CGSizeMake(0,0);
-        self.loginButton.layer.shadowOpacity = .4;
-        self.loginButton.layer.shadowRadius = 1.0;
+        [self.emailButton setAlpha:1.0f];
     }];
     
 }
@@ -66,16 +85,19 @@ static NSArray *tagLines;
     [super viewDidAppear:YES];
     if (FBSession.activeSession.state == FBSessionStateOpen) {
         [self performSegueWithIdentifier:@"ShowFeed" sender:self];
+    } else if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookId] && [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookAccessToken]) {
+
+        [(FDAppDelegate *)[UIApplication sharedApplication].delegate openSessionWithAllowLoginUI:NO];
     } else {
         [UIView animateWithDuration:0.5f animations:^{
             self.loginButton.alpha = 1.f;
         }];
-    [FBSession.activeSession close]; // so we close our session and start over
+        [FBSession.activeSession close]; // so we close our session and start over
     }
 }
 
 - (IBAction)showEmailConnect {
-    FDEmailConnectViewController *vc;
+    /*FDEmailConnectViewController *vc;
     if (([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone && [UIScreen mainScreen].bounds.size.height == 568.0)){
         UIStoryboard *storyboard5 = [UIStoryboard storyboardWithName:@"iPhone5" bundle:nil];
         vc = [storyboard5 instantiateViewControllerWithIdentifier:@"EmailConnect"];
@@ -83,7 +105,13 @@ static NSArray *tagLines;
         UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"iPhone" bundle:nil];
         vc = [storyboard instantiateViewControllerWithIdentifier:@"EmailConnect"];
     }
-    [self presentViewController:vc animated:YES completion:nil];
+    [self presentViewController:vc animated:YES completion:nil];*/
+    [UIView animateWithDuration:.4 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        [self.emailContainerView setFrame:CGRectMake(0, 0, 320, 200)];
+        [self.logoImageView setAlpha:0.0];
+    } completion:^(BOOL finished) {
+       
+    }];
 }
 
 - (void)viewDidUnload
@@ -231,14 +259,16 @@ static NSArray *tagLines;
 
 - (IBAction)login:(id)sender {
     [UIView animateWithDuration:0.3f animations:^{
-        self.loginButton.alpha = 0.f;
+        [self.loginButton setAlpha: 0.f];
+        [self.emailButton setAlpha:0.f];
     }];
     [(FDAppDelegate *)[UIApplication sharedApplication].delegate openSessionWithAllowLoginUI:YES];
 }
 
 - (void)loginFailed {
     [UIView animateWithDuration:0.5f animations:^{
-        self.loginButton.alpha = 1.0f;
+        [self.loginButton setAlpha:1.0f];
+        [self.emailButton setAlpha:1.0f];
     }];
 }
 

@@ -616,7 +616,7 @@
                                             <outlet property="delegate" destination="MIu-0K-XDF" id="984-Tj-YcI"/>
                                         </connections>
                                     </mapView>
-                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="JZx-G4-XHw">
+                                    <button opaque="NO" alpha="0.0" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="JZx-G4-XHw">
                                         <rect key="frame" x="255" y="5" width="60" height="61"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <fontDescription key="fontDescription" type="boldSystem" pointSize="15"/>
@@ -749,7 +749,7 @@
             <objects>
                 <viewController id="cJa-Iw-QRl" customClass="FDProfileMapViewController" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="hzH-jv-QmG">
-                        <rect key="frame" x="0.0" y="20" width="320" height="416"/>
+                        <rect key="frame" x="0.0" y="64" width="320" height="416"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
                             <mapView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" mapType="standard" id="q26-T2-WTJ">
@@ -813,16 +813,16 @@
                                 <rect key="frame" x="116" y="-59" width="88" height="88"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <subviews>
+                                    <imageView userInteractionEnabled="NO" contentMode="scaleToFill" image="feedTypeFeatured.png" id="8OT-SB-B1B">
+                                        <rect key="frame" x="26" y="17" width="36" height="36"/>
+                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                    </imageView>
                                     <imageView userInteractionEnabled="NO" contentMode="scaleToFill" image="feedTypeMy.png" id="Svx-mx-D6B">
-                                        <rect key="frame" x="25" y="16" width="38" height="38"/>
+                                        <rect key="frame" x="114" y="16" width="38" height="38"/>
                                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     </imageView>
                                     <imageView userInteractionEnabled="NO" contentMode="scaleToFill" image="feedTypeNearby.png" id="soS-U1-5bA">
                                         <rect key="frame" x="205" y="16" width="31" height="38"/>
-                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                                    </imageView>
-                                    <imageView userInteractionEnabled="NO" contentMode="scaleToFill" image="feedTypeFeatured.png" id="8OT-SB-B1B">
-                                        <rect key="frame" x="114" y="16" width="36" height="36"/>
                                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     </imageView>
                                     <imageView userInteractionEnabled="NO" contentMode="scaleToFill" image="feedTypeRecommended.png" id="bgS-is-6k6">
@@ -833,8 +833,15 @@
                                         <rect key="frame" x="380" y="18" width="32" height="32"/>
                                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     </imageView>
+                                    <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="FEATURED" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="D5G-BL-3cy">
+                                        <rect key="frame" x="16" y="63" width="57" height="21"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                        <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="15"/>
+                                        <color key="textColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
                                     <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="FEED" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="0OP-MP-485">
-                                        <rect key="frame" x="24" y="63" width="42" height="21"/>
+                                        <rect key="frame" x="112" y="63" width="42" height="21"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="15"/>
                                         <color key="textColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
@@ -842,13 +849,6 @@
                                     </label>
                                     <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="NEARBY" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="X8N-UW-QxT">
                                         <rect key="frame" x="190" y="63" width="61" height="21"/>
-                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                        <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="15"/>
-                                        <color key="textColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
-                                        <nil key="highlightedColor"/>
-                                    </label>
-                                    <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="FEATURED" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="D5G-BL-3cy">
-                                        <rect key="frame" x="103" y="63" width="57" height="21"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="15"/>
                                         <color key="textColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
@@ -932,26 +932,22 @@
             <objects>
                 <viewController storyboardIdentifier="PostView" id="LZE-XF-kth" customClass="FDPostViewController" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="6ox-v4-SAX">
-                        <rect key="frame" x="0.0" y="20" width="320" height="416"/>
+                        <rect key="frame" x="0.0" y="64" width="320" height="416"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" dataMode="prototypes" style="plain" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="MCp-hq-K2j">
                                 <rect key="frame" x="0.0" y="0.0" width="320" height="416"/>
                                 <color key="backgroundColor" white="1" alpha="0.0" colorSpace="calibratedWhite"/>
                                 <view key="tableHeaderView" contentMode="scaleToFill" id="ZoU-hS-xBf">
-                                    <rect key="frame" x="0.0" y="0.0" width="320" height="350"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="320" height="360"/>
                                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES" flexibleMaxY="YES"/>
                                     <subviews>
-                                        <progressView opaque="NO" contentMode="scaleToFill" progressViewStyle="bar" id="5VC-vT-Hta">
-                                            <rect key="frame" x="80" y="147" width="160" height="11"/>
+                                        <progressView opaque="NO" contentMode="scaleToFill" id="5VC-vT-Hta">
+                                            <rect key="frame" x="80" y="147" width="160" height="9"/>
                                             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                             <color key="progressTintColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                             <color key="trackTintColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
                                         </progressView>
-                                        <scrollView hidden="YES" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" id="IWQ-X8-Ub9">
-                                            <rect key="frame" x="110" y="304" width="210" height="40"/>
-                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                        </scrollView>
                                         <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" editable="NO" id="VmA-yj-05f">
                                             <rect key="frame" x="0.0" y="320" width="320" height="28"/>
                                             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
@@ -977,7 +973,7 @@
                                             <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
                                         </textView>
                                         <imageView clipsSubviews="YES" userInteractionEnabled="NO" alpha="0.0" contentMode="scaleToFill" id="FIb-FL-3GD" userLabel="photo view">
-                                            <rect key="frame" x="5" y="5" width="310" height="310"/>
+                                            <rect key="frame" x="5" y="6" width="310" height="310"/>
                                         </imageView>
                                         <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="HKZ-0U-mxo">
                                             <rect key="frame" x="5" y="5" width="310" height="310"/>
@@ -994,7 +990,7 @@
                                                 <action selector="expandImage:" destination="LZE-XF-kth" eventType="touchUpInside" id="7yi-m1-qVf"/>
                                             </connections>
                                         </button>
-                                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="DHq-Uy-Qsz" userLabel="Profile Button">
+                                        <button opaque="NO" alpha="0.0" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="DHq-Uy-Qsz" userLabel="Profile Button">
                                             <rect key="frame" x="267" y="3" width="50" height="50"/>
                                             <fontDescription key="fontDescription" type="boldSystem" pointSize="15"/>
                                             <state key="normal">
@@ -1008,8 +1004,15 @@
                                                 <segue destination="MIu-0K-XDF" kind="push" identifier="ShowProfile" id="z8s-ya-eJa"/>
                                             </connections>
                                         </button>
+                                        <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" id="IWQ-X8-Ub9">
+                                            <rect key="frame" x="100" y="312" width="220" height="40"/>
+                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                            <connections>
+                                                <outlet property="delegate" destination="LZE-XF-kth" id="dTY-dV-FEf"/>
+                                            </connections>
+                                        </scrollView>
                                         <button contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="JGQ-AM-nVy" userLabel="like button">
-                                            <rect key="frame" x="5" y="307" width="70" height="34"/>
+                                            <rect key="frame" x="5" y="314" width="60" height="34"/>
                                             <color key="backgroundColor" white="0.90000000000000002" alpha="0.0" colorSpace="calibratedWhite"/>
                                             <fontDescription key="fontDescription" type="boldSystem" pointSize="15"/>
                                             <state key="normal" image="feedLikeButtonGray.png">
@@ -1023,7 +1026,7 @@
                                             </connections>
                                         </button>
                                         <label clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumFontSize="10" adjustsFontSizeToFit="NO" id="4OA-FI-PYa" userLabel="like count label">
-                                            <rect key="frame" x="69" y="313" width="40" height="21"/>
+                                            <rect key="frame" x="59" y="320" width="40" height="21"/>
                                             <color key="backgroundColor" white="1" alpha="0.0" colorSpace="custom" customColorSpace="calibratedWhite"/>
                                             <fontDescription key="fontDescription" name="Futura-CondensedMedium" family="Futura" pointSize="15"/>
                                             <color key="textColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
@@ -1034,7 +1037,7 @@
                                 </view>
                                 <prototypes>
                                     <tableViewCell contentMode="scaleToFill" selectionStyle="none" indentationWidth="10" reuseIdentifier="AddComment" rowHeight="66" id="ydf-UD-6fP">
-                                        <rect key="frame" x="0.0" y="372" width="320" height="66"/>
+                                        <rect key="frame" x="0.0" y="382" width="320" height="66"/>
                                         <view key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center">
                                             <rect key="frame" x="0.0" y="0.0" width="320" height="65"/>
                                             <autoresizingMask key="autoresizingMask"/>
@@ -1121,7 +1124,7 @@
                         <outlet property="captionTextView" destination="0FG-Af-rbK" id="am2-1M-aaM"/>
                         <outlet property="likeButton" destination="JGQ-AM-nVy" id="Szy-el-mFA"/>
                         <outlet property="likeCountLabel" destination="4OA-FI-PYa" id="uR2-UF-RYR"/>
-                        <outlet property="likersScrollView" destination="IWQ-X8-Ub9" id="YpD-tb-TA1"/>
+                        <outlet property="likersScrollView" destination="IWQ-X8-Ub9" id="Xm2-1z-XGg"/>
                         <outlet property="locationButton" destination="2BN-iI-9xc" id="L8D-M5-4go"/>
                         <outlet property="photoButton" destination="HKZ-0U-mxo" id="07a-W6-T7g"/>
                         <outlet property="photoImageView" destination="FIb-FL-3GD" id="cn2-Cq-YTw"/>
@@ -1165,7 +1168,7 @@
             <objects>
                 <tableViewController storyboardIdentifier="RecommendView" useStoryboardIdentifierAsRestorationIdentifier="YES" id="vuk-kw-h1L" customClass="FDRecommendViewController" sceneMemberID="viewController">
                     <tableView key="view" opaque="NO" clipsSubviews="YES" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="AcU-Qe-7ME">
-                        <rect key="frame" x="0.0" y="20" width="320" height="416"/>
+                        <rect key="frame" x="0.0" y="64" width="320" height="416"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <searchBar key="tableHeaderView" contentMode="redraw" barStyle="blackTranslucent" id="NTR-QQ-vtx">
@@ -1207,6 +1210,7 @@
                         </barButtonItem>
                     </navigationItem>
                     <connections>
+                        <outlet property="rightBarButton" destination="YUf-EN-leN" id="F9W-Vx-fJS"/>
                         <outlet property="searchDisplayController" destination="Vll-Nx-LFe" id="dJG-l5-0rU"/>
                     </connections>
                 </tableViewController>
@@ -1365,7 +1369,7 @@
             <objects>
                 <viewController id="i81-4z-gaU" customClass="FDNewPostViewController" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="JX2-xA-Pck">
-                        <rect key="frame" x="0.0" y="20" width="320" height="416"/>
+                        <rect key="frame" x="0.0" y="64" width="320" height="416"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
                             <textView autoresizesSubviews="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="top" bounces="NO" bouncesZoom="NO" text="I'M THINKING..." id="Xcl-iC-d7C" userLabel="caption text view">
@@ -1604,6 +1608,7 @@
                         <segue destination="4xr-Qy-Eta" kind="push" identifier="TakePhoto" id="fxv-tE-qgb"/>
                         <segue destination="ooj-dJ-CFW" kind="push" identifier="tumblrAuth" id="KUS-Cq-XFm"/>
                         <segue destination="MIu-0K-XDF" kind="push" identifier="ShowProfileFromNewPost" id="w3i-0J-Ycf"/>
+                        <segue destination="ywJ-KN-kbC" kind="push" identifier="editCategory" id="F9q-yT-YJJ"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="BPO-cF-fSi" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -1615,7 +1620,7 @@
             <objects>
                 <viewController id="ooj-dJ-CFW" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="JX0-a6-uwB">
-                        <rect key="frame" x="0.0" y="20" width="320" height="416"/>
+                        <rect key="frame" x="0.0" y="64" width="320" height="416"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
                             <webView contentMode="scaleToFill" id="13O-qC-dTa">
@@ -1637,7 +1642,7 @@
             <objects>
                 <viewController id="2Qv-FQ-W8B" customClass="FDAddLocationViewController" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="Otf-8K-9pk">
-                        <rect key="frame" x="0.0" y="20" width="320" height="460"/>
+                        <rect key="frame" x="0.0" y="64" width="320" height="416"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
                             <imageView userInteractionEnabled="NO" contentMode="scaleToFill" image="foodiaBackground.png" id="9Jd-oy-FRy" userLabel="background image view">
@@ -1645,7 +1650,7 @@
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                             </imageView>
                             <mapView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" mapType="standard" showsUserLocation="YES" id="dJ7-i2-cCZ">
-                                <rect key="frame" x="0.0" y="0.0" width="320" height="416"/>
+                                <rect key="frame" x="0.0" y="0.0" width="320" height="372"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <connections>
                                     <outlet property="delegate" destination="2Qv-FQ-W8B" id="Aop-7j-IuV"/>
@@ -1766,7 +1771,7 @@
             <objects>
                 <tableViewController id="p7Y-Uw-T4O" customClass="FDTagFriendsViewController" sceneMemberID="viewController">
                     <tableView key="view" opaque="NO" clipsSubviews="YES" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="clt-qb-FZI">
-                        <rect key="frame" x="0.0" y="20" width="320" height="416"/>
+                        <rect key="frame" x="0.0" y="64" width="320" height="416"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <searchBar key="tableHeaderView" contentMode="redraw" barStyle="blackTranslucent" id="Ynf-RR-lu2">
@@ -1825,7 +1830,7 @@
             <objects>
                 <viewController id="4xr-Qy-Eta" customClass="FDCameraViewController" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="1MY-Gs-rFv">
-                        <rect key="frame" x="0.0" y="20" width="320" height="416"/>
+                        <rect key="frame" x="0.0" y="64" width="320" height="416"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
                             <view clearsContextBeforeDrawing="NO" contentMode="scaleToFill" id="0Sb-qD-I9J">
@@ -1950,7 +1955,7 @@
             <objects>
                 <tableViewController id="C65-jf-Lgd" customClass="FDRecommendeesViewController" sceneMemberID="viewController">
                     <tableView key="view" opaque="NO" clipsSubviews="YES" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="11j-cl-O5p">
-                        <rect key="frame" x="0.0" y="20" width="320" height="416"/>
+                        <rect key="frame" x="0.0" y="64" width="320" height="416"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <searchBar key="tableHeaderView" contentMode="redraw" barStyle="blackTranslucent" id="byX-zq-zaF">
@@ -2009,7 +2014,7 @@
             <objects>
                 <viewController storyboardIdentifier="PlaceView" id="upL-Dx-g5n" customClass="FDPlaceViewController" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="4A3-Y7-rHG">
-                        <rect key="frame" x="0.0" y="20" width="320" height="416"/>
+                        <rect key="frame" x="0.0" y="64" width="320" height="416"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
                             <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="OPK-UX-tBl">
@@ -2158,7 +2163,7 @@
             <objects>
                 <viewController id="yOB-em-gHe" customClass="FDWebViewController" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="HXA-2N-mT1">
-                        <rect key="frame" x="0.0" y="20" width="320" height="416"/>
+                        <rect key="frame" x="0.0" y="64" width="320" height="416"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
                             <webView multipleTouchEnabled="YES" contentMode="scaleToFill" scalesPageToFit="YES" id="vEC-Lb-UUe">
@@ -2267,7 +2272,6 @@
         <class className="FDFeedViewController" superclassName="UIViewController">
             <source key="sourceIdentifier" type="project" relativePath="./Classes/FDFeedViewController.h"/>
             <relationships>
-                <relationship kind="action" name="activateSearch:" candidateClass="UIBarButtonItem"/>
                 <relationship kind="action" name="revealMenu:" candidateClass="UIBarButtonItem"/>
                 <relationship kind="outlet" name="_scrollView" candidateClass="UIScrollView"/>
                 <relationship kind="outlet" name="addPostButton" candidateClass="UIButton"/>
@@ -2280,16 +2284,23 @@
                 <relationship kind="outlet" name="myPostsLabel" candidateClass="UILabel"/>
                 <relationship kind="outlet" name="nearbyLabel" candidateClass="UILabel"/>
                 <relationship kind="outlet" name="recLabel" candidateClass="UILabel"/>
-                <relationship kind="outlet" name="searchButtonItem" candidateClass="UIBarButtonItem"/>
             </relationships>
         </class>
         <class className="FDLoginViewController" superclassName="UIViewController">
             <source key="sourceIdentifier" type="project" relativePath="./Classes/FDLoginViewController.h"/>
             <relationships>
                 <relationship kind="action" name="login:"/>
+                <relationship kind="action" name="showEmailConnect"/>
+                <relationship kind="outlet" name="cancelEmailButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="emailButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="emailContainerView" candidateClass="UIView"/>
+                <relationship kind="outlet" name="emailTextField" candidateClass="UITextField"/>
                 <relationship kind="outlet" name="loginButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="logoImageView" candidateClass="UIImageView"/>
                 <relationship kind="outlet" name="pageControl" candidateClass="UIPageControl"/>
+                <relationship kind="outlet" name="passwordTextField" candidateClass="UITextField"/>
                 <relationship kind="outlet" name="previewScrollView" candidateClass="UIScrollView"/>
+                <relationship kind="outlet" name="submitEmailButton" candidateClass="UIButton"/>
             </relationships>
         </class>
         <class className="FDMenuViewController" superclassName="UITableViewController">
@@ -2459,6 +2470,11 @@
         </class>
         <class className="FDRecommendViewController" superclassName="FDPeopleTableViewController">
             <source key="sourceIdentifier" type="project" relativePath="./Classes/FDRecommendViewController.h"/>
+            <relationships>
+                <relationship kind="action" name="cancel:"/>
+                <relationship kind="action" name="recommend:"/>
+                <relationship kind="outlet" name="rightBarButton" candidateClass="UIBarButtonItem"/>
+            </relationships>
         </class>
         <class className="FDRecommendeesViewController" superclassName="FDPeopleTableViewController">
             <source key="sourceIdentifier" type="project" relativePath="./Classes/FDRecommendeesViewController.h"/>
@@ -2504,10 +2520,11 @@
         <simulatedScreenMetrics key="destination"/>
     </simulatedMetricsContainer>
     <inferredMetricsTieBreakers>
+        <segue reference="OSl-mW-oKu"/>
+        <segue reference="ekX-Dm-YKS"/>
         <segue reference="ciL-Yp-aME"/>
-        <segue reference="z8s-ya-eJa"/>
+        <segue reference="EId-hy-XH0"/>
         <segue reference="H0T-M3-DMm"/>
-        <segue reference="uS6-Ln-RXv"/>
-        <segue reference="qXJ-nF-yFn"/>
+        <segue reference="F9q-yT-YJJ"/>
     </inferredMetricsTieBreakers>
 </document>

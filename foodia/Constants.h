@@ -1,8 +1,8 @@
-#define kBaseUrlString @"http://foodia.herokuapp.com/api/v1"
-#define kDefaultsKeyUserId @"kDefaultsKeyUserId"
-#define kNotificationPostUpdated @"kNotificationPostUpdated"
-#define kNotificationFollowCreated @"kNotificationFollowCreated"
-#define kNotificationFollowDestroyed @"kNotificationFollowDestroyed"
+//Constants!
+
+#define kUserDefaultsId @"kDefaultsKeyUserId"
+#define kUserDefaultsFacebookId @"FacebookID"
+#define kUserDefaultsFacebookAccessToken @"FacebookAccessToken"
 
 #define kDefaultsTwitterActive @"kDefaultsTwitterActive"
 #define kDefaultsInstagramActive @"kDefaultsInstagramActive"
@@ -13,10 +13,11 @@
 #define kDefaultsEnlargePhoto @"kDefaultsEnlargePhoto"
 #define kDefaultsBlackView @"kDefaultsBlackView"
 
+#define kAvenirMedium @"AvenirNextCondensed-Medium"
+#define kAvenirDemiBold @"AvenirNextCondensed-DemiBold"
+
 #define kColorBlue [UIColor colorWithRed:102.f/255.f Green:153.f/255.f Blue:204.f/255.f Alpha:1.f]
 #define kColorOutlineGray [UIColor colorwithRed:211.f/255.f Green:211.f/255.f Blue:211.f/255.f Alpha:1.f]
-
-
 #define kColorButtonFollowing [UIColor colorWithRed:102.0/255.0 green:172.0/255.0 blue:250.0/255.0 alpha:1.0]
 #define kColorButtonFollow [UIColor colorWithRed:157.0/255.0 green:156.0/255.0 blue:156.0/255.0 alpha:1.0]
 

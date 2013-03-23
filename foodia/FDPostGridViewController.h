@@ -16,6 +16,7 @@
 @property (nonatomic,strong) AFJSONRequestOperation *feedRequestOperation;
 @property (nonatomic) BOOL canLoadAdditionalPosts;
 @property NSMutableArray *cellPosts;
+@property (nonatomic) NSInteger notificationsPending;
 @property NSInteger *rows;
 - (void)reloadData;
 - (void)refresh;

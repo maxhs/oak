@@ -56,8 +56,6 @@
 
 - (void)viewDidLoad {
     [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
-    notificationsPending = 0;
-    [self getNotificationCount];
     self.tableView.showsVerticalScrollIndicator = NO;
     didLoadFromCache = false;
     [super viewDidLoad];
@@ -104,6 +102,7 @@
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
+    [self getNotificationCount];
 }
 
 - (void)viewWillDisappear:(BOOL)animated {
@@ -222,8 +221,7 @@
         static NSString *PostCellIdentifier = @"PostCell";
         FDPostCell *cell = (FDPostCell *)[tableView dequeueReusableCellWithIdentifier:PostCellIdentifier];
         if (cell.photoImageView == nil) {
-            NSArray *nib = [[NSBundle mainBundle] loadNibNamed:@"FDPostCell" owner:self options:nil];
-            cell = (FDPostCell *)[nib objectAtIndex:0];
+            cell = [[[NSBundle mainBundle] loadNibNamed:@"FDPostCell" owner:self options:nil] lastObject];
         }
         FDPost *post = [self.posts objectAtIndex:indexPath.row];
         [cell configureForPost:post];
@@ -245,9 +243,10 @@
         }
         
         UIButton *recButton = [UIButton buttonWithType:UIButtonTypeCustom];
-        [recButton setFrame:CGRectMake(276,52,70,34)];
+        [recButton setFrame:CGRectMake(276,52,60,34)];
         [recButton addTarget:self action:@selector(recommend:) forControlEvents:UIControlEventTouchUpInside];
         [recButton setTitle:@"Rec" forState:UIControlStateNormal];
+        [recButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
         recButton.layer.borderColor = [UIColor colorWithWhite:.1 alpha:.1].CGColor;
         recButton.layer.borderWidth = 1.0f;
         recButton.backgroundColor = [UIColor whiteColor];
@@ -264,7 +263,7 @@
         commentButton.tag = indexPath.row;
         [commentButton addTarget:self action:@selector(didSelectRow:) forControlEvents:UIControlEventTouchUpInside];
         [commentButton setTitle:@"Add a comment..." forState:UIControlStateNormal];
-        [commentButton setTitle:@"Nice!" forState:UIControlStateSelected];
+        [commentButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
         commentButton.layer.borderColor = [UIColor colorWithWhite:.1 alpha:.1].CGColor;
         commentButton.layer.borderWidth = 1.0f;
         commentButton.backgroundColor = [UIColor whiteColor];
@@ -275,7 +274,7 @@
         [commentButton.titleLabel setTextColor:[UIColor lightGrayColor]];
         
         [cell.scrollView addSubview:commentButton];
-
+        if (cell.scrollView.contentOffset.x != 0) [cell.scrollView setContentOffset:CGPointMake(0,0) animated:NO];
         return cell;
         
     } else {
@@ -311,26 +310,32 @@
 - (void)recommend:(id)sender {
     UIButton *button = (UIButton *)sender;
     FDPost *post = [self.posts objectAtIndex:button.tag];
-    FDCustomSheet *actionSheet = [[FDCustomSheet alloc] initWithTitle:@"I'm recommending something on FOODIA!" delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:@"Recommend via Facebook",@"Send a Text", @"Send an Email", nil];
+    FDCustomSheet *actionSheet = [[FDCustomSheet alloc] initWithTitle:nil delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:@"Recommend on FOODIA",@"Recommend via Facebook",@"Send a Text", @"Send an Email", nil];
     [actionSheet setFoodiaObject:post.foodiaObject];
     [actionSheet setPost:post];
     [actionSheet showInView:self.view];
 }
 
 - (void) actionSheet:(FDCustomSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
+    
+    UIStoryboard *storyboard;
+    if (([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone && [UIScreen mainScreen].bounds.size.height == 568.0)){
+        storyboard = [UIStoryboard storyboardWithName:@"iPhone5"
+                                               bundle:nil];
+    } else {
+        storyboard = [UIStoryboard storyboardWithName:@"iPhone"
+                                               bundle:nil];
+    }
+    FDRecommendViewController *vc = [storyboard instantiateViewControllerWithIdentifier:@"RecommendView"];
+    [vc setPost:actionSheet.post];
+    
     if (buttonIndex == 0) {
-        NSLog(@"should be facebooking");
-        UIStoryboard *storyboard;
-        if (([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone && [UIScreen mainScreen].bounds.size.height == 568.0)){
-            storyboard = [UIStoryboard storyboardWithName:@"iPhone5"
-                                                   bundle:nil];
-        } else {
-            storyboard = [UIStoryboard storyboardWithName:@"iPhone"
-                                                   bundle:nil];
-        }
-        FDRecommendViewController *vc = [storyboard instantiateViewControllerWithIdentifier:@"RecommendView"];
-        [vc setPost:actionSheet.post];
-        
+        //Recommending via FOODIA only
+        [vc setPostingToFacebook:NO];
+        [self.navigationController pushViewController:vc animated:YES];
+    } else if (buttonIndex == 1) {
+        //Recommending via Facebook
+        [vc setPostingToFacebook:YES];
         if ([FBSession.activeSession.permissions
              indexOfObject:@"publish_actions"] == NSNotFound) {
             // No permissions found in session, ask for it
@@ -351,7 +356,8 @@
                     indexOfObject:@"publish_actions"] != NSNotFound) {
             [self.navigationController pushViewController:vc animated:YES];
         }
-    } else if(buttonIndex == 1) {
+    } else if(buttonIndex == 2) {
+        //Recommending via text
         MFMessageComposeViewController *viewController = [[MFMessageComposeViewController alloc] init];
         if ([MFMessageComposeViewController canSendText]){
             NSString *textBody = [NSString stringWithFormat:@"I just recommended %@ to you from FOODIA!\n Download the app now: itms-apps://itunes.com/apps/foodia",actionSheet.foodiaObject];
@@ -359,7 +365,8 @@
             [viewController setBody:textBody];
             [self.delegate presentModalViewController:viewController animated:YES];
         }
-    } else if(buttonIndex == 2) {
+    } else if(buttonIndex == 3) {
+        //Recommending via mail
         if ([MFMailComposeViewController canSendMail]) {
             MFMailComposeViewController* controller = [[MFMailComposeViewController alloc] init];
             controller.mailComposeDelegate = self;
@@ -401,6 +408,8 @@
 
 - (FDPostCell *)showLikers:(FDPostCell *)cell forPost:(FDPost *)post{
     NSDictionary *likers = post.likers;
+    NSDictionary *viewers = post.viewers;
+    NSLog(@"post.viewers: %@",viewers);
     [cell.likersScrollView.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
     cell.likersScrollView.showsHorizontalScrollIndicator = NO;
     
@@ -408,37 +417,43 @@
     float space = 6.0;
     int index = 0;
     
-    for (NSDictionary *liker in likers) {
-        UIImageView *heart = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"feedLikeButtonRed.png"]];
-        UIImageView *likerView = [[UIImageView alloc] initWithFrame:CGRectMake(((cell.likersScrollView.frame.origin.x)+((space+imageSize)*index)),(cell.likersScrollView.frame.origin.y), imageSize, imageSize)];
-        UIButton *likerButton = [UIButton buttonWithType:UIButtonTypeCustom];
-        
-        //passing liker facebook id as a string instead of NSNumber so that it can hold more data. crafty.
-        likerButton.titleLabel.text = [liker objectForKey:@"facebook_id"];
-        likerButton.titleLabel.hidden = YES;
-        
-        //[likerButton setTag: [[liker objectForKey:@"facebook_id"] integerValue]];
-        [likerButton addTarget:self action:@selector(profileTappedFromLikers:) forControlEvents:UIControlEventTouchUpInside];
-        [likerView setImageWithURL:[Utilities profileImageURLForFacebookID:[liker objectForKey:@"facebook_id"]]];
-        //[likerView setUserId:[liker objectForKey:@"facebook_id"]];
-        likerView.userInteractionEnabled = YES;
-        likerView.clipsToBounds = YES;
-        likerView.layer.cornerRadius = 5.0;
-        //rasterize to improve performance
-        likerView.layer.shouldRasterize = YES;
-        likerView.layer.rasterizationScale = [UIScreen mainScreen].scale;
-        
-        likerView.frame = CGRectMake(((space+imageSize)*index),0,imageSize, imageSize);
-        heart.frame = CGRectMake((((space+imageSize)*index)+20),16,20,20);
-        [likerButton setFrame:likerView.frame];
-        heart.clipsToBounds = NO;
-        [cell.likersScrollView addSubview:likerView];
-        [cell.likersScrollView addSubview:heart];
-        [cell.likersScrollView addSubview:likerButton];
-        index++;
+    for (NSDictionary *viewer in viewers) {
+        if ([viewer objectForKey:@"facebook_id"] != [NSNull null]){
+            UIImageView *heart = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"feedLikeButtonRed.png"]];
+            UIImageView *likerView = [[UIImageView alloc] initWithFrame:CGRectMake(((cell.likersScrollView.frame.origin.x)+((space+imageSize)*index)),(cell.likersScrollView.frame.origin.y), imageSize, imageSize)];
+            UIButton *viewerButton = [UIButton buttonWithType:UIButtonTypeCustom];
+            
+            //passing liker facebook id as a string instead of NSNumber so that it can hold more data. crafty.
+            viewerButton.titleLabel.text = [viewer objectForKey:@"facebook_id"];
+            viewerButton.titleLabel.hidden = YES;
+            
+            [viewerButton addTarget:self action:@selector(profileTappedFromLikers:) forControlEvents:UIControlEventTouchUpInside];
+            [likerView setImageWithURL:[Utilities profileImageURLForFacebookID:[viewer objectForKey:@"facebook_id"]]];
+            //[likerView setUserId:[liker objectForKey:@"facebook_id"]];
+            likerView.userInteractionEnabled = YES;
+            likerView.clipsToBounds = YES;
+            likerView.layer.cornerRadius = 5.0;
+            //rasterize to improve performance
+            likerView.layer.shouldRasterize = YES;
+            likerView.layer.rasterizationScale = [UIScreen mainScreen].scale;
+            
+            likerView.frame = CGRectMake(((space+imageSize)*index),0,imageSize, imageSize);
+            heart.frame = CGRectMake((((space+imageSize)*index)+20),16,20,20);
+            [viewerButton setFrame:likerView.frame];
+            heart.clipsToBounds = NO;
+            [cell.likersScrollView addSubview:likerView];
+            for (NSDictionary *liker in likers) {
+                if ([[liker objectForKey:@"facebook_id"] isEqualToString:[viewer objectForKey:@"facebook_id"]]){
+                    [cell.likersScrollView addSubview:heart];
+                    break;
+                }
+            }
+            [cell.likersScrollView addSubview:viewerButton];
+            index++;
+        }
+        [cell.likersScrollView setContentSize:CGSizeMake(((space*(index+1))+(imageSize*(index+1))),40)];
     }
-    [cell.likersScrollView setContentSize:CGSizeMake(((space*(index+1))+(imageSize*(index+1))),40)];
-    return cell;
+        return cell;
 }
 
 -(void)profileTappedFromLikers:(id)sender {
@@ -545,7 +560,6 @@
 
 - (void)revealMenu {
     [self.slidingViewController anchorTopViewTo:ECRight];
-    NSLog(@"just revealed the menu from the notification button");
     [(FDMenuViewController *)self.slidingViewController.underLeftViewController refresh];
     int badgeCount = 0;
     // Resets the badge count when the view is opened
@@ -560,7 +574,7 @@
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {	
 	[self.refreshHeaderView egoRefreshScrollViewDidScroll:self.tableView];
     
-    if (scrollView.contentOffset.y + scrollView.bounds.size.height > scrollView.contentSize.height - [(UITableView*)scrollView rowHeight]*5) {
+    if (scrollView.contentOffset.y + scrollView.bounds.size.height > scrollView.contentSize.height - [(UITableView*)scrollView rowHeight]*10) {
         [self didShowLastRow];
     }
     

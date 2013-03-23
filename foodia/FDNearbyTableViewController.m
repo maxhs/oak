@@ -31,10 +31,10 @@
     [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
     [TestFlight passCheckpoint:@"Viewing Nearby View"];
     [super viewDidLoad];
-    [[NSNotificationCenter defaultCenter] addObserver:self
+    /*[[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(updatePostNotification:)
                                                  name:@"UpdatePostNotification"
-                                               object:nil];
+                                               object:nil];*/
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(activateSearch) name:@"ActivateSearch" object:nil];
     self.locationManager = [[CLLocationManager alloc] init];
     self.locationManager.desiredAccuracy = kCLLocationAccuracyBest;

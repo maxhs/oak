@@ -106,7 +106,7 @@
 									<object class="IBUILabel" id="373934432">
 										<reference key="NSNextResponder" ref="1044128110"/>
 										<int key="NSvFlags">292</int>
-										<string key="NSFrame">{{338, 12}, {42, 21}}</string>
+										<string key="NSFrame">{{328, 12}, {42, 21}}</string>
 										<reference key="NSSuperview" ref="1044128110"/>
 										<reference key="NSNextKeyView" ref="524292104"/>
 										<string key="NSReuseIdentifierKey">_NS:9</string>
@@ -132,7 +132,7 @@
 									<object class="IBUIButton" id="667504516">
 										<reference key="NSNextResponder" ref="1044128110"/>
 										<int key="NSvFlags">292</int>
-										<string key="NSFrame">{{276, 5}, {70, 34}}</string>
+										<string key="NSFrame">{{276, 5}, {60, 34}}</string>
 										<reference key="NSSuperview" ref="1044128110"/>
 										<reference key="NSNextKeyView" ref="373934432"/>
 										<string key="NSReuseIdentifierKey">_NS:9</string>
@@ -192,6 +192,7 @@
 										<int key="NSvFlags">256</int>
 										<string key="NSFrame">{{276, 97}, {258, 34}}</string>
 										<reference key="NSSuperview" ref="1044128110"/>
+										<reference key="NSNextKeyView"/>
 										<string key="NSReuseIdentifierKey">_NS:9</string>
 										<object class="NSColor" key="IBUIBackgroundColor">
 											<int key="NSColorSpace">1</int>
@@ -222,7 +223,7 @@
 									<object class="IBUILabel" id="425382878">
 										<reference key="NSNextResponder" ref="1044128110"/>
 										<int key="NSvFlags">292</int>
-										<string key="NSFrame">{{338, 58}, {42, 21}}</string>
+										<string key="NSFrame">{{328, 58}, {42, 21}}</string>
 										<reference key="NSSuperview" ref="1044128110"/>
 										<reference key="NSNextKeyView" ref="964482824"/>
 										<string key="NSReuseIdentifierKey">_NS:9</string>
@@ -282,7 +283,7 @@
 									<object class="IBUIScrollView" id="524292104">
 										<reference key="NSNextResponder" ref="1044128110"/>
 										<int key="NSvFlags">268</int>
-										<string key="NSFrame">{{382, 2}, {160, 40}}</string>
+										<string key="NSFrame">{{372, 5}, {170, 40}}</string>
 										<reference key="NSSuperview" ref="1044128110"/>
 										<reference key="NSNextKeyView" ref="233606257"/>
 										<string key="NSReuseIdentifierKey">_NS:9</string>

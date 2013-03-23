@@ -84,7 +84,7 @@ static NSDictionary *placeholderImages;
             self.photoImageView.layer.shadowColor = [UIColor lightGrayColor].CGColor;
             self.photoImageView.layer.shadowOffset = CGSizeMake(0, 1);
             self.photoImageView.layer.shadowOpacity = 1;
-            self.photoImageView.layer.shadowRadius = 2.0;
+            self.photoImageView.layer.shadowRadius = 4.0;
         }];
     } else {
         [self.photoImageView setImageWithURL:self.post.feedImageURL completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType) {
@@ -110,6 +110,7 @@ static NSDictionary *placeholderImages;
     }
     
     // show the like count, and set the like button's image to indicate whether current user likes
+    NSLog(@"self.post.likecount: %@",self.post.likeCount);
     self.likeCountLabel.text = [NSString stringWithFormat:@"%@", self.post.likeCount];
     self.recCountLabel.text = [NSString stringWithFormat:@"%d", [self.post.recommendedTo count]];
     self.commentCountLabel.text = [NSString stringWithFormat:@"%i", self.post.comments.count];

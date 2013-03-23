@@ -19,9 +19,7 @@
 @property (strong, retain) FDPost *post1;
 @property (strong, retain) FDPost *post2;
 
-
 @end
-
 
 @implementation FDPostGridCell
 
@@ -87,10 +85,10 @@ static NSDictionary *placeholderImages;
     [photoImageViewToShadow.layer setShadowPath:path];
     photoImageViewToShadow.layer.shouldRasterize = YES;
     photoImageViewToShadow.layer.rasterizationScale = [UIScreen mainScreen].scale;
-    photoImageViewToShadow.layer.shadowColor = [UIColor blackColor].CGColor;
+    photoImageViewToShadow.layer.shadowColor = [UIColor darkGrayColor].CGColor;
     photoImageViewToShadow.layer.shadowOffset = CGSizeMake(0, 0);
     photoImageViewToShadow.layer.shadowOpacity = 1;
-    photoImageViewToShadow.layer.shadowRadius = 1.0;
+    photoImageViewToShadow.layer.shadowRadius = 2.0;
     photoImageViewToShadow.clipsToBounds = NO;
 }
 

@@ -48,6 +48,13 @@ typedef void(^RequestSuccess)(id result);
                                      success:(RequestSuccess)success
                                      failure:(RequestFailure)failure;
 
+//get the like feed
+- (AFJSONRequestOperation *)getLikedPosts:(RequestSuccess)success
+                                  failure:(RequestFailure)failure;
+
+- (AFHTTPRequestOperation *)getLikedPostsBeforePost:(FDPost *)beforePost
+                                            success:(RequestSuccess)success
+                                            failure:(RequestFailure)failure;
 
 // get a profile feed before a certain post date
 - (AFHTTPRequestOperation *)getProfileFeedBefore:(FDPost *)post

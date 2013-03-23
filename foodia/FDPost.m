@@ -19,6 +19,7 @@ static FDPost *userPost;
     if (self == [FDPost class]){
         userPost = [FDPost new];
         userPost.likers = nil;
+        userPost.viewers = nil;
     }
 }
 
@@ -44,13 +45,16 @@ static FDPost *userPost;
 }
 
 - (NSURL *)feedImageURL {
-    return [NSURL URLWithString:self.feedImageUrlString];
+    NSString *tempString = [self.feedImageUrlString stringByReplacingOccurrencesOfString:@"s3.amazonaws.com/foodia-uploads" withString:@"d39yp5dq001uwq.cloudfront.net"];
+    return [NSURL URLWithString:tempString];
 }
 - (NSURL *)detailImageURL {
-    return [NSURL URLWithString:self.detailImageUrlString];
+        NSString *tempString = [self.detailImageUrlString stringByReplacingOccurrencesOfString:@"s3.amazonaws.com/foodia-uploads" withString:@"d39yp5dq001uwq.cloudfront.net"];
+    return [NSURL URLWithString:tempString];
 }
 - (NSURL *)featuredImageURL {
-    return [NSURL URLWithString:self.featuredImageUrlString];
+        NSString *tempString = [self.featuredImageUrlString stringByReplacingOccurrencesOfString:@"s3.amazonaws.com/foodia-uploads" withString:@"d39yp5dq001uwq.cloudfront.net"];
+    return [NSURL URLWithString:tempString];
 }
 - (CLLocation *)location {
     if (self.longitude == nil || self.latitude == nil) {
@@ -233,6 +237,7 @@ static FDPost *userPost;
     [encoder encodeObject:self.isRecommendedToUser forKey:@"isRecommendedToUser"];
     [encoder encodeObject:self.featured forKey:@"featured"];
     [encoder encodeObject:self.likeCount forKey:@"likeCount"];
+    [encoder encodeObject:self.viewCount forKey:@"viewCount"];
     [encoder encodeObject:self.locationName forKey:@"locationName"];
     [encoder encodeObject:self.locationHours forKey:@"locationHours"];
     [encoder encodeObject:self.address forKey:@"address"];
@@ -240,6 +245,7 @@ static FDPost *userPost;
     [encoder encodeObject:self.user forKey:@"user"];
     [encoder encodeObject:self.withFriends forKey:@"withFriends"];
     [encoder encodeObject:self.likers forKey:@"likers"];
+    [encoder encodeObject:self.viewers forKey:@"viewers"];
     [encoder encodeObject:self.recommendedTo forKey:@"recommendedTo"];
     [encoder encodeObject:self.recommendedEpochTime forKey:@"recommendedEpochTime"];
     [encoder encodeObject:self.og forKey:@"og"];
@@ -265,6 +271,7 @@ static FDPost *userPost;
         self.featured = [decoder decodeObjectForKey:@"featured"];
         self.recCount = [decoder decodeObjectForKey:@"recCount"];
         self.likeCount = [decoder decodeObjectForKey:@"likeCount"];
+        self.viewCount = [decoder decodeObjectForKey:@"viewCount"];
         self.locationName = [decoder decodeObjectForKey:@"locationName"];
         self.locationHours = [decoder decodeObjectForKey:@"locationHours"];
         self.address = [decoder decodeObjectForKey:@"address"];
@@ -272,6 +279,7 @@ static FDPost *userPost;
         self.user = [decoder decodeObjectForKey:@"user"];
         self.withFriends = [decoder decodeObjectForKey:@"withFriends"];
         self.likers = [decoder decodeObjectForKey:@"likers"];
+        self.viewers = [decoder decodeObjectForKey:@"viewers"];
         self.recommendedEpochTime = [decoder decodeObjectForKey:@"recommendedEpochTime"];
         self.recommendedTo = [decoder decodeObjectForKey:@"recommendedTo"];
         self.og = [decoder decodeObjectForKey:@"og"];

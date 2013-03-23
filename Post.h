@@ -27,6 +27,7 @@
 @property (nonatomic, retain) NSString * recCount;
 @property (nonatomic, retain) NSString * likeCount;
 @property (nonatomic, retain) NSString * likers;
+@property (nonatomic, retain) NSString * viewers;
 @property (nonatomic, retain) NSNumber * foursquareid;
 @property (nonatomic, retain) NSString * locationName;
 @property (nonatomic, retain) NSString * longitude;

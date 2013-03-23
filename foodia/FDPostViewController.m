@@ -94,6 +94,7 @@ static NSDictionary *placeholderImages;
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    [Flurry logEvent:@"ViewingPost" timed:YES];
     [self.navigationController setNavigationBarHidden:NO];
     if (self.navigationItem.rightBarButtonItem != nil){
         [self.navigationItem.rightBarButtonItem setEnabled:NO];
@@ -195,7 +196,7 @@ static NSDictionary *placeholderImages;
     if (self.postIdentifier) [userInfo setObject:self.postIdentifier forKey:@"postId"];
     if (self.post.likeCount) [userInfo setObject:self.post.likeCount forKey:@"likeCount"];
     if (self.post.likers) [userInfo setObject:self.post.likers forKey:@"likers"];
-    [[NSNotificationCenter defaultCenter] postNotificationName:@"UpdatePostNotification" object:nil userInfo:userInfo];
+    //[[NSNotificationCenter defaultCenter] postNotificationName:@"UpdatePostNotification" object:nil userInfo:userInfo];
     //temporary comment out
     //[FDCache cachePost:self.post];
     //[FDCache cacheDetailPost:self.post];
@@ -335,6 +336,12 @@ static NSDictionary *placeholderImages;
     [self.posterButton setImageWithURL:[Utilities profileImageURLForFacebookID:self.post.user.facebookId] forState:UIControlStateNormal];
     self.posterButton.layer.cornerRadius = 25.0f;
     self.posterButton.clipsToBounds = YES;
+    [UIView animateWithDuration:.25 animations:^{
+        [self.likeButton setAlpha:1.0];
+        [self.likeCountLabel setAlpha:1.0];
+        [self.likersScrollView setAlpha:1.0];
+        [self.posterButton setAlpha:1.0];
+    }];
     if (self.post.detailImageUrlString.length) {
         SDWebImageManager *manager = [SDWebImageManager sharedManager];
         [manager downloadWithURL:self.post.detailImageURL options:0 progress:^(NSUInteger receivedSize, long long expectedSize) {
@@ -349,9 +356,6 @@ static NSDictionary *placeholderImages;
                     self.photoImageView.layer.shadowOpacity = 1;
                     self.photoImageView.layer.shadowRadius = 3.0;
                     self.photoImageView.clipsToBounds = NO;
-                    [self.likeButton setAlpha:1.0];
-                    [self.likeCountLabel setAlpha:1.0];
-                    [self.likersScrollView setAlpha:1.0];
                 }];
                 [self.navigationItem.rightBarButtonItem setEnabled:YES];
             }
@@ -365,6 +369,9 @@ static NSDictionary *placeholderImages;
             self.photoImageView.layer.shadowOpacity = 1;
             self.photoImageView.layer.shadowRadius = 3.0;
             self.photoImageView.clipsToBounds = NO;
+            [self.likeButton setAlpha:1.0];
+            [self.likeCountLabel setAlpha:1.0];
+            [self.likersScrollView setAlpha:1.0];
         }];
     }
     
@@ -427,24 +434,29 @@ static NSDictionary *placeholderImages;
     [self performSegueWithIdentifier:@"ShowPlaceFromPost" sender:nil];
 }
 
-- (IBAction)updatePost {
+- (void)updatePost {
+    [Flurry logEvent:@"EditPostTapped"];
     [self performSegueWithIdentifier:@"UpdatePost" sender:self.post];
 }
 
 - (IBAction)likeButtonTapped:(id)sender {
     if (self.post.isLikedByUser) {
+        [Flurry logEvent:@"unlikeTapped"];
         [[FDAPIClient sharedClient] unlikePost:self.post
                                        success:^(FDPost *newPost) {
                                            self.post = newPost;
                                            [self showPostDetails];
+                                           [Flurry logEvent:@"unlikeSuccess"];
                                        }
                                        failure:^(NSError *error) {
                                            NSLog(@"unlike failed! %@", error);
                                        }];
         [self refresh];
     } else {
+        [Flurry logEvent:@"likeTapped"];
         [[FDAPIClient sharedClient] likePost:self.post
                                      success:^(FDPost *newPost) {
+                                         [Flurry logEvent:@"likeSuccess"];
                                          self.post = newPost;
                                          int t = [newPost.likeCount intValue] + 1;
                                          
@@ -508,6 +520,7 @@ static NSDictionary *placeholderImages;
 }
 
 -(IBAction)expandImage:(id)sender {
+    [Flurry logEvent:@"ExpandingImageFromPostView"];
     float halfScreenHeight = self.view.bounds.size.height/2;
     if ([[NSUserDefaults standardUserDefaults] boolForKey:kDefaultsEnlargePhoto]) {
         [self.navigationController setNavigationBarHidden:YES animated:YES];
@@ -579,6 +592,7 @@ static NSDictionary *placeholderImages;
 
 -(void) scrollViewDidScroll:(UIScrollView *)scrollView {
     self.photoImageViewX = scrollView.contentOffset.x;
+    if (scrollView == self.likersScrollView) [Flurry logEvent:@"likersScrollViewDidScroll"];
 }
 
 /*- (void)zoomPhoto:(UITapGestureRecognizer *)sender {
@@ -612,6 +626,7 @@ static NSDictionary *placeholderImages;
 #pragma mark - Display likers
 
 - (void)showLikers {
+    NSDictionary *viewers = self.post.viewers;
     NSDictionary *likers = self.post.likers;
     self.likersScrollView.delegate = self;
     [self.likersScrollView.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
@@ -620,31 +635,38 @@ static NSDictionary *placeholderImages;
     float imageSize = 34.0;
     float space = 10.0;
     int index = 0;
-    
-    for (NSDictionary *liker in likers) {
-        UIImageView *heart = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"feedLikeButtonRed.png"]];
-        UIImageView *likerView = [[UIImageView alloc] initWithFrame:CGRectMake(((self.likersScrollView.frame.origin.x)+((space+imageSize)*index)),(self.likersScrollView.frame.origin.y), imageSize, imageSize)];
-        UIButton *likerButton = [UIButton buttonWithType:UIButtonTypeCustom];
-        
-        //passing liker facebook id as a string instead of NSNumber so that it can hold more data. crafty.
-        likerButton.titleLabel.text = [liker objectForKey:@"facebook_id"];
-        likerButton.titleLabel.hidden = YES;
-        
-        //[likerButton setTag: [[liker objectForKey:@"facebook_id"] integerValue]];
-        [likerButton addTarget:self action:@selector(profileTappedFromLikers:) forControlEvents:UIControlEventTouchUpInside];
-        [likerView setImageWithURL:[Utilities profileImageURLForFacebookID:[liker objectForKey:@"facebook_id"]]];
-        //[likerView setUserId:[liker objectForKey:@"facebook_id"]];
-        likerView.userInteractionEnabled = YES;
-        likerView.clipsToBounds = YES;
-        likerView.layer.cornerRadius = 5.0;
-        likerView.frame = CGRectMake(((space+imageSize)*index),0,imageSize, imageSize);
-        heart.frame = CGRectMake((((space+imageSize)*index)+20),16,20,20);
-        [likerButton setFrame:likerView.frame];
-        heart.clipsToBounds = NO;
-        [self.likersScrollView addSubview:likerView];
-        [self.likersScrollView addSubview:heart];
-        [self.likersScrollView addSubview:likerButton];
-        index++;
+
+    for (NSDictionary *viewer in viewers) {
+        if ([viewer objectForKey:@"facebook_id"] != [NSNull null]){
+            UIImageView *heart = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"feedLikeButtonRed.png"]];
+            UIImageView *likerView = [[UIImageView alloc] initWithFrame:CGRectMake(((self.likersScrollView.frame.origin.x)+((space+imageSize)*index)),(self.likersScrollView.frame.origin.y), imageSize, imageSize)];
+            UIButton *likerButton = [UIButton buttonWithType:UIButtonTypeCustom];
+            
+            //passing liker facebook id as a string instead of NSNumber so that it can hold more data. crafty.
+            likerButton.titleLabel.text = [viewer objectForKey:@"facebook_id"];
+            likerButton.titleLabel.hidden = YES;
+            
+            //[likerButton setTag: [[liker objectForKey:@"facebook_id"] integerValue]];
+            [likerButton addTarget:self action:@selector(profileTappedFromLikers:) forControlEvents:UIControlEventTouchUpInside];
+            [likerView setImageWithURL:[Utilities profileImageURLForFacebookID:[viewer objectForKey:@"facebook_id"]]];
+            //[likerView setUserId:[liker objectForKey:@"facebook_id"]];
+            likerView.userInteractionEnabled = YES;
+            likerView.clipsToBounds = YES;
+            likerView.layer.cornerRadius = 5.0;
+            likerView.frame = CGRectMake(((space+imageSize)*index),0,imageSize, imageSize);
+            heart.frame = CGRectMake((((space+imageSize)*index)+20),16,20,20);
+            [likerButton setFrame:likerView.frame];
+            heart.clipsToBounds = NO;
+            [self.likersScrollView addSubview:likerView];
+            for (NSDictionary *liker in likers) {
+                if ([[liker objectForKey:@"facebook_id"] isEqualToString:[viewer objectForKey:@"facebook_id"]]){
+                    [self.likersScrollView addSubview:heart];
+                    break;
+                }
+            }
+            [self.likersScrollView addSubview:likerButton];
+            index++;
+        }
     }
     [self.likersScrollView setContentSize:CGSizeMake(((space*(index+1))+(imageSize*(index+1))),40)];
     [self.view bringSubviewToFront:self.likersScrollView];
@@ -742,8 +764,8 @@ static NSDictionary *placeholderImages;
 - (void)willShowKeyboard {
     UIBarButtonItem *cancelButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel target:self action:@selector(doneEditing)];
     [cancelButton setTitle:@"CANCEL"];
-    [UIView animateWithDuration:0.25f animations:^{
-        self.tableView.contentOffset = CGPointMake(0, (self.tableView.tableHeaderView.frame.size.height/1.5));
+    [UIView animateWithDuration:0.325f delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        self.tableView.contentOffset = CGPointMake(0, (self.tableView.tableHeaderView.frame.size.height/1));
         [[self navigationItem] setRightBarButtonItem:cancelButton];
     } completion:^(BOOL finished) {
         self.tableView.scrollEnabled = YES;

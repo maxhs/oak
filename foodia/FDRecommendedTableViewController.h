@@ -10,5 +10,5 @@
 #import "FDAppDelegate.h"
 
 @interface FDRecommendedTableViewController : FDPostTableViewController
-
+@property BOOL shouldShowLikes;
 @end

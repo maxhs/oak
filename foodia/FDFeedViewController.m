@@ -29,14 +29,15 @@
 @property (nonatomic,strong) FDFeaturedGridViewController      *featuredGridViewController;
 @property (nonatomic,strong) FDPlacesViewController        *placesViewController;
 @property (nonatomic,strong) FDRecommendedTableViewController   *recommendedTableViewController;
-@property (nonatomic,strong) FDNewProfileViewController    *profileViewController;
+@property (nonatomic,strong) FDRecommendedTableViewController    *myLikesViewController;
 
-@property (weak, nonatomic) IBOutlet UIBarButtonItem    *searchButtonItem;
+//@property (weak, nonatomic) IBOutlet UIBarButtonItem    *searchButtonItem;
 @property (weak, nonatomic) IBOutlet UIBarButtonItem *menuButtonItem;
 @property (retain, nonatomic) IBOutlet UIButton *addPostButton;
 @property (weak, nonatomic) IBOutlet UILabel *feedLabel;
 @property (weak, nonatomic) IBOutlet UILabel *featuredLabel;
 @property (weak, nonatomic) IBOutlet UILabel *myPostsLabel;
+@property (weak, nonatomic) IBOutlet UILabel *myLikesLabel;
 @property (weak, nonatomic) IBOutlet UILabel *nearbyLabel;
 @property (weak, nonatomic) IBOutlet UILabel *recLabel;
 @property (nonatomic, weak) UIViewController *currentChildViewController;
@@ -46,24 +47,23 @@
 @property int page;
 
 - (IBAction)revealMenu:(UIBarButtonItem *)sender;
-- (IBAction)activateSearch:(UIBarButtonItem *)sender;
-
+//- (IBAction)activateSearch:(UIBarButtonItem *)sender;
 @end
 
 @implementation FDFeedViewController
 @synthesize lastContentOffsetX = _lastContentOffsetX;
 @synthesize lastContentOffsetY = _lastContentOffsetY;
-@synthesize page;
+@synthesize page = _page;
 
 - (void)viewDidLoad
 {
     [super viewDidLoad];
     self.feedTableViewController        = [[FDFeedTableViewController alloc]        initWithDelegate:self];
-    // initialize the table view controller for the various feeds
     self.featuredGridViewController    = [[FDFeaturedGridViewController alloc]    initWithDelegate:self];
-    //self.profileViewController          = [[FDNewProfileViewController alloc]  initWithDelegate:self];
+    // initialize the table view controller for the various feeds
     self.placesViewController      = [[FDPlacesViewController alloc] initWithDelegate:self];
     self.recommendedTableViewController = [[FDRecommendedTableViewController alloc] initWithDelegate:self];
+    self.myLikesViewController          = [[FDRecommendedTableViewController alloc]  initWithDelegate:self];
     
     self.navigationItem.titleView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"blackLogo.png"]];
     
@@ -97,7 +97,7 @@
         [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"existingUser"];
     }*/
     
-    self.searchBar = [[UISearchBar alloc] initWithFrame:CGRectMake(0,-44,320,44)];
+    /*self.searchBar = [[UISearchBar alloc] initWithFrame:CGRectMake(0,-44,320,44)];
     self.searchDisplay = [[UISearchDisplayController alloc] initWithSearchBar:self.searchBar contentsController:self];
     self.searchDisplay.delegate = self;
     
@@ -118,7 +118,7 @@
     }
     
     [self.view insertSubview:self.searchBar belowSubview:_scrollView];
-    [self.searchBar setHidden:YES];
+    [self.searchBar setHidden:YES];*/
     
     self.slidingViewController.panGesture.enabled = YES;
     
@@ -130,44 +130,50 @@
                                              selector:@selector(revealSlider)
                                                  name:@"RevealSlider"
                                                object:nil];
-    // show the feed initially
-    [self showFeed];
-    [self hideLabelsExcept:self.feedLabel];
-    UIImage *emptyBarButton = [UIImage imageNamed:@"emptyBarButton.png"];
-    [self.searchButtonItem setBackgroundImage:emptyBarButton forState:UIControlStateNormal barMetrics:UIBarMetricsDefault];
     
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"JustLaunched"]){
+        // show the featured feed initially
+        [[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"JustLaunched"];
+        [self showFeatured];
+        [self hideLabelsExcept:self.featuredLabel];
+    } else {
+        [self showFeed];
+        [self hideLabelsExcept:self.feedLabel];
+        [_scrollView setContentOffset:CGPointMake(88,0)];
+    }
+    
+    UIImage *emptyBarButton = [UIImage imageNamed:@"emptyBarButton.png"];
+    //[self.searchButtonItem setBackgroundImage:emptyBarButton forState:UIControlStateNormal barMetrics:UIBarMetricsDefault];
     [self.menuButtonItem setBackgroundImage:emptyBarButton forState:UIControlStateNormal barMetrics:UIBarMetricsDefault];
     
     _scrollView.clipsToBounds = NO;
 	_scrollView.pagingEnabled = YES;
 	_scrollView.showsHorizontalScrollIndicator = NO;
     _scrollView.delegate = self;
-    [_scrollView setContentSize:CGSizeMake(352,88)];
+    [_scrollView setContentSize:CGSizeMake(440,88)];
     
 }
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
-    [self.profileViewController initWithUserId:[[NSUserDefaults standardUserDefaults] objectForKey:@"FacebookID"]];
+    //[self.profileViewController initWithUserId:[[NSUserDefaults standardUserDefaults] objectForKey:@"FacebookID"]];
 }
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
-    
     CGFloat pageWidth = scrollView.frame.size.width;
-    self.page = floor((scrollView.contentOffset.x - pageWidth / 2) / pageWidth) + 1;
-    if (_lastContentOffsetX < (int)scrollView.contentOffset.x) self.movedRight = YES;
+    int currentPage = floor((scrollView.contentOffset.x - pageWidth / 2) / pageWidth) + 1;
+    if (self.page < currentPage) self.movedRight = YES;
     else self.movedRight = NO;
-    
-    switch (self.page) {
+    switch (currentPage) {
         case 0:
+            [self showFeatured];
+            [self.addPostButton setFrame:CGRectMake(130,self.view.frame.size.height-55,55,55)];
+            [self hideLabelsExcept:self.featuredLabel];
+            break;
+        case 1:
             [self showFeed];
             [self.addPostButton setFrame:CGRectMake(130,self.view.frame.size.height-55,55,55)];
             [self hideLabelsExcept:self.feedLabel];
-            break;
-        case 1:
-            [self showFeatured];
-            [self.addPostButton setFrame:CGRectMake(130,self.view.frame.size.height,55,55)];
-            [self hideLabelsExcept:self.featuredLabel];
             break;
         case 2:
             [self showNearby];
@@ -179,14 +185,15 @@
             [self.addPostButton setFrame:CGRectMake(130,self.view.frame.size.height-55,55,55)];
             [self hideLabelsExcept:self.recLabel];
             break;
-        /*case 4:
-            [self showProfile];
+        case 4:
+            [self showLikes];
             [self.addPostButton setFrame:CGRectMake(130,self.view.frame.size.height-55,55,55)];
-            [self hideLabelsExcept:self.myPostsLabel];
-            break;*/
+            [self hideLabelsExcept:self.myLikesLabel];
+            break;
         default:
             break;
     }
+    self.page = currentPage;
 }
 
 - (void)hideLabelsExcept:(UILabel *)feed{
@@ -243,13 +250,13 @@
 - (void) hideLabels{
     switch (self.page) {
         case 0:
-            [self hideLabelsExcept:self.feedLabel];
+            [self hideLabelsExcept:self.featuredLabel];
             break;
         case 1:
-            [self hideLabelsExcept:self.nearbyLabel];
+            [self hideLabelsExcept:self.feedLabel];
             break;
         case 2:
-            [self hideLabelsExcept:self.featuredLabel];
+            [self hideLabelsExcept:self.nearbyLabel];
             break;
         case 3:
             [self hideLabelsExcept:self.recLabel];
@@ -293,7 +300,7 @@
 - (void)viewDidUnload
 {
     [self setFeedContainerView:nil];
-    [self setSearchButtonItem:nil];
+    //[self setSearchButtonItem:nil];
     [super viewDidUnload];
 }
 
@@ -326,42 +333,41 @@
 
 #pragma mark - Private Methods
 
-- (void)showFeaturedFeed:(NSNotification *) notification {
-    [self showFeatured];
-}
-
 - (void)showFeed {
-    [self.searchButtonItem setImage:[UIImage imageNamed:@"emptyBarButton"]];
-    [self.searchButtonItem setEnabled:NO];
+    //[self.searchButtonItem setImage:[UIImage imageNamed:@"emptyBarButton"]];
+    //[self.searchButtonItem setEnabled:NO];
     //self.title = @"FRIENDS";
     [self showPostViewController:self.feedTableViewController];
 }
 
 - (void)showFeatured {
-    [self.searchButtonItem setImage:[UIImage imageNamed:@"emptyBarButton"]];
-    [self.searchButtonItem setEnabled:NO];
+    //[self.searchButtonItem setImage:[UIImage imageNamed:@"emptyBarButton"]];
+    //[self.searchButtonItem setEnabled:NO];
     //self.title = @"FEATURED";
     [self showPostViewController:self.featuredGridViewController];
 }
 
 - (void)showRecommended {
-    [self.searchButtonItem setImage:[UIImage imageNamed:@"emptyBarButton"]];
-    [self.searchButtonItem setEnabled:NO];
+    //[self.searchButtonItem setImage:[UIImage imageNamed:@"emptyBarButton"]];
+    //[self.searchButtonItem setEnabled:NO];
     //self.title = @"RECOMMENDED";
+    [self.recommendedTableViewController setShouldShowLikes:NO];
     [self showPostViewController:self.recommendedTableViewController];
 }
 
 - (void)showNearby {
     //self.title = @"NEARBY";
-    [self.searchButtonItem setImage:[UIImage imageNamed:@"magnifier"]];
-    [self.searchButtonItem setEnabled:YES];
+    //[self.searchButtonItem setImage:[UIImage imageNamed:@"magnifier"]];
+    //[self.searchButtonItem setEnabled:YES];
     [self showPostViewController:self.placesViewController];
 }
 
-- (void)showProfile {
-    [self.searchButtonItem setImage:[UIImage imageNamed:@"magnifier"]];
-    [self.searchButtonItem setEnabled:YES];
-    [self showPostViewController:self.profileViewController];
+- (void)showLikes {
+    NSLog(@"should be showing likes");
+    //[self.searchButtonItem setImage:[UIImage imageNamed:@"magnifier"]];
+    //[self.searchButtonItem setEnabled:YES];
+    [self.myLikesViewController setShouldShowLikes:YES];
+    [self showPostViewController:self.myLikesViewController];
 }
 
 - (void)showPostViewController:(UIViewController *)toViewController {
@@ -374,7 +380,6 @@
         [self.feedContainerView addSubview:toViewController.view];
         self.currentChildViewController = toViewController;
     } else {
-        NSLog(@"current child view controller was not nil");
         // inform the current controller that it's being orphaned (Oh no!)
         [self.currentChildViewController willMoveToParentViewController:nil];
     
@@ -385,12 +390,11 @@
         //toViewController.view.alpha = 0.0f;
         toViewController.view.frame = self.feedContainerView.bounds;
         
-        if (!self.movedRight) {
-            toViewController.view.transform = CGAffineTransformMakeTranslation(-self.feedContainerView.bounds.size.width, 0);
-        } else {
+        if (self.movedRight) {
             toViewController.view.transform = CGAffineTransformMakeTranslation(self.feedContainerView.bounds.size.width, 0);
+        } else {
+            toViewController.view.transform = CGAffineTransformMakeTranslation(-self.feedContainerView.bounds.size.width, 0);
         }
-        
             
         [self transitionFromViewController:self.currentChildViewController
                           toViewController:toViewController
@@ -423,7 +427,6 @@
 
 - (IBAction)activateSearch:(UIBarButtonItem *)sender {
     if (!self.navigationController.navigationBar.isHidden){
-        NSLog(@"tucking away the feedContainerView from feedViewVC");
         [self hideSlider];
         [UIView animateWithDuration:UINavigationControllerHideShowBarDuration animations:^{
             //[self.searchBar setFrame:CGRectMake(0,0,320,44)];
@@ -467,6 +470,7 @@
 #pragma mark - FDPostGridViewControllerDelegate Methods
 
 - (void)postGridViewController:(FDPostGridViewController *)controller didSelectPost:(FDPost *)post {
+    NSLog(@"did select a post: %@",post.identifier);
     [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
     [self performSegueWithIdentifier:@"ShowPost" sender:post];
 }

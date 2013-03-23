@@ -25,6 +25,7 @@
 @dynamic recCount;
 @dynamic likeCount;
 @dynamic likers;
+@dynamic viewers;
 @dynamic foursquareid;
 @dynamic locationName;
 @dynamic longitude;

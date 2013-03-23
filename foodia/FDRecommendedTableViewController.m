@@ -12,6 +12,7 @@
 #import "FDPostCell.h"
 #import "Utilities.h"
 #import "FDPlaceViewController.h"
+#import "Flurry.h"
 
 @interface FDRecommendedTableViewController ()
 
@@ -19,16 +20,16 @@
 
 @implementation FDRecommendedTableViewController
 
+@synthesize shouldShowLikes = _shouldShowLikes;
+
 - (void)viewDidLoad {
     [super viewDidLoad];
     [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
-    [TestFlight passCheckpoint:@"Viewing Recommend Table View"];
-    [[NSNotificationCenter defaultCenter] addObserver:self
+    [Flurry logPageView];
+    /*[[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(updatePostNotification:)
                                                  name:@"UpdatePostNotification"
-                                               object:nil];
-    
-    
+                                               object:nil];*/
     
     //replace ugly background
     for (UIView *view in self.searchDisplayController.searchBar.subviews) {
@@ -38,6 +39,10 @@
             break;
         }
     }
+}
+
+- (void) viewDidAppear:(BOOL)animated {
+    [super viewDidAppear:animated];
     [self refresh];
 }
 /*- (void)loadFromCache {
@@ -62,11 +67,10 @@
         static NSString *PostCellIdentifier = @"PostCell";
         FDPostCell *cell = (FDPostCell *)[tableView dequeueReusableCellWithIdentifier:PostCellIdentifier];
         if (cell == nil) {
-            NSArray *nib = [[NSBundle mainBundle] loadNibNamed:@"FDPostCell" owner:self options:nil];
-            cell = (FDPostCell *)[nib objectAtIndex:0];
+            cell = [[[NSBundle mainBundle] loadNibNamed:@"FDPostCell" owner:self options:nil] lastObject];
         }
         FDPost *post = [self.posts objectAtIndex:indexPath.row];
-        //[self refreshPostWithId:((FDPost *)[self.posts objectAtIndex:indexPath.row]).identifier withIndexPathRow:indexPath.row];
+    
         [cell configureForPost:post];
         [cell.likeButton addTarget:self action:@selector(likeButtonTapped:) forControlEvents:UIControlEventTouchUpInside];
         cell.likeButton.tag = indexPath.row;
@@ -82,9 +86,10 @@
         
         //capture recommend touch event
         UIButton *recButton = [UIButton buttonWithType:UIButtonTypeCustom];
-        [recButton setFrame:CGRectMake(276,52,70,34)];
+        [recButton setFrame:CGRectMake(276,52,60,34)];
         [recButton addTarget:self action:@selector(recommend:) forControlEvents:UIControlEventTouchUpInside];
         [recButton setTitle:@"Rec" forState:UIControlStateNormal];
+        [recButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
         recButton.layer.borderColor = [UIColor colorWithWhite:.1 alpha:.1].CGColor;
         recButton.layer.borderWidth = 1.0f;
         recButton.backgroundColor = [UIColor whiteColor];
@@ -104,7 +109,7 @@
         commentButton.tag = indexPath.row;;
         [commentButton addTarget:self action:@selector(didSelectRow:) forControlEvents:UIControlEventTouchUpInside];
         [commentButton setTitle:@"Add a comment..." forState:UIControlStateNormal];
-        [commentButton setTitle:@"Nice!" forState:UIControlStateSelected];
+        [commentButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
         commentButton.layer.borderColor = [UIColor colorWithWhite:.1 alpha:.1].CGColor;
         commentButton.layer.borderWidth = 1.0f;
         commentButton.backgroundColor = [UIColor whiteColor];
@@ -113,6 +118,9 @@
         [commentButton.titleLabel setTextColor:[UIColor lightGrayColor]];
         
         [cell.scrollView addSubview:commentButton];
+    
+        if (cell.scrollView.contentOffset.x != 0) [cell.scrollView setContentOffset:CGPointMake(0,0) animated:NO];
+    
         return cell;
     //}
 }
@@ -133,30 +141,67 @@
 
 - (void)refresh {
     // if we already have some posts in the feed, get the feed since the last post
-    if (self.posts.count) {
-        self.feedRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getRecommendedPostsSincePost:[self.posts objectAtIndex:0] success:^(NSMutableArray *posts) {
-            self.posts = [[posts arrayByAddingObjectsFromArray:self.posts] mutableCopy];
-            NSMutableArray *indexPathsForAddedPosts = [NSMutableArray arrayWithCapacity:posts.count];
-            for (FDPost *post in posts) {
-                NSIndexPath *path = [NSIndexPath indexPathForRow:[self.posts indexOfObject:post] inSection:0];
-                [indexPathsForAddedPosts addObject:path];
+    /*if (self.posts.count && self.shouldShowLikes) {
+            NSLog(@"should be showing likes instead");
+            self.feedRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getLikedPosts:^(NSMutableArray *posts) {
+                self.posts = [[posts arrayByAddingObjectsFromArray:self.posts] mutableCopy];
+                NSLog(@"liked posts from rec vc: %@",self.posts);
+                NSMutableArray *indexPathsForAddedPosts = [NSMutableArray arrayWithCapacity:posts.count];
+                for (FDPost *post in posts) {
+                    NSLog(@"each post identifier: %@",post.identifier);
+                    NSIndexPath *path = [NSIndexPath indexPathForRow:[self.posts indexOfObject:post] inSection:0];
+                    [indexPathsForAddedPosts addObject:path];
+                }
+                [self.tableView insertRowsAtIndexPaths:indexPathsForAddedPosts
+                                      withRowAnimation:UITableViewRowAnimationAutomatic];
+                
+                [self reloadData];
+                self.feedRequestOperation = nil;
+                
+            } failure:^(NSError *error) {
+                self.feedRequestOperation = nil;
+                [self reloadData];
+            }];
+    } else if (self.posts.count && !self.shouldShowLikes) {
+            self.feedRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getRecommendedPostsSincePost:[self.posts objectAtIndex:0] success:^(NSMutableArray *posts) {
+                self.posts = [[posts arrayByAddingObjectsFromArray:self.posts] mutableCopy];
+                NSMutableArray *indexPathsForAddedPosts = [NSMutableArray arrayWithCapacity:posts.count];
+                for (FDPost *post in posts) {
+                    NSIndexPath *path = [NSIndexPath indexPathForRow:[self.posts indexOfObject:post] inSection:0];
+                    [indexPathsForAddedPosts addObject:path];
+                }
+                [self.tableView insertRowsAtIndexPaths:indexPathsForAddedPosts
+                                      withRowAnimation:UITableViewRowAnimationAutomatic];
+                
+                [self reloadData];
+                self.feedRequestOperation = nil;
+                
+            } failure:^(NSError *error) {
+                self.feedRequestOperation = nil;
+                [self reloadData];            
+            }];
+            // otherwise, get the intial feed
+    } else */
+    if (self.shouldShowLikes) {
+        [Flurry logEvent:@"Loading initial likes" timed:YES];
+        self.feedRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getLikedPosts:^(NSMutableArray *posts) {
+            NSLog(@"should show likes result: %@",posts);
+            if (posts.count == 0){
+                [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
+                return;
             }
-            [self.tableView insertRowsAtIndexPaths:indexPathsForAddedPosts
-                                  withRowAnimation:UITableViewRowAnimationAutomatic];
-            
+            self.posts = posts;
             [self reloadData];
             self.feedRequestOperation = nil;
-            
         } failure:^(NSError *error) {
             self.feedRequestOperation = nil;
-            [self reloadData];            
+            [self reloadData];
         }];
-        
-        // otherwise, get the intial feed
     } else {
+        [Flurry logEvent:@"Loading initial recommended posts" timed:YES];
         self.feedRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getRecommendedPostsSuccess:^(NSMutableArray *posts) {
             if (posts.count == 0){
-                [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
+                [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
                 return;
             }
             self.posts = posts;
@@ -170,31 +215,56 @@
 }
 
 - (void)loadAdditionalPosts {
-    self.feedRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getRecommendedPostsBeforePost:self.posts.lastObject success:^(NSMutableArray *posts) {
-        if (posts.count == 0) {
-            self.canLoadAdditionalPosts = NO;
-        } else {
-            [self.posts addObjectsFromArray:posts];
-            NSMutableArray *indexPathsForAddedPosts = [NSMutableArray arrayWithCapacity:posts.count];
-            for (FDPost *post in posts) {
-                NSIndexPath *path = [NSIndexPath indexPathForRow:[self.posts indexOfObject:post] inSection:0];
-                [indexPathsForAddedPosts addObject:path];
+    if (self.shouldShowLikes) {
+        [Flurry logEvent:@"Loading additional likes" timed:YES];
+        self.feedRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getLikedPostsBeforePost:self.posts.lastObject success:^(NSMutableArray *posts) {
+            if (posts.count == 0) {
+                self.canLoadAdditionalPosts = NO;
+            } else {
+                [self.posts addObjectsFromArray:posts];
+                NSMutableArray *indexPathsForAddedPosts = [NSMutableArray arrayWithCapacity:posts.count];
+                for (FDPost *post in posts) {
+                    NSIndexPath *path = [NSIndexPath indexPathForRow:[self.posts indexOfObject:post] inSection:0];
+                    [indexPathsForAddedPosts addObject:path];
+                }
+                [self.tableView insertRowsAtIndexPaths:indexPathsForAddedPosts
+                                      withRowAnimation:UITableViewRowAnimationFade];
+                [self reloadData];
             }
-            [self.tableView insertRowsAtIndexPaths:indexPathsForAddedPosts
-                                  withRowAnimation:UITableViewRowAnimationFade];
+            self.feedRequestOperation = nil;
+        } failure:^(NSError *error) {
+            self.feedRequestOperation = nil;
             [self reloadData];
-        }
-        self.feedRequestOperation = nil;
-    } failure:^(NSError *error) {
-        self.feedRequestOperation = nil;
-        [self reloadData];
-    }];
+        }];
+
+    } else {
+        [Flurry logEvent:@"Loading additional recommended posts" timed:YES];
+        self.feedRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getRecommendedPostsBeforePost:self.posts.lastObject success:^(NSMutableArray *posts) {
+            if (posts.count == 0) {
+                self.canLoadAdditionalPosts = NO;
+            } else {
+                [self.posts addObjectsFromArray:posts];
+                NSMutableArray *indexPathsForAddedPosts = [NSMutableArray arrayWithCapacity:posts.count];
+                for (FDPost *post in posts) {
+                    NSIndexPath *path = [NSIndexPath indexPathForRow:[self.posts indexOfObject:post] inSection:0];
+                    [indexPathsForAddedPosts addObject:path];
+                }
+                [self.tableView insertRowsAtIndexPaths:indexPathsForAddedPosts
+                                      withRowAnimation:UITableViewRowAnimationFade];
+                [self reloadData];
+            }
+            self.feedRequestOperation = nil;
+        } failure:^(NSError *error) {
+            self.feedRequestOperation = nil;
+            [self reloadData];
+        }];
+    }
 }
 
 - (void)didShowLastRow {
     if (self.feedRequestOperation == nil && self.posts.count && self.canLoadAdditionalPosts) {
         [self loadAdditionalPosts];
-    } else NSLog(@"No more rows");
+    }
 }
 
 

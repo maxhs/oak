@@ -38,12 +38,13 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    [Flurry logEvent:@"ViewingFriends" timed:YES];
     [TestFlight passCheckpoint:@"Passed Social View checkpoint"];
     self.delegate = self;
     UILabel *navTitle = [[UILabel alloc] init];
     navTitle.frame = CGRectMake(0,0,200,44);
     navTitle.text = @"FRIENDS & INVITES";
-    navTitle.font = [UIFont fontWithName:@"AvenirNextCondensed-DemiBold" size:21];
+    navTitle.font = [UIFont fontWithName:kAvenirDemiBold size:21];
     navTitle.backgroundColor = [UIColor clearColor];
     navTitle.textColor = [UIColor blackColor];
     navTitle.textAlignment = NSTextAlignmentCenter;

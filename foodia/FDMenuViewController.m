@@ -24,6 +24,7 @@
 #import "FDModalNoAnimationSegue.h"
 #import "FDFeedNavigationViewController.h"
 #import "Utilities.h"
+#import "Flurry.h"
 
 @interface FDMenuViewController () <MFMailComposeViewControllerDelegate>
 @property (nonatomic, strong) NSArray *activityItems;
@@ -37,6 +38,7 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    [Flurry logEvent:@"ViewingMenu" timed:YES];
     [self refresh];
     [self.slidingViewController setAnchorRightRevealAmount:264.0f];
     self.slidingViewController.underLeftWidthLayout = ECFullWidth;
@@ -187,11 +189,17 @@
             [self leaveFeedback:nil];
             break;
         case 4:
+        {
             [FDCache clearCache];
+            [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"JustLaunched"];
             [FBSession.activeSession closeAndClearTokenInformation];
             [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
+            [NSUserDefaults resetStandardUserDefaults];
+            [NSUserDefaults standardUserDefaults];
+            NSString *domainName = [[NSBundle mainBundle] bundleIdentifier];
+            [[NSUserDefaults standardUserDefaults] removePersistentDomainForName:domainName];
             [self.slidingViewController dismissViewControllerAnimated:YES completion:nil];
-            
+        }
             break;
         default:
             break;
@@ -201,7 +209,7 @@
 
 - (void)showTopViewControllerWithIdentifier:(NSString *)identifier {
     UIViewController *newTopViewController = [[UIViewController alloc] init];
-        //tests whether the device has a 4-inch display for the above view controllers
+    //tests whether the device has a 4-inch display for the above view controllers
     if (([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone && [UIScreen mainScreen].bounds.size.height == 568.0)){
         UIStoryboard *storyboard5 = [UIStoryboard storyboardWithName:@"iPhone5" bundle:nil];
         newTopViewController = [storyboard5 instantiateViewControllerWithIdentifier:identifier];

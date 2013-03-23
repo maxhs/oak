@@ -9,6 +9,7 @@
 #import <UIKit/UIKit.h>
 #import "FDPeopleTableViewController.h"
 #import "FDAPIClient.h"
+#import "Constants.h"
 
 @interface FDSocialViewController : FDPeopleTableViewController
 @property (nonatomic,strong) AFJSONRequestOperation *feedRequestOperation;

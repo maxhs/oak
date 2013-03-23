@@ -11,19 +11,25 @@
 #import "FDUser.h"
 #import "FDUserCell.h"
 #import "FDPost.h"
+#import <MessageUI/MessageUI.h>
 
-@interface FDRecommendViewController () <FBDialogDelegate, UIAlertViewDelegate>
+@interface FDRecommendViewController () <FBDialogDelegate, UIAlertViewDelegate, UIActionSheetDelegate, MFMessageComposeViewControllerDelegate, MFMailComposeViewControllerDelegate>
 @property (nonatomic, retain) NSMutableSet *recommendees;
 @property (nonatomic, retain) NSMutableArray *recommendeeList;
 @property (strong, nonatomic) Facebook *facebook;
+@property (weak, nonatomic) IBOutlet UIBarButtonItem *rightBarButton;
 @end
 
 @implementation FDRecommendViewController
 @synthesize facebook = _facebook;
+@synthesize postingToFacebook = _postingToFacebook;
 
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    if (!self.postingToFacebook){
+        [self.rightBarButton setTitle:@"SEND"];
+    }
     [self.navigationController setNavigationBarHidden:NO animated:YES];
     self.recommendees = [NSMutableSet set];
     self.recommendeeList = [NSMutableArray array];
@@ -31,7 +37,7 @@
     navTitle.frame = CGRectMake(0,0,320,44);
     navTitle.text = @"RECOMMENDING";
     
-    navTitle.font = [UIFont fontWithName:@"AvenirNextCondensed-Medium" size:20];
+    navTitle.font = [UIFont fontWithName:kAvenirMedium size:20];
     navTitle.backgroundColor = [UIColor clearColor];
     navTitle.textColor = [UIColor blackColor];
     navTitle.textAlignment = NSTextAlignmentCenter;
@@ -42,7 +48,7 @@
     for(UIView *subView in self.searchDisplayController.searchBar.subviews) {
         if ([subView isKindOfClass:[UITextField class]]) {
             UITextField *searchField = (UITextField *)subView;
-            searchField.font = [UIFont fontWithName:@"AvenirNextCondensed-Medium" size:15];
+            searchField.font = [UIFont fontWithName:kAvenirMedium size:15];
         }
     }
     
@@ -123,54 +129,62 @@
 
 #pragma Facebook stuff
 - (IBAction)recommend:(id)sender {
-    NSMutableDictionary *postParams = [[NSMutableDictionary alloc] init];
-    if (FBSession.activeSession.isOpen) {
-        // Initiate a Facebook instance and properties
-        if (nil == self.facebook) {
-            self.facebook = [[Facebook alloc]
-                             initWithAppId:FBSession.activeSession.appID
-                             andDelegate:nil];
-            NSLog(@"initializing and storing a facebook session/object");
-            
-            // Store the Facebook session information
-            self.facebook.accessToken = FBSession.activeSession.accessToken;
-            self.facebook.expirationDate = FBSession.activeSession.expirationDate;
+    if (self.postingToFacebook){
+        NSMutableDictionary *postParams = [[NSMutableDictionary alloc] init];
+        if (FBSession.activeSession.isOpen) {
+            // Initiate a Facebook instance and properties
+            if (nil == self.facebook) {
+                self.facebook = [[Facebook alloc]
+                                 initWithAppId:FBSession.activeSession.appID
+                                 andDelegate:nil];
+                
+                // Store the Facebook session information
+                self.facebook.accessToken = FBSession.activeSession.accessToken;
+                self.facebook.expirationDate = FBSession.activeSession.expirationDate;
+            }
+        } else {
+            // Clear out the Facebook instance
+            self.facebook = nil;
+        }
+
+        if (self.post.foodiaObject != nil) {
+            [postParams setObject:self.post.foodiaObject forKey:@"name"];
+        } else {
+            [postParams setObject:@"Download FOODIA!" forKey:@"name"];
+        }
+
+        if (self.post.identifier) {
+            [postParams setObject:[NSString stringWithFormat:@"http://posts.foodia.com/p/%@",self.post.identifier] forKey:@"link"];
+        } else {
+            [postParams setObject:@"http://posts.foodia.com/" forKey:@"link"];
+        }
+
+        if (self.post.hasPhoto){
+            NSString *detailString = [self.post.feedImageUrlString stringByReplacingOccurrencesOfString:@"thumb" withString:@"original"];
+            [postParams setObject:detailString forKey:@"picture"];
+        } else {
+            [postParams setObject:@"http://foodia.com/images/FOODIA_red_512x512_bg.png" forKey:@"picture"];
+        }
+        
+        if (self.recommendees != nil) {
+            for (FDUser *recommendee in self.recommendees){
+                [postParams addEntriesFromDictionary:@{@"to":recommendee.facebookId}];
+                NSLog(@"new postParams: %@",postParams);
+                [self.facebook dialog:@"feed" andParams:postParams andDelegate:self];
+            }
+            [[FDAPIClient sharedClient] recommendPost:self.post toRecommendees:self.recommendees withMessage:self.post.caption success:^(id result) {
+                NSLog(@"success recommending to FOODIA api");
+            } failure:^(NSError *error) {
+                NSLog(@"error recommending to FOODIA api: %@",error.description);
+            }];
         }
     } else {
-        NSLog(@"you're not signed in to facebook, so you can't share");
-        // Clear out the Facebook instance
-        self.facebook = nil;
-    }
-
-    if (self.post.foodiaObject != nil) {
-        [postParams setObject:self.post.foodiaObject forKey:@"name"];
-    } else {
-        [postParams setObject:@"Download FOODIA!" forKey:@"name"];
-    }
-
-    if (self.post.identifier) {
-        [postParams setObject:[NSString stringWithFormat:@"http://posts.foodia.com/p/%@",self.post.identifier] forKey:@"link"];
-    } else {
-        [postParams setObject:@"http://posts.foodia.com/" forKey:@"link"];
-    }
-
-    if (self.post.hasPhoto){
-        NSString *detailString = [self.post.feedImageUrlString stringByReplacingOccurrencesOfString:@"thumb" withString:@"original"];
-        [postParams setObject:detailString forKey:@"picture"];
-    } else {
-        [postParams setObject:@"http://foodia.com/images/FOODIA_red_512x512_bg.png" forKey:@"picture"];
-    }
-    
-    if (self.recommendees != nil) {
-        for (FDUser *recommendee in self.recommendees){
-            [postParams addEntriesFromDictionary:@{@"to":recommendee.facebookId}];
-            NSLog(@"new postParams: %@",postParams);
-            [self.facebook dialog:@"feed" andParams:postParams andDelegate:self];
-        }
         [[FDAPIClient sharedClient] recommendPost:self.post toRecommendees:self.recommendees withMessage:self.post.caption success:^(id result) {
             NSLog(@"success recommending to FOODIA api: %@",result);
+            [[[UIAlertView alloc] initWithTitle:@"Thanks!" message:@"Isn't it fun helping your friends find great food?" delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
         } failure:^(NSError *error) {
             NSLog(@"error recommending to FOODIA api: %@",error.description);
+            [[[UIAlertView alloc] initWithTitle:@"Uh-oh!" message:@"Looks like your friend isn't on FOODIA. You should send them an invite to join!" delegate:@"Send Invite" cancelButtonTitle:@"No Thanks" otherButtonTitles:nil] show];
         }];
     }
 }
@@ -187,7 +201,6 @@
 // Handle the publish feed call back
 - (void)dialogCompleteWithUrl:(NSURL *)url {
     NSDictionary *params = [self parseURLParams:[url query]];
-    NSLog(@"params: %@", params);
     if ([params count] != 0) [[[UIAlertView alloc] initWithTitle:@"Good Going!"
                                 message:@"Recommendations make the world turn. Why not make another?"
                                delegate:self
@@ -213,5 +226,61 @@
     return params;
 }
 
+- (void) alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
+    if ([[alertView buttonTitleAtIndex:buttonIndex] isEqualToString:@"Send Invite"]){
+        NSLog(@"Should be sending FOODIA invite");
+        [[[UIActionSheet alloc] initWithTitle:@"Send an invite to join FOODIA!" delegate:self cancelButtonTitle:@"No Thanks" destructiveButtonTitle:nil otherButtonTitles:@"Send via Text", @"Send via Email", nil] showInView:self.view];
+    }
+}
+
+- (void) actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
+    
+    if(buttonIndex == 0) {
+        //Recommending via text
+        MFMessageComposeViewController *viewController = [[MFMessageComposeViewController alloc] init];
+        if ([MFMessageComposeViewController canSendText]){
+            NSString *textBody = @"I think you should join FOODIA!";
+            viewController.messageComposeDelegate = self;
+            [viewController setBody:textBody];
+            [self.delegate presentModalViewController:viewController animated:YES];
+        }
+    } else if(buttonIndex == 1) {
+        //Recommending via mail
+        if ([MFMailComposeViewController canSendMail]) {
+            MFMailComposeViewController* controller = [[MFMailComposeViewController alloc] init];
+            controller.mailComposeDelegate = self;
+            NSString *emailBody = [NSString stringWithFormat:@"Download FOODIA! <a href='http://itunes.com/apps/foodia'>download the app now!</a>"];
+            [controller setMessageBody:emailBody isHTML:YES];
+            [controller setSubject:@"Download FOODIA!"];
+            if (controller) [self.delegate presentModalViewController:controller animated:YES];
+        } else {
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Sorry" message:@"But we weren't able to email your invite. Please try again..." delegate:self cancelButtonTitle:@"" otherButtonTitles:nil];
+            [alert show];
+        }
+    }
+}
+
+- (void)messageComposeViewController:(MFMessageComposeViewController *)controller
+                 didFinishWithResult:(MessageComposeResult)result
+{
+    if (result == MessageComposeResultSent) {
+    } else if (result == MessageComposeResultFailed) {
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Sorry" message:@"But we weren't able to send your message. Please try again..." delegate:self cancelButtonTitle:@"Okay" otherButtonTitles: nil];
+        [alert show];
+    }
+    [self dismissViewControllerAnimated:YES completion:nil];
+}
+
+- (void)mailComposeController:(MFMailComposeViewController*)controller
+          didFinishWithResult:(MFMailComposeResult)result
+                        error:(NSError*)error;
+{
+    if (result == MFMailComposeResultSent) {
+    } else if (result == MFMailComposeResultFailed) {
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Sorry" message:@"But we weren't able to send your mail. Please try again..." delegate:self cancelButtonTitle:@"Okay" otherButtonTitles: nil];
+        [alert show];
+    }
+    [self dismissViewControllerAnimated:YES completion:nil];
+}
 
 @end

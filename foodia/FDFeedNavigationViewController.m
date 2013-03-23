@@ -9,12 +9,12 @@
 #import "FDFeedNavigationViewController.h"
 #import "FDMenuViewController.h"
 #import "ECSlidingViewController.h"
+#import "Flurry.h"
 
 @implementation FDFeedNavigationViewController
 
 - (void)viewWillAppear:(BOOL)animated
 {
-    [super viewWillAppear:animated];
     
     if (![self.slidingViewController.underLeftViewController isKindOfClass:[FDMenuViewController class]]) {
         self.slidingViewController.underLeftViewController  = [self.storyboard instantiateViewControllerWithIdentifier:@"Menu"];
@@ -24,7 +24,7 @@
     /*if (![self.slidingViewController.underRightViewController isKindOfClass:[FDFeedTypesViewController class]]) {
         self.slidingViewController.underRightViewController  = [self.storyboard instantiateViewControllerWithIdentifier:@"FeedTypes"];
     }*/
-    
+    [Flurry logAllPageViews:self];
     [self.view addGestureRecognizer:self.slidingViewController.panGesture];
 }
 

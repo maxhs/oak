@@ -159,8 +159,6 @@
     self.eatingButton.layer.cornerRadius = 17.0;
     self.drinkingButton.layer.cornerRadius = 17.0;
     self.shoppingButton.layer.cornerRadius = 17.0;
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(followCreated:) name:kNotificationFollowCreated object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(followDestroyed:) name:kNotificationFollowDestroyed object:nil];
     self.tableViewHeight = self.postList.frame.size.height;
     [self.searchDisplayController setDelegate:self];
     [self.searchDisplayController.searchBar setDelegate:self];
@@ -245,6 +243,9 @@
     self.feedRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getFeedForProfile:uid success:^(NSMutableArray *newPosts) {
         self.posts = newPosts;
         [self.postList reloadData];
+        [UIView animateWithDuration:.4 animations:^{
+            [self.mapView setAlpha:1.0];
+        }];
         self.feedRequestOperation = nil;
     } failure:^(NSError *error) {
         self.feedRequestOperation = nil;
@@ -273,7 +274,7 @@
             [cell.detailPhotoButton addTarget:self action:@selector(didSelectRow:) forControlEvents:UIControlEventTouchUpInside];
             
             UIButton *recButton = [UIButton buttonWithType:UIButtonTypeCustom];
-            [recButton setFrame:CGRectMake(276,52,70,34)];
+            [recButton setFrame:CGRectMake(276,52,60,34)];
             [recButton addTarget:self action:@selector(recommend:) forControlEvents:UIControlEventTouchUpInside];
             [recButton setTitle:@"Rec" forState:UIControlStateNormal];
             recButton.layer.borderColor = [UIColor colorWithWhite:.1 alpha:.1].CGColor;
@@ -620,10 +621,11 @@
 
 - (void)likeButtonTapped:(UIButton *)button {
     FDPost *post = [self.posts objectAtIndex:button.tag];
-    
+    [button setEnabled:NO];
     if ([post isLikedByUser]) {
         [[FDAPIClient sharedClient] unlikePost:post
                                        success:^(FDPost *newPost) {
+                                           [button setEnabled:YES];
                                            [self.posts replaceObjectAtIndex:button.tag withObject:newPost];
                                            NSIndexPath *path = [NSIndexPath indexPathForRow:button.tag inSection:0];
                                            [self.postList reloadRowsAtIndexPaths:[NSArray arrayWithObject:path] withRowAnimation:UITableViewRowAnimationFade];
@@ -636,6 +638,7 @@
     } else {
         [[FDAPIClient sharedClient] likePost:post
                                      success:^(FDPost *newPost) {
+                                         [button setEnabled:YES];
                                          [self.posts replaceObjectAtIndex:button.tag withObject:newPost];
                                          int t = [newPost.likeCount intValue] + 1;
                                          

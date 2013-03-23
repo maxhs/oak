@@ -10,6 +10,7 @@
 #import "FDCache.h"
 #import <QuartzCore/QuartzCore.h>
 #import "FDAppDelegate.h"
+#import "Flurry.h"
 
 @interface FDFeaturedGridViewController ()
 
@@ -19,6 +20,7 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    [Flurry logPageView];
     [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
 }
 
@@ -40,6 +42,7 @@
 
 - (void)refresh {
     [TestFlight passCheckpoint:@"Viewing Featured Grid View"];
+    [Flurry logEvent:@"Viewing featured grid" timed:YES];
     // if we already have some posts in the feed, get the feed since the last post
     if (self.posts.count) {
         self.feedRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getFeaturedPostsSincePost:[self.posts objectAtIndex:0] success:^(NSMutableArray *newPosts) {
@@ -74,19 +77,13 @@
     [self.feedRequestOperation start];
 }
 
-/*- (void)loadAdditionalPosts {
+- (void)loadAdditionalPosts {
+
     self.feedRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getFeaturedPostsBeforePost:self.posts.lastObject success:^(NSMutableArray *posts) {
         if (posts.count == 0) {
             self.canLoadAdditionalPosts = NO;
         } else {
             [self.posts addObjectsFromArray:posts];
-            NSMutableArray *indexPathsForAddedPosts = [NSMutableArray arrayWithCapacity:self.posts.count];
-            for (FDPost *post in posts) {
-                NSIndexPath *path = [NSIndexPath indexPathForRow:[self.posts indexOfObject:post] inSection:0];
-                [indexPathsForAddedPosts addObject:path];
-            }
-            [self.tableView insertRowsAtIndexPaths:indexPathsForAddedPosts
-                                  withRowAnimation:UITableViewRowAnimationFade];
             [self reloadData];
         }
         self.feedRequestOperation = nil;
@@ -96,9 +93,11 @@
     }];
     
     [self.feedRequestOperation start];
-}*/
+}
 
-
+- (void)didShowLastRow {
+    if (self.feedRequestOperation == nil && self.posts.count && self.canLoadAdditionalPosts) [self loadAdditionalPosts];
+}
 
 
 @end
