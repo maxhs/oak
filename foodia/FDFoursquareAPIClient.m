@@ -16,6 +16,7 @@
 #import <ifaddrs.h>
 #import <netdb.h>
 #import "AFHTTPClient.h"
+#import "FoursquareCategory.h"
 #define VENU_SEARCH_PATH @"venues/search"
 #define VENUE_BASE @"venues"
 #define BASE_URL @"https://api.foursquare.com/v2/"
@@ -160,12 +161,31 @@ static FDFoursquareAPIClient *singleton;
 }
 
 - (NSArray *)venuesFromArray:(NSArray *)array {
-    
+    //filter out non relevant venues from the array
     NSMutableArray *venues = [NSMutableArray arrayWithCapacity:array.count];
     for (NSDictionary *venueDictionary in array) {
         FDVenue *venue = [[FDVenue alloc] init];
         [venue setAttributesFromDictionary:venueDictionary];
-        [venues addObject:venue];
+        for (FoursquareCategory *category in venue.categories){
+            if (category.primary){
+
+                NSPredicate *predicate = [NSPredicate predicateWithFormat:@"(SELF contains[cd] %@)", @"Apparel"];
+                NSPredicate *predicate2 = [NSPredicate predicateWithFormat:@"(SELF contains[cd] %@)", @"Furniture"];
+                NSPredicate *predicate3 = [NSPredicate predicateWithFormat:@"(SELF contains[cd] %@)", @"Game"];
+                NSPredicate *predicate4 = [NSPredicate predicateWithFormat:@"(SELF contains[cd] %@)", @"Electronics"];
+                NSPredicate *predicate5 = [NSPredicate predicateWithFormat:@"(SELF contains[cd] %@)", @"Tech"];
+                NSPredicate *predicate6 = [NSPredicate predicateWithFormat:@"(SELF contains[cd] %@)", @"Zoo"];
+                //NSPredicate *predicate7 = [NSPredicate predicateWithFormat:@"(SELF contains[cd] %@)", @"Office"];
+                NSPredicate *predicate8 = [NSPredicate predicateWithFormat:@"(SELF contains[cd] %@)", @"Apartment"];
+                NSPredicate *predicate9 = [NSPredicate predicateWithFormat:@"(SELF contains[cd] %@)", @"Fitness"];
+                NSPredicate *predicate10 = [NSPredicate predicateWithFormat:@"(SELF contains[cd] %@)", @"Financial"];
+                if([predicate evaluateWithObject:category.shortName] || [predicate2 evaluateWithObject:category.shortName] || [predicate3 evaluateWithObject:category.shortName] || [predicate4 evaluateWithObject:category.shortName] || [predicate5 evaluateWithObject:category.shortName] || [predicate6 evaluateWithObject:category.shortName]/* || [predicate7 evaluateWithObject:category.shortName]*/ || [predicate8 evaluateWithObject:category.shortName] || [predicate9 evaluateWithObject:category.shortName] || [predicate10 evaluateWithObject:category.shortName]) {
+                } else {
+                    [venues addObject:venue];
+                    break;
+                }
+            }
+        }
     }
     return venues;
 }

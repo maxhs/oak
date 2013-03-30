@@ -29,7 +29,7 @@
                               delay:0
                             options:UIViewAnimationOptionCurveEaseInOut
                          animations:^{
-            dummyView.transform = CGAffineTransformMakeScale(1.2, 1.2);
+            dummyView.transform = CGAffineTransformMakeScale(1.25, 1.25);
         } completion:^(BOOL finished) {
             [UIView animateWithDuration:.15
                                   delay:0

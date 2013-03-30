@@ -26,6 +26,7 @@
 #import "UIImageView+AFNetworking.h"
 #import "FDFeedViewController.h"
 #import "FoursquareCategory.h"
+#import "Flurry.h"
 
 @interface FDPlacesViewController () <CLLocationManagerDelegate, UISearchBarDelegate, UISearchDisplayDelegate, UITableViewDelegate>
 @property (nonatomic, retain) CLLocationManager *locationManager;
@@ -33,7 +34,7 @@
 @property (nonatomic, strong) UISearchBar *objectSearchBar;
 @property (nonatomic, strong) UISearchDisplayController *locationSearch;
 @property (nonatomic, strong) UISearchDisplayController *objectSearch;
-@property (nonatomic, retain) NSMutableArray *locations;
+@property (nonatomic, strong) NSMutableArray *locations;
 @property (nonatomic, strong) CLLocation *current;
 @property (nonatomic, retain) NSMutableArray *filteredLocations;
 @property (weak, nonatomic) IBOutlet UIImageView *foursquareLogoView;
@@ -44,20 +45,23 @@
 @implementation FDPlacesViewController
 @synthesize current;
 @synthesize lastLocation = _lastLocation;
+@synthesize locations = _locations;
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    self.locationManager = [[CLLocationManager alloc] init];
+    self.locationManager.desiredAccuracy = kCLLocationAccuracyBest;
+    self.locationManager.delegate = self;
+
     [TestFlight passCheckpoint:@"Viewing Places View"];
+    [Flurry logPageView];
+    self.locations = [NSMutableArray array];
     [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
     /*[[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(updatePostNotification:)
                                                  name:@"UpdatePostNotification"
                                                object:nil];*/
-    self.locationManager = [[CLLocationManager alloc] init];
-    self.locationManager.desiredAccuracy = kCLLocationAccuracyBest;
-    self.locationManager.delegate = self;
-    [self refresh];
-    self.locations = [NSMutableArray array];
+
     //visual setup
     self.locationSearchBar = [[UISearchBar alloc] initWithFrame:CGRectMake(self.tableView.frame.origin.x,self.tableView.frame.origin.y-44,320,44)];
     self.objectSearchBar = [[UISearchBar alloc] initWithFrame:CGRectMake(self.tableView.frame.origin.x,self.tableView.frame.origin.y-44,320,44)];
@@ -90,6 +94,7 @@
 }
 
 -(void)viewWillAppear:(BOOL)animated {
+    [self refresh];
     [super viewWillAppear:YES];
     self.locationManager.delegate = self;
 }
@@ -119,7 +124,7 @@
 - (void)refresh {
     NSLog(@"testing when refresh is called");
     [self.locationManager startUpdatingLocation];
-    //[self.refreshHeaderView egoRefreshScrollViewDataSourceDidFinishedLoading:self.tableView];
+    [self.refreshHeaderView egoRefreshScrollViewDataSourceDidFinishedLoading:self.tableView];
 }
 
 - (void)locationManager:(CLLocationManager *)manager didFailWithError:(NSError *)error {
@@ -133,40 +138,35 @@
 }
 
 - (void)requestPlacesNearLocation:(CLLocation *)location {
+    [Flurry logEvent:@"Requesting places near location" timed:YES];
     self.current = location;
-    [[FDFoursquareAPIClient sharedClient] getVenuesNearLocation:location success:^(NSArray *results) {
-        self.locations = [NSMutableArray arrayWithArray:results];
-        [self loadPlaceDetails:^(BOOL finished){
-            if (finished){
-                NSLog(@"should be reloading");
-                [self reloadData];
-            }
-        }];
-        //[self showVenuesOnMap];
-        
+    [self.locations removeAllObjects];
+    [[FDFoursquareAPIClient sharedClient] getVenuesNearLocation:location success:^(NSArray *venues) {
+        for (FDVenue *venue in venues){
+            [self.locations addObject:[self loadDetailsForLocation:venue]];
+        }
+        [self reloadData];
     } failure:^(NSError *error) {
         [[[UIAlertView alloc] initWithTitle:@"Error" message:@"Couldn't connect to Foursquare!" delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil] show];
     }];
 }
 
-- (void) loadPlaceDetails:(void (^)(BOOL finished))completion {
-    for (FDVenue *location in self.locations) {
-        [[FDFoursquareAPIClient sharedClient] getDetailsForPlace:location.FDVenueId success:^(NSDictionary *results){
-            [location setAttributesFromDictionary:results];
-            [[FDAPIClient sharedClient] getPostsForPlace:location success:^(NSMutableArray *result){
-                if ([result count]) {
-                    FDPost *post = (FDPost *)[result objectAtIndex:0];
-                    [location setImageViewUrl:post.featuredImageUrlString];
-                }
-            } failure:^(NSError *error){
-                    NSLog(@"error.description: %@",error.description);
-            }];
-         completion(YES);   
-         }failure:^(NSError *error) {
-             NSLog(@"places error. here's the description: %@",error.description);
-         }];
-    }
-    
+- (FDVenue*) loadDetailsForLocation:(FDVenue*)location {
+    [[FDFoursquareAPIClient sharedClient] getDetailsForPlace:location.FDVenueId success:^(NSDictionary *results){
+        [location setAttributesFromDictionary:results];
+        [[FDAPIClient sharedClient] getPostsForPlace:location success:^(NSMutableArray *result){
+            if ([result count]) {
+                FDPost *post = (FDPost *)[result objectAtIndex:0];
+                [location setImageViewUrl:post.featuredImageUrlString];
+            }
+        } failure:^(NSError *error){
+                NSLog(@"error.description: %@",error.description);
+        }];
+        //build your list of locations
+     }failure:^(NSError *error) {
+         NSLog(@"places error. here's the description: %@",error.description);
+     }];
+    return location;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -178,25 +178,30 @@
             currentCell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:currentLocation];
             currentCell.textLabel.text = @"Current Location";
             currentCell.selectionStyle = UITableViewCellSelectionStyleGray;
-            [currentCell.textLabel setFont:[UIFont fontWithName:@"AvenirNextCondensed-Medium" size:15]];
+            [currentCell.textLabel setFont:[UIFont fontWithName:kAvenirMedium size:15]];
             [currentCell.textLabel setTextColor:[UIColor blueColor]];
         }
+        UIView *cellbg = [[UIView alloc] init];
+        [cellbg setBackgroundColor:[UIColor darkGrayColor]];
+        currentCell.selectedBackgroundView = cellbg;
         return currentCell;
         
     } else if (tableView == self.locationSearch.searchResultsTableView) {
         UITableViewCell *addSearchLocation = [self.locationSearch.searchResultsTableView dequeueReusableCellWithIdentifier:@"addSearchLocation"];
         if (addSearchLocation == nil) {
             addSearchLocation = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"addSearchLocation"];
-            [addSearchLocation.textLabel setFont:[UIFont fontWithName:@"AvenirNextCondensed-Medium" size:15]];
+            [addSearchLocation.textLabel setFont:[UIFont fontWithName:kAvenirMedium size:15]];
             [addSearchLocation.textLabel setTextColor:[UIColor darkGrayColor]];
             addSearchLocation.selectionStyle = UITableViewCellSelectionStyleGray;
         }
         addSearchLocation.textLabel.text = [NSMutableString stringWithFormat:@"Search for: \"%@\"",self.locationSearchBar.text];
+        UIView *cellbg = [[UIView alloc] init];
+        [cellbg setBackgroundColor:[UIColor darkGrayColor]];
+        addSearchLocation.selectedBackgroundView = cellbg;
         return addSearchLocation;
     } else {
         FDPlacesCell *cell = (FDPlacesCell *)[tableView dequeueReusableCellWithIdentifier:@"PlacesCell"];
-            NSArray *nib = [[NSBundle mainBundle] loadNibNamed:@"FDPlacesCell" owner:self options:nil];
-            cell = (FDPlacesCell *)[nib objectAtIndex:0];
+        if (cell == nil) cell = [[[NSBundle mainBundle] loadNibNamed:@"FDPlacesCell" owner:self options:nil] lastObject];
         FDVenue *location = [self.locations objectAtIndex:indexPath.row];
         cell.placeName.text = location.name;
         cell.placeAddress.text = location.location.locality;
@@ -208,10 +213,20 @@
         CLLocation *venueLocation = [[CLLocation alloc] initWithLatitude:location.coordinate.latitude longitude:location.coordinate.longitude];
         CLLocationDistance distance = [venueLocation distanceFromLocation:self.current];
         [cell.distance setText:[NSString stringWithFormat:@"%@", [self stringWithDistance:distance]]];
+        /*for (FoursquareCategory *category in location.categories){
+            if (category.primary){
+                NSLog(@"primary category name: %@",category.name);
+                NSLog(@"primary category pluralName: %@",category.pluralName);
+                NSLog(@"primary category shortName: %@",category.shortName);
+            }
+        }*/
         /*if (location.hereNow) NSLog(@"hereNow: %@",location.hereNow);
         if (location.totalCheckins) NSLog(@"totalcheckins: %@",location.totalCheckins);
         if (location.menuUrl) NSLog(@"menuurl: %@",location.menuUrl);
         if (location.reservationsUrl) NSLog(@"reservations: %@",location.reservationsUrl);*/
+        UIView *cellbg = [[UIView alloc] init];
+        [cellbg setBackgroundColor:[UIColor darkGrayColor]];
+        cell.selectedBackgroundView = cellbg;
         return cell;
     }
 }
@@ -220,8 +235,12 @@
 {
     if([indexPath row] == ((NSIndexPath*)[[tableView indexPathsForVisibleRows] lastObject]).row){
         //end of loading
-        [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
+        [self performSelector:@selector(hideLoadingOverlay) withObject:nil afterDelay:1.0];
     }
+}
+
+- (void)hideLoadingOverlay {
+    [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
 }
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView

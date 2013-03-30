@@ -25,13 +25,20 @@
 #import "FDRecommendViewController.h"
 #import "FDCustomSheet.h"
 #import "FDPlaceViewController.h"
+#import "FDMenuViewController.h"
+
 @interface FDProfileViewController() <MFMessageComposeViewControllerDelegate, MFMailComposeViewControllerDelegate, UIActionSheetDelegate>
 @property BOOL myProfile;
+@property BOOL justLiked;
 @property (nonatomic) BOOL canLoadMore;
 @property int tableViewHeight;
 @property (nonatomic, weak) IBOutlet UIBarButtonItem *activateSearchButton;
 @property (nonatomic, weak) IBOutlet UIView *profileDetailsContainerView;
 @property int *postListHeight;
+@property (nonatomic, strong) AFHTTPRequestOperation *objectSearchRequestOperation;
+@property (weak, nonatomic) IBOutlet UIView *postsButtonBackground;
+@property (weak, nonatomic) IBOutlet UIView *followersButtonBackground;
+@property (weak, nonatomic) IBOutlet UIView *followingButtonBackground;
 
 @end
 
@@ -40,6 +47,7 @@
 @synthesize postList;
 //@synthesize posts;
 @synthesize myProfile = _myProfile;
+@synthesize justLiked = _justLiked;
 @synthesize user;
 @synthesize userId;
 @synthesize profileContainerView;
@@ -56,46 +64,49 @@
 @synthesize currButton;
 @synthesize canLoadMore;
 @synthesize tableViewHeight;
+@synthesize objectSearchRequestOperation;
 
 - (void)initWithUserId:(NSString *)uid {
-    [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
     self.userId = uid;
     self.canLoadMore = YES;
     self.detailsRequestOperation = [[FDAPIClient sharedClient] getProfileDetails:uid success:^(NSDictionary *result) {
-        [profileButton setUserId:self.userId];
-        currTab = 0;
-        currButton = @"follow";
-        self.followers = [NSArray array];
-        self.following = [NSArray array];
-        [self loadPosts:self.userId];
-        [self.postList setHidden:false];
-        [self.inactiveLabel setHidden:true];
-        self.userNameLabel.text = [result objectForKey:@"name"];
-        [self.userNameLabel setTextColor:[UIColor blackColor]];
-        if([[NSString stringWithFormat:@"%@",[result objectForKey:@"active"]] isEqualToString:@"1"]) {
-            self.postCountLabel.text = [[result objectForKey:@"posts_count"] stringValue];
-            self.followingCountLabel.text = [[result objectForKey:@"following_count"] stringValue];
-            self.followerCountLabel.text = [[result objectForKey:@"followers_count"] stringValue];
-            if([[NSString stringWithFormat:@"%@",[result objectForKey:@"following"]] isEqualToString:@"1"]) {
-                [self.socialButton setTitle:@"UNFOLLOW" forState:UIControlStateNormal];
-                [self.socialButton.titleLabel setTextColor:[UIColor lightGrayColor]];
-                [self.socialButton.layer setBorderColor:[UIColor lightGrayColor].CGColor];
-                currButton = @"following";
+        if (result) {
+            NSLog(@"result: %@",result);
+            [profileButton setUserId:self.userId];
+            currTab = 0;
+            currButton = @"follow";
+            self.followers = [NSArray array];
+            self.following = [NSArray array];
+            [self showPosts:self.userId];
+            [self.postList setHidden:false];
+            [self.inactiveLabel setHidden:true];
+            self.userNameLabel.text = [result objectForKey:@"name"];
+            [self.userNameLabel setTextColor:[UIColor blackColor]];
+            if([[NSString stringWithFormat:@"%@",[result objectForKey:@"active"]] isEqualToString:@"1"]) {
+                self.postCountLabel.text = [NSString stringWithFormat:@"%@ Posts",[[result objectForKey:@"posts_count"] stringValue]];
+                self.followingCountLabel.text = [NSString stringWithFormat:@"Following %@",[[result objectForKey:@"following_count"] stringValue]];
+                self.followerCountLabel.text = [NSString stringWithFormat:@"%@ Followers",[[result objectForKey:@"followers_count"] stringValue]];
+                if([[NSString stringWithFormat:@"%@",[result objectForKey:@"following"]] isEqualToString:@"1"]) {
+                    [self.socialButton setTitle:@"FOLLOWING" forState:UIControlStateNormal];
+                    [self.socialButton.titleLabel setTextColor:[UIColor lightGrayColor]];
+                    [self.socialButton.layer setBorderColor:[UIColor clearColor].CGColor];
+                    currButton = @"following";
+                } else {
+                    [self.socialButton setTitle:@"FOLLOW" forState:UIControlStateNormal];
+                    [self.socialButton.titleLabel setTextColor:[UIColor redColor]];
+                    [self.socialButton.layer setBorderColor:[UIColor redColor].CGColor];
+                    currButton = @"follow";
+                }
+                self.followers = [result objectForKey:@"followers_arr"];
+                self.following = [result objectForKey:@"following_arr"];
+                [self.postList reloadData];
+            
             } else {
-                [self.socialButton setTitle:@"FOLLOW" forState:UIControlStateNormal];
-                [self.socialButton.titleLabel setTextColor:[UIColor redColor]];
-                [self.socialButton.layer setBorderColor:[UIColor redColor].CGColor];
-                currButton = @"follow";
+                [self.socialButton setTitle:@"INVITE" forState:UIControlStateNormal];
+                [self.postList setHidden:true];
+                [self.inactiveLabel setHidden:false];
+                currButton = @"invite";
             }
-            self.followers = [result objectForKey:@"followers_arr"];
-            self.following = [result objectForKey:@"following_arr"];
-            [self.postList reloadData];
-        
-        } else {
-            [self.socialButton setTitle:@"INVITE" forState:UIControlStateNormal];
-            [self.postList setHidden:true];
-            [self.inactiveLabel setHidden:false];
-            currButton = @"invite";
         }
     } failure:^(NSError *error) {
 
@@ -115,8 +126,9 @@
         followerCounter+=1;
         followerCountLabel.text = [NSString stringWithFormat:@"%d",followerCounter];
         self.currButton = @"following";
-        [self.socialButton setTitle:@"UNFOLLOW" forState:UIControlStateNormal];
+        [self.socialButton setTitle:@"FOLLOWING" forState:UIControlStateNormal];
         [self.socialButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
+        self.socialButton.layer.borderColor = [UIColor clearColor].CGColor;
     } else if([currButton isEqualToString:@"following"]) {
         NSLog(@"unfollowing Tapped...");
         int followerCounter;
@@ -138,14 +150,21 @@
 }
 
 - (void)viewDidLoad {
+    [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
     if (!self.userId){
         self.myProfile = YES;
-        [self initWithUserId:[[NSUserDefaults standardUserDefaults] objectForKey:@"FacebookID"]];
+        if ([[NSUserDefaults standardUserDefaults] objectForKey:@"FacebookID"]){
+            [self initWithUserId:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookId]];
+        } else {
+            [self initWithUserId:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]];
+        }
         [self.socialButton setHidden:YES];
         [self.profileDetailsContainerView setFrame:CGRectMake(0, -18, 320, 76)];
         [self.profileButton setFrame:CGRectMake(5, 23, 60, 60)];
         [self.mapView setFrame:CGRectMake(255, 23, 60, 60)];
     }
+    
+    [self.postList setSeparatorStyle:UITableViewCellSeparatorStyleNone];
     currTab = 0;
     [self.navigationController setNavigationBarHidden:NO];
     self.mapView.layer.cornerRadius = 5.0f;
@@ -159,6 +178,9 @@
     self.eatingButton.layer.cornerRadius = 17.0;
     self.drinkingButton.layer.cornerRadius = 17.0;
     self.shoppingButton.layer.cornerRadius = 17.0;
+    self.postsButtonBackground.layer.cornerRadius = 20.0;
+    self.followersButtonBackground.layer.cornerRadius = 20.0;
+    self.followingButtonBackground.layer.cornerRadius = 20.0;
     self.tableViewHeight = self.postList.frame.size.height;
     [self.searchDisplayController setDelegate:self];
     [self.searchDisplayController.searchBar setDelegate:self];
@@ -183,12 +205,19 @@
     self.socialButton.layer.borderWidth = 1.0f;
     self.socialButton.layer.cornerRadius = 16.0f;
     self.socialButton.layer.borderColor = [UIColor lightGrayColor].CGColor;
+    
+    [self.postsButtonBackground setBackgroundColor:kColorLightBlack];
+    [self.postCountLabel setTextColor:[UIColor whiteColor]];
+    [self.postButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    
     [super viewDidLoad];
 }
 
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
+    self.slidingViewController.panGesture.enabled = NO;
     [TestFlight passCheckpoint:@"Passed Profile checkpoint"];
+    [Flurry logPageView];
     UIBarButtonItem *menuButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"menuBarButtonImage.png"] style:UIBarButtonItemStyleBordered target:self action:@selector(revealMenu:)];
     if (self.navigationController.navigationBar.backItem == nil) {
         self.navigationItem.leftBarButtonItem = menuButton;
@@ -235,23 +264,31 @@
 {
     if([indexPath row] == ((NSIndexPath*)[[tableView indexPathsForVisibleRows] lastObject]).row){
         //end of loading
+        [self.postList setSeparatorStyle:UITableViewCellSeparatorStyleSingleLine];
         [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
+        [UIView animateWithDuration:.25 animations:^{
+            [self.socialButton setAlpha:1.0];
+        }];
     }
 }
 
 -(void)loadPosts:(NSString *)uid{
+
     self.feedRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getFeedForProfile:uid success:^(NSMutableArray *newPosts) {
         self.posts = newPosts;
+        if (self.posts.count == 0) {
+            [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
+            [UIView animateWithDuration:.25 animations:^{
+                [self.socialButton setAlpha:1.0];
+                [self.postsButtonBackground setAlpha:1.0];
+            }];
+        }
         [self.postList reloadData];
-        [UIView animateWithDuration:.4 animations:^{
-            [self.mapView setAlpha:1.0];
-        }];
         self.feedRequestOperation = nil;
     } failure:^(NSError *error) {
         self.feedRequestOperation = nil;
         [self.postList reloadData];
     }];
-    if (self.posts.count == 0) [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -355,6 +392,16 @@
     }
 }
 
+- (void)tableView:(UITableView *)tableView didEndDisplayingCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath {
+    if ([cell isKindOfClass:[FDPostCell class]]){
+        FDPostCell *thisCell = (FDPostCell*)cell;
+        [thisCell.scrollView setContentOffset:CGPointMake(0,0) animated:NO];
+        [UIView animateWithDuration:.2 animations:^{
+            [thisCell.photoBackground setAlpha:0.0];
+        }];
+    }
+}
+
 - (void)didSelectRow:(id)sender {
     //UIButton *button = (UIButton*)sender;
     [self performSegueWithIdentifier:@"ShowPostFromProfile" sender:sender];
@@ -369,24 +416,28 @@
 - (void)recommend:(id)sender {
     UIButton *button = (UIButton *)sender;
     FDPost *post = [self.posts objectAtIndex:button.tag];
-    FDCustomSheet *actionSheet = [[FDCustomSheet alloc] initWithTitle:@"I'm recommending something on FOODIA!" delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:@"Recommend via Facebook",@"Send a Text", @"Send an Email", nil];
+    FDCustomSheet *actionSheet = [[FDCustomSheet alloc] initWithTitle:nil delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:@"Recommend on FOODIA", @"Recommend via Facebook",@"Send a Text", @"Send an Email", nil];
     [actionSheet setFoodiaObject:post.foodiaObject];
     [actionSheet setPost:post];
     [actionSheet showInView:self.view];
 }
 
 - (void) actionSheet:(FDCustomSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
+    UIStoryboard *storyboard;
+    if (([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone && [UIScreen mainScreen].bounds.size.height == 568.0)){
+        storyboard = [UIStoryboard storyboardWithName:@"iPhone5"
+                                               bundle:nil];
+    } else {
+        storyboard = [UIStoryboard storyboardWithName:@"iPhone"
+                                               bundle:nil];
+    }
+    FDRecommendViewController *vc = [storyboard instantiateViewControllerWithIdentifier:@"RecommendView"];
+    [vc setPost:actionSheet.post];
     if (buttonIndex == 0) {
-        UIStoryboard *storyboard;
-        if (([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone && [UIScreen mainScreen].bounds.size.height == 568.0)){
-            storyboard = [UIStoryboard storyboardWithName:@"iPhone5"
-                                                   bundle:nil];
-        } else {
-            storyboard = [UIStoryboard storyboardWithName:@"iPhone"
-                                                   bundle:nil];
-        }
-        FDRecommendViewController *vc = [storyboard instantiateViewControllerWithIdentifier:@"RecommendView"];
-        [vc setPost:actionSheet.post];
+        //Recommending via FOODIA only
+        [vc setPostingToFacebook:NO];
+        [self.navigationController pushViewController:vc animated:YES];
+    } else if (buttonIndex == 1) {
         
         if ([FBSession.activeSession.permissions
              indexOfObject:@"publish_actions"] == NSNotFound) {
@@ -408,7 +459,7 @@
                     indexOfObject:@"publish_actions"] != NSNotFound) {
             [self.navigationController pushViewController:vc animated:YES];
         }
-    } else if(buttonIndex == 1) {
+    } else if(buttonIndex == 2) {
         MFMessageComposeViewController *viewController = [[MFMessageComposeViewController alloc] init];
         if ([MFMessageComposeViewController canSendText]){
             NSString *textBody = [NSString stringWithFormat:@"I just recommended %@ to you from FOODIA!\n Download the app now: itms-apps://itunes.com/apps/foodia",actionSheet.foodiaObject];
@@ -416,7 +467,7 @@
             [viewController setBody:textBody];
             [self presentViewController:viewController animated:YES completion:nil];
         }
-    } else if(buttonIndex == 2) {
+    } else if(buttonIndex == 3) {
         if ([MFMailComposeViewController canSendMail]) {
             MFMailComposeViewController* controller = [[MFMailComposeViewController alloc] init];
             controller.mailComposeDelegate = self;
@@ -457,6 +508,7 @@
 #pragma mark - Display likers
 
 - (FDPostCell *)showLikers:(FDPostCell *)cell forPost:(FDPost *)post{
+    NSDictionary *viewers = post.viewers;
     NSDictionary *likers = post.likers;
     [cell.likersScrollView.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
     cell.likersScrollView.showsHorizontalScrollIndicator = NO;
@@ -465,28 +517,37 @@
     float space = 6.0;
     int index = 0;
     
-    for (NSDictionary *liker in likers) {
-        UIImageView *heart = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"feedLikeButtonRed.png"]];
-        UIImageView *likerView = [[UIImageView alloc] initWithFrame:CGRectMake(((cell.likersScrollView.frame.origin.x)+((space+imageSize)*index)),(cell.likersScrollView.frame.origin.y), imageSize, imageSize)];
-        UIButton *likerButton = [UIButton buttonWithType:UIButtonTypeCustom];
-        
-        //passing liker facebook id as a string instead of NSNumber so that it can hold more data. crafty.
-        likerButton.titleLabel.text = [liker objectForKey:@"facebook_id"];
-        likerButton.titleLabel.hidden = YES;
-        
-        [likerButton addTarget:self action:@selector(profileTappedFromLikers:) forControlEvents:UIControlEventTouchUpInside];
-        [likerView setImageWithURL:[Utilities profileImageURLForFacebookID:[liker objectForKey:@"facebook_id"]]];
-        likerView.userInteractionEnabled = YES;
-        likerView.clipsToBounds = YES;
-        likerView.layer.cornerRadius = 5.0;
-        likerView.frame = CGRectMake(((space+imageSize)*index),0,imageSize, imageSize);
-        heart.frame = CGRectMake((((space+imageSize)*index)+22),18,20,20);
-        [likerButton setFrame:likerView.frame];
-        heart.clipsToBounds = NO;
-        [cell.likersScrollView addSubview:likerView];
-        [cell.likersScrollView addSubview:heart];
-        [cell.likersScrollView addSubview:likerButton];
-        index++;
+    for (NSDictionary *viewer in viewers) {
+        if ([viewer objectForKey:@"facebook_id"] != [NSNull null]) {
+            UIImageView *face = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"light_smile"]];
+            UIImageView *likerView = [[UIImageView alloc] initWithFrame:CGRectMake(((cell.likersScrollView.frame.origin.x)+((space+imageSize)*index)),(cell.likersScrollView.frame.origin.y), imageSize, imageSize)];
+            UIButton *likerButton = [UIButton buttonWithType:UIButtonTypeCustom];
+            
+            //passing liker facebook id as a string instead of NSNumber so that it can hold more data. crafty.
+            likerButton.titleLabel.text = [viewer objectForKey:@"facebook_id"];
+            likerButton.titleLabel.hidden = YES;
+            
+            [likerButton addTarget:self action:@selector(profileTappedFromLikers:) forControlEvents:UIControlEventTouchUpInside];
+            [likerView setImageWithURL:[Utilities profileImageURLForFacebookID:[viewer objectForKey:@"facebook_id"]]];
+            likerView.userInteractionEnabled = YES;
+            likerView.clipsToBounds = YES;
+            likerView.layer.cornerRadius = 5.0;
+            likerView.frame = CGRectMake(((space+imageSize)*index),0,imageSize, imageSize);
+            face.frame = CGRectMake((((space+imageSize)*index)+22),18,20,20);
+            [likerButton setFrame:likerView.frame];
+            face.clipsToBounds = NO;
+            [cell.likersScrollView addSubview:likerView];
+            for (NSDictionary *liker in likers) {
+                if ([liker objectForKey:@"facebook_id"]){
+                    if ([[liker objectForKey:@"facebook_id"] isEqualToString:[viewer objectForKey:@"facebook_id"]]){
+                        [cell.likersScrollView addSubview:face];
+                        break;
+                    }
+                }
+            }
+            [cell.likersScrollView addSubview:likerButton];
+            index++;
+        }
     }
     [cell.likersScrollView setContentSize:CGSizeMake(((space*(index+1))+(imageSize*(index+1))),40)];
     return cell;
@@ -511,6 +572,7 @@
         FDProfileViewController *profileVC = segue.destinationViewController;
         [profileVC initWithUserId:[NSString stringWithFormat:@"%d",button.tag]];
     } else if ([segue.identifier isEqualToString:@"ShowPostFromProfile"]) {
+        self.slidingViewController.panGesture.enabled = NO;
         FDPostViewController *vc = segue.destinationViewController;
         if ([sender isMemberOfClass:[UIButton class]]){
             UIButton *button = (UIButton *) sender;
@@ -540,6 +602,14 @@
 }
 
 - (IBAction)showFollowers:(id)sender {
+        [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
+    [self resetStatButtonBackgrounds];
+    [UIView animateWithDuration:.25 animations:^{
+        [self.followersButtonBackground setAlpha:1.0];
+        [self.followerCountLabel setTextColor:[UIColor whiteColor]];
+        [self.followersButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    }];
+
     self.currTab = 1;
     [self resetCategoryButtons];
     [self.postList reloadData];
@@ -556,17 +626,43 @@
 }
 
 - (IBAction)showFollowing:(id)sender {
+        [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
+    [self resetStatButtonBackgrounds];
+    [UIView animateWithDuration:.25 animations:^{
+        [self.followingButtonBackground setAlpha:1.0];
+        [self.followingCountLabel setTextColor:[UIColor whiteColor]];
+        [self.followingButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    }];
     self.currTab = 2;
     [self resetCategoryButtons];
     [self.postList reloadData];
 }
 
 - (IBAction)showPosts:(id)sender {
+        [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
+    [self resetStatButtonBackgrounds];
+    [UIView animateWithDuration:.25 animations:^{
+        [self.postsButtonBackground setAlpha:1.0];
+        [self.postCountLabel setTextColor:[UIColor whiteColor]];
+        [self.postButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    }];
     self.currTab = 0;
     self.canLoadMore = YES;
     [self resetCategoryButtons];
     //[self.postList reloadData];
     [self loadPosts:self.userId];
+}
+
+-(void)resetStatButtonBackgrounds {
+    [UIView animateWithDuration:.25 animations:^{
+        [self.postsButtonBackground setAlpha:0.0];
+        [self.followersButtonBackground setAlpha:0.0];
+        [self.followingButtonBackground setAlpha:0.0];
+        [self.postCountLabel setTextColor:[UIColor darkGrayColor]];
+        [self.followerCountLabel setTextColor:[UIColor darkGrayColor]];
+        [self.followingCountLabel setTextColor:[UIColor darkGrayColor]];
+    }];
+
 }
 
 -(void)inviteUser:(NSString *)who {
@@ -640,7 +736,11 @@
                                      success:^(FDPost *newPost) {
                                          [button setEnabled:YES];
                                          [self.posts replaceObjectAtIndex:button.tag withObject:newPost];
+                                         
+                                         //conditionally change the like count number
                                          int t = [newPost.likeCount intValue] + 1;
+                                         if (!self.justLiked) [newPost setLikeCount:[[NSNumber alloc] initWithInt:t]];
+                                         self.justLiked = YES;
                                          
                                          [newPost setLikeCount:[[NSNumber alloc] initWithInt:t]];
                                          NSIndexPath *path = [NSIndexPath indexPathForRow:button.tag inSection:0];
@@ -669,7 +769,7 @@
         self.feedRequestOperation = nil;
         NSLog(@"adding more profile posts has failed");
     }];
-    } else NSLog(@"can't load more");
+    }
 }
 
 - (void) didShowLastRow {
@@ -684,7 +784,7 @@
     self.currTab = 0;
     [self resetCategoryButtons];
     [self.eatingButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-    [self.eatingButton setBackgroundColor:[UIColor darkGrayColor]];
+    [self.eatingButton setBackgroundColor:kColorLightBlack];
 
     self.feedRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getProfileFeedForCategory:@"Eating" forProfile:self.userId success:^(NSMutableArray *categoryPosts) {
         if (categoryPosts.count == 0){
@@ -705,7 +805,7 @@
     self.canLoadMore = NO;
     self.currTab = 0;
     [self resetCategoryButtons];
-    [self.drinkingButton setBackgroundColor:[UIColor darkGrayColor]];
+    [self.drinkingButton setBackgroundColor:kColorLightBlack];
     [self.drinkingButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     self.feedRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getProfileFeedForCategory:@"Drinking" forProfile:self.userId success:^(NSMutableArray *categoryPosts) {
         if (categoryPosts.count == 0){
@@ -725,7 +825,7 @@
     self.canLoadMore = NO;
     self.currTab = 0;
     [self resetCategoryButtons];
-    [self.makingButton setBackgroundColor:[UIColor darkGrayColor]];
+    [self.makingButton setBackgroundColor:kColorLightBlack];
     [self.makingButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     self.feedRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getProfileFeedForCategory:@"Making" forProfile:self.userId success:^(NSMutableArray *categoryPosts) {
         if (categoryPosts.count == 0){
@@ -744,7 +844,7 @@
     [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
     [self resetCategoryButtons];
     [self.shoppingButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-    [self.shoppingButton setBackgroundColor:[UIColor darkGrayColor]];
+    [self.shoppingButton setBackgroundColor:kColorLightBlack];
     self.canLoadMore = NO;
     self.currTab = 0;
     self.feedRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getProfileFeedForCategory:@"Shopping" forProfile:self.userId success:^(NSMutableArray *categoryPosts) {
@@ -786,6 +886,19 @@
     }];
     
 }
+
+/*- (void)showTextView {
+    self.searchResults = nil;
+    [self.searchResultsTableView reloadData];
+    [self startSearchRequest];
+    [UIView animateWithDuration:0.2 animations:^{
+        self.textFieldImageView.alpha = 0.9;
+        self.objectTextField.alpha = 1.0;
+        self.clearButton.alpha = 1.0;
+        self.searchResultsTableView.alpha = 1.0;
+    }];
+}*/
+
 
 -(void) searchBarCancelButtonClicked:(UISearchBar *)searchBar {
     [self.filteredPosts removeAllObjects];
@@ -845,7 +958,7 @@
 {
     //Update the filtered array based on the search text and scope.
     [self.filteredPosts removeAllObjects];
-    NSString *scope;
+    /*NSString *scope;
     if ([originalScope isEqualToString:@"Make"]) scope = @"Making";
     else scope = originalScope;
     NSLog(@"current scope: %@", scope);
@@ -869,7 +982,25 @@
                 [self.filteredPosts addObject:post];
             }
         }
-    }
+    }*/
+    [self.objectSearchRequestOperation cancel];
+
+    RequestSuccess success = ^(NSArray *result) {
+        NSLog(@"preliminary searh results: %@",result);
+        self.filteredPosts = [result mutableCopy];
+        [self.searchDisplayController.searchResultsTableView reloadData];
+    };
+
+    RequestFailure failure = ^(NSError *error) {
+        NSLog(@"object search failed! %@", error.description);
+    };
+
+    AFHTTPRequestOperation *op;
+    op = [[FDAPIClient sharedClient] getSearchResultsForUser:self.userId
+                                                       query:searchText
+                                                     success:success
+                                                     failure:failure];
+    self.objectSearchRequestOperation = op;
 }
 #pragma mark -
 #pragma mark UISearchDisplayController Delegate Methods
@@ -892,13 +1023,16 @@
 }
 
 - (IBAction)revealMenu:(UIBarButtonItem *)sender {
+    [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
     [self.slidingViewController anchorTopViewTo:ECRight];
     [(FDAppDelegate *)[UIApplication sharedApplication].delegate removeFacebookWallPost];
+    [(FDMenuViewController*)self.slidingViewController.underLeftViewController refresh];
 }
 
 - (void)viewWillDisappear:(BOOL)animated {
     self.feedRequestOperation = nil;
     [super viewWillDisappear:animated];
+    [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
 }
 
 @end

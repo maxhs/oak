@@ -9,10 +9,10 @@
 #import <UIKit/UIKit.h>
 #import "FDAPIClient.h"
 #import "FDUser.h"
-#import "FDProfileButton.h"
 #import "ECSlidingViewController.h"
 #import "FDPeopleTableViewController.h"
 #import <MapKit/MapKit.h>
+#import "FDProfileButton.h"
 #import "Flurry.h"
 
 typedef enum { kDisplayTabPosts, kDisplayTabFollowing, kDisplayTabFollowers } kDisplayTab;

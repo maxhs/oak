@@ -13,6 +13,7 @@
 #import "FDProfileViewController.h"
 #import "FDModalNoAnimationSegue.h"
 #import "FDAppDelegate.h"
+#import "FDMenuViewController.h"
 #import "Facebook.h"
 
 @interface FDSocialViewController () <FBDialogDelegate>
@@ -243,6 +244,8 @@
 - (IBAction)revealMenu:(UIBarButtonItem *)sender {
     [self.slidingViewController anchorTopViewTo:ECRight];
     [(FDAppDelegate *)[UIApplication sharedApplication].delegate removeFacebookWallPost];
+    [(FDMenuViewController*)self.slidingViewController.underLeftViewController refresh];
+    [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
 }
 
 @end

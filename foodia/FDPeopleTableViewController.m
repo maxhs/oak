@@ -67,6 +67,7 @@
                 [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
             }
         } failure:^(NSError *error) {
+            [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
             NSLog(@"failed to get people! %@", error.description);
         }];
     /*} else {

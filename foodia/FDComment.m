@@ -22,6 +22,7 @@
     [super encodeWithCoder:encoder];
     [encoder encodeObject:self.body forKey:@"body"];
     [encoder encodeObject:self.user forKey:@"user"];
+    [encoder encodeObject:self.postId forKey:@"postId"];
     [encoder encodeObject:self.epochTime forKey:@"epochTime"];
 }
 
@@ -31,6 +32,8 @@
     if (self) {
         self.body = [decoder decodeObjectForKey:@"body"];
         self.user = [decoder decodeObjectForKey:@"user"];
+        self.commentId = [decoder decodeObjectForKey:@"commentId"];
+                self.postId = [decoder decodeObjectForKey:@"postId"];
         self.epochTime = [decoder decodeObjectForKey:@"epochTime"];
     }
     return self;
@@ -40,8 +43,16 @@
     if ([key isEqualToString:@"user"]) {
         FDUser *user = [[FDUser alloc] initWithDictionary:value];
         [self setUser:user];
+    } if ([key isEqualToString:@"id"]) {
+        [self setCommentId:value];
+    } if ([key isEqualToString:@"epochTime"]) {
+        [self setEpochTime:value];
+    } if ([key isEqualToString:@"postId"]) {
+        [self setPostId:value];
+    } if ([key isEqualToString:@"body"]) {
+        [self setBody:value];
     } else {
-        [super setValue:value forKey:key];
+        //[super setValue:value forKey:key];
     }
 }
 

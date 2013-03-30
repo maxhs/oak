@@ -71,7 +71,7 @@ static FDPost *userPost;
 }
 
 - (void)setVenue:(FDVenue *)venue {
-    self.venue = venue;
+    if (venue) self.venue = venue;
 }
 
 - (BOOL)hasPhoto {
@@ -204,7 +204,7 @@ static FDPost *userPost;
 -(Boolean) isLikedByUser {
     if(self.likers.count != 0) {
         for (id object in [self.likers objectEnumerator]) {
-            if([[FDAPIClient sharedClient].facebookID isEqualToString:[object objectForKey:@"facebook_id"]]) {
+            if([[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookId] isEqualToString:[object objectForKey:@"facebook_id"]]) {
                 return true;
             }
         }

@@ -17,11 +17,8 @@ typedef void(^RequestSuccess)(id result);
 
 @interface FDAPIClient : AFHTTPClient
 
-@property (nonatomic, copy) NSString *facebookID;
-@property (nonatomic, copy) NSString *facebookAccessToken;
-@property (nonatomic, copy) NSString *email;
-@property (nonatomic, copy) NSString *password;
 @property (nonatomic, copy) NSData *deviceToken;
+@property (nonatomic, copy) NSString *password;
 
 + (FDAPIClient *)sharedClient;
 
@@ -29,12 +26,26 @@ typedef void(^RequestSuccess)(id result);
 // connect to the API. Those objects can be used to cancel the request. Results can be
 // handled via blocks
 
-- (AFHTTPRequestOperation *)deviceConnectivity;
+- (AFJSONRequestOperation *)connectUser:(NSString*)email
+                                password:(NSString*)password
+                                 signup:(BOOL) signup
+                                 success:(RequestSuccess)success
+                                 failure:(RequestFailure)failure;
+
+- (AFJSONRequestOperation *)updateProfileDetails:(NSNumber *)userId
+                                            name:(NSString *)name
+                                        location:(NSString *)location
+                                       userPhoto:(UIImage *)userImage
+                                         success:(RequestSuccess)success
+                                         failure:(RequestFailure)failure;
 
 - (AFHTTPRequestOperation *)unfollowUser:(NSString *)userId;
 
 - (AFHTTPRequestOperation *)followUser:(NSString *)userId;
 
+- (AFHTTPRequestOperation *)checkIfUser:(NSString *)userId
+                                success:(RequestSuccess)success
+                                failure:(RequestFailure)failure;
 // get a fresh feed
 - (AFHTTPRequestOperation *)getInitialFeedPostsSuccess:(RequestSuccess)success
                                                failure:(RequestFailure)failure;
@@ -48,13 +59,25 @@ typedef void(^RequestSuccess)(id result);
                                      success:(RequestSuccess)success
                                      failure:(RequestFailure)failure;
 
-//get the like feed
-- (AFJSONRequestOperation *)getLikedPosts:(RequestSuccess)success
+//hold a post, and get the held feed
+- (AFHTTPRequestOperation *)holdPost:(NSString*)postIdentifier;
+- (AFHTTPRequestOperation *)removeHeldPost:(NSString*)postIdentifier
+                                   success:(RequestSuccess)success
+                                   failure:(RequestFailure)failure;
+
+- (AFJSONRequestOperation *)getHeldPosts:(RequestSuccess)success
                                   failure:(RequestFailure)failure;
 
-- (AFHTTPRequestOperation *)getLikedPostsBeforePost:(FDPost *)beforePost
+- (AFHTTPRequestOperation *)getHeldPostsSincePost:(FDPost *)sincePost
                                             success:(RequestSuccess)success
                                             failure:(RequestFailure)failure;
+
+- (AFJSONRequestOperation *)getHeldPostsByPopularity:(RequestSuccess)success
+                                             failure:(RequestFailure)failure;
+
+- (AFJSONRequestOperation *)getHeldPostsFromLocation:(CLLocation*)location
+                                             success:(RequestSuccess)success
+                                             failure:(RequestFailure)failure;
 
 // get a profile feed before a certain post date
 - (AFHTTPRequestOperation *)getProfileFeedBefore:(FDPost *)post
@@ -114,6 +137,11 @@ typedef void(^RequestSuccess)(id result);
                                                       success:(RequestSuccess)success
                                                       failure:(RequestFailure)failure;
 
+- (AFJSONRequestOperation *)getSearchResultsForUser:(NSString *)userId
+                                              query:(NSString *)query
+                                            success:(RequestSuccess)success
+                                            failure:(RequestFailure)failure;
+
 - (AFJSONRequestOperation *)submitPost:(FDPost *)post
                                success:(RequestSuccess)success
                                failure:(RequestFailure)failure;
@@ -125,8 +153,6 @@ typedef void(^RequestSuccess)(id result);
 - (AFJSONRequestOperation *)deletePost:(FDPost *)post
                              success:(RequestSuccess)success
                              failure:(RequestFailure)failure;
-
-- (AFJSONRequestOperation *)registerUser;
 
 - (AFJSONRequestOperation *)likePost:(FDPost *)post
                              success:(RequestSuccess)success
@@ -163,4 +189,9 @@ typedef void(^RequestSuccess)(id result);
                                        forPost:(FDPost *)post
                                        success:(RequestSuccess)success
                                        failure:(RequestFailure)failure;
+
+- (AFJSONRequestOperation *)deleteCommentWithId:(NSNumber *)commentId
+                                      forPostId:(NSNumber*)postId
+                                        success:(RequestSuccess)success
+                                        failure:(RequestFailure)failure;
 @end

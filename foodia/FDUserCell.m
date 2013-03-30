@@ -12,6 +12,7 @@
 #import "FDSocialViewController.h"
 #import "Facebook.h"
 #import "Utilities.h"
+#import "UIButton+WebCache.h"
 
 @implementation FDUserCell
 @synthesize facebookId, button, currentButton, imageFrame;
@@ -27,7 +28,8 @@
 
 - (void)setSelected:(BOOL)selected animated:(BOOL)animated
 {
-    [super setSelected:selected animated:animated];
+    self.selectionStyle = UITableViewCellSelectionStyleNone;
+    //[super setSelected:selected animated:animated];
 
     // Configure the view for the selected state
 }
@@ -50,7 +52,7 @@
 {
     [button setHidden:false];
     [button setTitle:@"Invite" forState:UIControlStateNormal];
-    [button setBackgroundColor:[UIColor redColor]];
+    [button setBackgroundColor:kColorLightBlack];
     [button setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     [button.titleLabel setFont:[UIFont fontWithName:@"AvenirNextCondensed-DemiBold" size:15]];
     currentButton = @"Invite";
@@ -79,9 +81,9 @@
     [button setHidden:false];
     [button setTitle:@"Follow" forState:UIControlStateNormal];
     [button setBackgroundColor:[UIColor whiteColor]];
-    [button.layer setBorderColor:[UIColor redColor].CGColor];
+    [button.layer setBorderColor:kColorLightBlack.CGColor];
     [button.layer setBorderWidth:1.0];
-    [button setTitleColor:[UIColor redColor] forState:UIControlStateNormal];
+    [button setTitleColor:kColorLightBlack forState:UIControlStateNormal];
     [button.titleLabel setFont:[UIFont fontWithName:@"AvenirNextCondensed-DemiBold" size:15]];
     currentButton = @"Follow";
     button.layer.shouldRasterize = YES;
@@ -91,8 +93,8 @@
 - (void)setUnfollowButton
 {
     [button setHidden:false];
-    [button setTitle:@"Unfollow" forState:UIControlStateNormal];
-    [button setBackgroundColor:[UIColor lightGrayColor]];
+    [button setTitle:@"Following" forState:UIControlStateNormal];
+    [button setBackgroundColor:[UIColor whiteColor]];
     [button setTitleColor:[UIColor darkGrayColor] forState:UIControlStateNormal];
     [button.titleLabel setFont:[UIFont fontWithName:@"AvenirNextCondensed-Medium" size:15]];
     currentButton = @"Unfollow";
@@ -103,12 +105,13 @@
 - (void)setFacebookId:(NSString *)newFacebookId
 {
     facebookId = newFacebookId;
-    [self.profileImageView setImageWithURL:[Utilities profileImageURLForFacebookID:newFacebookId]];
-    self.profileImageView.clipsToBounds = YES;
-    self.profileImageView.layer.cornerRadius = 5.0;
-    self.profileImageView.layer.shouldRasterize = YES;
-    self.profileImageView.layer.rasterizationScale = [UIScreen mainScreen].scale;
-    imageFrame = self.profileImageView.frame;
+    [self.profileButton setImageWithURL:[Utilities profileImageURLForFacebookID:newFacebookId] forState:UIControlStateNormal];
+    self.profileButton.imageView.layer.cornerRadius = 20.0;
+    [self.profileButton.imageView setBackgroundColor:[UIColor clearColor]];
+    [self.profileButton.imageView.layer setBackgroundColor:[UIColor whiteColor].CGColor];
+    self.profileButton.imageView.layer.shouldRasterize = YES;
+    self.profileButton.imageView.layer.rasterizationScale = [UIScreen mainScreen].scale;
+    imageFrame = self.profileButton.frame;
     button.tag = [facebookId integerValue];
     [button addTarget:self action:@selector(buttonPressed) forControlEvents:UIControlEventTouchUpInside];
 }

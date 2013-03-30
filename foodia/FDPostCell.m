@@ -18,23 +18,20 @@
 #import "FDProfileViewController.h"
 #import <MessageUI/MessageUI.h>
 #import "FDFeedNavigationViewController.h"
+#import "FDPostTableViewController.h"
 
 @interface FDPostCell () <UIScrollViewDelegate>
 
 @property (nonatomic,strong) AFJSONRequestOperation *postRequestOperation;
 @property (nonatomic,strong) NSString *postId;
-//@property (weak, nonatomic) IBOutlet UILabel *objectLabel;
-@property (weak, nonatomic) IBOutlet UILabel *timeLabel;
-@property (weak, nonatomic) IBOutlet UILabel *likeCountLabel;
-@property (weak, nonatomic) IBOutlet UILabel *recCountLabel;
 @property (weak, nonatomic) IBOutlet UILabel *commentCountLabel;
-
 @property (weak, nonatomic) FDPost *post;
 @end
 
 @implementation FDPostCell
 
 @synthesize socialLabel, userId, post;
+
 static NSDictionary *placeholderImages;
 
 + (void)initialize {
@@ -61,10 +58,12 @@ static NSDictionary *placeholderImages;
     self.userId = self.post.user.facebookId;
     // set up the poster button
     [self.posterButton setImageWithURL:[Utilities profileImageURLForFacebookID:self.post.user.facebookId] forState:UIControlStateNormal];
-    self.posterButton.layer.cornerRadius = 22.0f;
-    self.posterButton.clipsToBounds = YES;
-    self.posterButton.layer.shouldRasterize = YES;
-    self.posterButton.layer.rasterizationScale = [UIScreen mainScreen].scale;
+    self.posterButton.imageView.layer.cornerRadius = 22.0f;
+    //self.posterButton.clipsToBounds = YES;
+    [self.posterButton.imageView setBackgroundColor:[UIColor clearColor]];
+    [self.posterButton.imageView.layer setBackgroundColor:[UIColor whiteColor].CGColor];
+    self.posterButton.imageView.layer.shouldRasterize = YES;
+    self.posterButton.imageView.layer.rasterizationScale = [UIScreen mainScreen].scale;
     // show the time stamp
     if([post.postedAt timeIntervalSinceNow] > 0) {
         self.timeLabel.text = @"0s";
@@ -77,30 +76,16 @@ static NSDictionary *placeholderImages;
         [UIView animateWithDuration:.25 animations:^{
             [self.photoImageView setAlpha:1.0];
             [self.posterButton setAlpha:1.0];
-            CGPathRef path = [UIBezierPath bezierPathWithRect:self.photoImageView.bounds].CGPath;
-            [self.photoImageView.layer setShadowPath:path];
-            self.photoImageView.layer.shouldRasterize = YES;
-            self.photoImageView.layer.rasterizationScale = [UIScreen mainScreen].scale;
-            self.photoImageView.layer.shadowColor = [UIColor lightGrayColor].CGColor;
-            self.photoImageView.layer.shadowOffset = CGSizeMake(0, 1);
-            self.photoImageView.layer.shadowOpacity = 1;
-            self.photoImageView.layer.shadowRadius = 4.0;
+            [self.photoBackground setAlpha:1.0];
         }];
     } else {
         [self.photoImageView setImageWithURL:self.post.feedImageURL completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType) {
             if (image && !error) {
                 self.photoImageView.image = image;
-                CGPathRef path = [UIBezierPath bezierPathWithRect:self.photoImageView.bounds].CGPath;
                 [UIView animateWithDuration:.25 animations:^{
                     [self.photoImageView setAlpha:1.0];
                     [self.posterButton setAlpha:1.0];
-                    [self.photoImageView.layer setShadowPath:path];
-                    self.photoImageView.layer.shouldRasterize = YES;
-                    self.photoImageView.layer.rasterizationScale = [UIScreen mainScreen].scale;
-                    self.photoImageView.layer.shadowColor = [UIColor lightGrayColor].CGColor;
-                    self.photoImageView.layer.shadowOffset = CGSizeMake(0, 1);
-                    self.photoImageView.layer.shadowOpacity = 1;
-                    self.photoImageView.layer.shadowRadius = 2.0;
+                    [self.photoBackground setAlpha:1.0];
                 }];
                 self.photoImageView.clipsToBounds = NO;
             } else {
@@ -110,7 +95,6 @@ static NSDictionary *placeholderImages;
     }
     
     // show the like count, and set the like button's image to indicate whether current user likes
-    NSLog(@"self.post.likecount: %@",self.post.likeCount);
     self.likeCountLabel.text = [NSString stringWithFormat:@"%@", self.post.likeCount];
     self.recCountLabel.text = [NSString stringWithFormat:@"%d", [self.post.recommendedTo count]];
     self.commentCountLabel.text = [NSString stringWithFormat:@"%i", self.post.comments.count];
@@ -129,14 +113,18 @@ static NSDictionary *placeholderImages;
     
     UIImage *likeButtonImage;
     if ([post isLikedByUser]) {
-        likeButtonImage = [UIImage imageNamed:@"feedLikeButtonRed.png"];
+        likeButtonImage = [UIImage imageNamed:@"light_smile"];
+        [self.likeButton setBackgroundColor:kColorLightBlack];
+        self.likeButton.layer.borderColor = kColorLightBlack.CGColor;
     } else {
-        likeButtonImage = [UIImage imageNamed:@"feedLikeButtonGray.png"];
+        likeButtonImage = [UIImage imageNamed:@"dark_smile"];
+        [self.likeButton setBackgroundColor:[UIColor whiteColor]];
+        self.likeButton.layer.borderColor = [UIColor colorWithWhite:.1 alpha:.1].CGColor;
     }
-    self.likeButton.layer.borderColor = [UIColor colorWithWhite:.1 alpha:.1].CGColor;
+    
     [self.likeButton setImage:likeButtonImage forState:UIControlStateNormal];
     self.likeButton.layer.borderWidth = 1.0f;
-    self.likeButton.backgroundColor = [UIColor whiteColor];
+    
     self.likeButton.layer.cornerRadius = 17.0f;
     self.likeButton.layer.shouldRasterize = YES;
     self.likeButton.layer.rasterizationScale = [UIScreen mainScreen].scale;
@@ -160,6 +148,7 @@ static NSDictionary *placeholderImages;
 }
 
 - (IBAction)slideCell {
+    
     if (self.scrollView.contentOffset.x < 270 ){
         [self.scrollView setContentOffset:CGPointMake(271,0) animated:YES];
         [self.slideCellButton setHidden:NO];

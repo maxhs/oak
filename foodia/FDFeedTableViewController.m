@@ -94,9 +94,9 @@
             
         // otherwise, get the intial feed
         } else {*/
-            [[FDAPIClient sharedClient] setFacebookID:[[NSUserDefaults standardUserDefaults] objectForKey:@"FacebookID"]];
-            [[FDAPIClient sharedClient] setFacebookAccessToken: FBSession.activeSession.accessToken];
-            self.feedRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getInitialFeedPostsSuccess:^(NSArray *posts) {
+    if (self.posts.count > 20) [self loadAdditionalPosts];
+    else {
+        self.feedRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getInitialFeedPostsSuccess:^(NSArray *posts) {
                 /*for(int i=0;i<[posts count];i++) {
                     [FDCache cachePost:[posts objectAtIndex:i]];
                 }*/
@@ -108,16 +108,16 @@
                 [self reloadData];
                 NSLog(@"error: %@",error.description);
             }];
-        //}
+        }
     //}
 }
 
-- (void)viewDidAppear:(BOOL)animated {
+//- (void)viewDidAppear:(BOOL)animated {
     //if([self.posts count] != 0) [self refresh];
     //else [self loadFromCache];
     
     //[super.tableView reloadData];
-}
+//}
 
 -(void) tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath
 {
@@ -128,7 +128,7 @@
 }
 
 - (void)loadAdditionalPosts {
-    NSLog(@"loading additional posts");
+    NSLog(@"should be loading addtional posts");
         self.feedRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getFeedBeforePost:self.posts.lastObject success:^(NSMutableArray *posts) {
             if (posts.count == 0) {
                 self.canLoadAdditionalPosts = NO;

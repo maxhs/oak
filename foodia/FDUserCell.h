@@ -7,7 +7,7 @@
 //
 
 @interface FDUserCell : UITableViewCell
-@property (weak, nonatomic) IBOutlet UIImageView *profileImageView;
+@property (weak, nonatomic) IBOutlet UIButton       *profileButton;
 @property (weak, nonatomic) IBOutlet UILabel        *nameLabel;
 @property (weak, nonatomic) IBOutlet UIButton       *button;
 @property (nonatomic, retain) NSString              *facebookId;

@@ -25,7 +25,6 @@
     self.slidingViewController.underRightViewController = nil;
     self.slidingViewController.anchorLeftPeekAmount     = 0;
     self.slidingViewController.anchorLeftRevealAmount   = 0;
-    NSLog(@"profile navigation");
     [self.view addGestureRecognizer:self.slidingViewController.panGesture];
     [super viewWillAppear:animated];
 }

@@ -32,7 +32,7 @@
     CGPoint tapPoint = [sender locationInView:_scrollView];
     int x = tapPoint.x;
     int round = x / 88;
-    if (round < 5){
+    if (round < 4){
         if (tapPoint.x > 0) {
             [UIView animateWithDuration:.4f animations:^{[_scrollView setContentOffset:CGPointMake(88*round,0)];}];
         } else {

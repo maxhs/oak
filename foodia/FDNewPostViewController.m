@@ -22,6 +22,14 @@
 #import "FDPostViewController.h"
 #import "Constants.h"
 #import "FDProfileViewController.h"
+#import "Flurry.h" 
+#import "TWAPIManager.h"
+#import <Twitter/Twitter.h>
+#import "OAuth+Additions.h"
+#import "TWAPIManager.h"
+#import "TWSignedRequest.h"
+#import "FDFeedNavigationViewController.h"
+
 
 #define BLUE_TEXT_COLOR [UIColor colorWithRed:102.0/255.0 green:153.0/255.0 blue:204.0/255.0 alpha:1.0]
 NSString *const kPlaceholderAddPostCommentPrompt = @"I'M THINKING...";
@@ -53,6 +61,10 @@ NSString *const kPlaceholderAddPostCommentPrompt = @"I'M THINKING...";
 @property (strong, atomic) ALAssetsLibrary *library;
 @property UIImageOrientation *imageOrientationWhenAddedToScreen;
 @property BOOL isEditing;
+@property (nonatomic, strong) ACAccountStore *accountStore;
+@property (nonatomic, strong) TWAPIManager *apiManager;
+@property (nonatomic, strong) NSArray *accounts;
+@property (strong, nonatomic) UIActionSheet *twitterActionSheet;
 - (IBAction)editPhoto:(id)sender;
 - (IBAction)addPhoto:(id)sender;
 - (IBAction)submitPost:(id)sender;
@@ -62,6 +74,7 @@ NSString *const kPlaceholderAddPostCommentPrompt = @"I'M THINKING...";
 
 @implementation FDNewPostViewController
 @synthesize confirmLocationImageView = _confirmLocationImageView;
+@synthesize documentInteractionController = _documentInteractionController;
 @synthesize locationLabel = _locationLabel;
 @synthesize mapView = _mapView;
 @synthesize categoryLabel = _categoryLabel;
@@ -74,6 +87,7 @@ NSString *const kPlaceholderAddPostCommentPrompt = @"I'M THINKING...";
 @synthesize library;
 @synthesize imageOrientationWhenAddedToScreen;
 @synthesize isEditing = _isEditing;
+@synthesize twitterActionSheet = _twitterActionSheet;
 
 static NSDictionary *categoryImages = nil;
 
@@ -93,6 +107,7 @@ static NSDictionary *categoryImages = nil;
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    [Flurry logEvent:@"Add post menu" timed:YES];
     if ([self.navigationItem.rightBarButtonItem.title isEqualToString:@"SAVE"]){
         NSLog(@"edit post status... showing delete button");
         self.isEditing = YES;
@@ -112,7 +127,7 @@ static NSDictionary *categoryImages = nil;
     self.photoButton.imageView.contentMode = UIViewContentModeScaleAspectFill;
     self.photoButton.imageView.clipsToBounds = YES;
     [self updateCrossPostButtons];
-    self.posterImageView.layer.cornerRadius = 5.0f;
+    self.posterImageView.layer.cornerRadius = 20.0f;
     self.posterImageView.clipsToBounds = YES;
     self.posterImageView.layer.borderColor = [UIColor lightGrayColor].CGColor;
     self.posterImageView.layer.borderWidth = .5f;
@@ -138,9 +153,12 @@ static NSDictionary *categoryImages = nil;
                                             forKey:kDefaultsFoursquareActive];
     [self updateCrossPostButtons];
     self.library = [[ALAssetsLibrary alloc]init];
+    _accountStore = [[ACAccountStore alloc] init];
+    _apiManager = [[TWAPIManager alloc] init];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
+    NSLog(@"view will appear");
     [super viewWillAppear:animated];
     if (FDPost.userPost.locationName) {
         [self venueChosen];
@@ -237,7 +255,6 @@ static NSDictionary *categoryImages = nil;
     self.captionTextView.layer.borderColor = [[UIColor lightGrayColor] CGColor];
     self.captionTextView.contentInset = UIEdgeInsetsMake(-2,-3,0,0);
     self.captionTextView.textAlignment = NSTextAlignmentLeft;
-    
     if (FDPost.userPost.photoImage){
         [self.photoButton setImage:FDPost.userPost.photoImage forState:UIControlStateNormal];
         self.photoButton.imageView.layer.borderColor = [UIColor lightGrayColor].CGColor;
@@ -258,68 +275,88 @@ static NSDictionary *categoryImages = nil;
         self.post.photoImage = imageView.image;
     }
 
-    self.photoButton.hidden = !self.post.photoImage;
+    //self.photoButton.hidden = !self.post.photoImage;
     [self.foodiaObjectButton setTitle:[NSString stringWithFormat:@"I'M %@", self.post.category.uppercaseString] forState:UIControlStateNormal];
     self.categoryImageView.image = [FDNewPostViewController imageForCategory:self.post.category];
     
-    //food object section
-    self.foodiaObjectLabel.text = self.post.foodiaObject.uppercaseString;
+    //location section
+    if (FDPost.userPost.locationName.length > 0){
+        [self rearrangeButton:self.locationButton andView:self.locationLabel];
+    } else {
+        [self disArrangeButton:self.locationButton andView:self.locationLabel];
+    }
     
-    //social tagging section
-    [self.friendsScrollView.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
-    self.friendsScrollView.showsHorizontalScrollIndicator=NO;
+    //food object section
+    if (self.post.foodiaObject.length > 0){
+        self.foodiaObjectLabel.text = self.post.foodiaObject.uppercaseString;
+        [self rearrangeButton:self.foodiaObjectButton andView:self.foodiaObjectLabel];
+    } else {
+        self.foodiaObjectLabel.text = FDPost.userPost.foodiaObject.uppercaseString;
+        [self disArrangeButton:self.foodiaObjectButton andView:self.foodiaObjectLabel];
+    }
     
     float imageSize = 34.0;
-    float space = 10.0;
+    float space = 6.0;
     int index = 0;
-    for (FDUser *friend in [FDPost.userPost.withFriends allObjects]) {
-        UIImageView *friendView = [[UIImageView alloc] initWithFrame:CGRectMake(((self.friendsScrollView.frame.origin.x)+((space+imageSize)*index)),(self.friendsScrollView.frame.origin.y), imageSize, imageSize)];
-        UIButton *friendButton = [UIButton buttonWithType:UIButtonTypeCustom];
-        friendButton.titleLabel.text = friend.facebookId;
-        //friendButton.titleLabel.text = [friend objectForKey:@"facebookId"];
-        friendButton.titleLabel.hidden = YES;
-        [friendButton addTarget:self action:@selector(profileTappedFromNewPost:) forControlEvents:UIControlEventTouchUpInside];
-        //[friendView setImageWithURL:[Utilities profileImageURLForFacebookID:[friend objectForKey:@"facebookId"]]];
-        [friendView setImageWithURL:[Utilities profileImageURLForFacebookID:friend.facebookId]];
-        friendView.userInteractionEnabled = YES;
-        friendView.clipsToBounds = YES;
-        friendView.layer.cornerRadius = 5.0;
-        friendView.frame = CGRectMake(((space+imageSize)*index),0,imageSize, imageSize);
+    
+    //social tagging section
+    if (self.post.withFriends.count > 0){
+        [self rearrangeButton:self.friendsButton andView:self.friendsScrollView];
+        [self.friendsScrollView.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
+        self.friendsScrollView.showsHorizontalScrollIndicator=NO;
         
-        [friendButton setFrame:friendView.frame];
-        [self.friendsScrollView addSubview:friendView];
-        [self.friendsScrollView addSubview:friendButton];
-        index++;
-    }
-    [self.friendsScrollView setContentSize:CGSizeMake(((space*(index+1))+(imageSize*(index+1))),34)];
 
+        for (FDUser *friend in [FDPost.userPost.withFriends allObjects]) {
+            UIImageView *friendView = [[UIImageView alloc] initWithFrame:CGRectMake(((self.friendsScrollView.frame.origin.x)+((space+imageSize)*index)),(self.friendsScrollView.frame.origin.y), imageSize, imageSize)];
+            UIButton *friendButton = [UIButton buttonWithType:UIButtonTypeCustom];
+            friendButton.titleLabel.text = friend.facebookId;
+            //friendButton.titleLabel.text = [friend objectForKey:@"facebookId"];
+            friendButton.titleLabel.hidden = YES;
+            [friendButton addTarget:self action:@selector(profileTappedFromNewPost:) forControlEvents:UIControlEventTouchUpInside];
+            //[friendView setImageWithURL:[Utilities profileImageURLForFacebookID:[friend objectForKey:@"facebookId"]]];
+            [friendView setImageWithURL:[Utilities profileImageURLForFacebookID:friend.facebookId]];
+            friendView.userInteractionEnabled = YES;
+            friendView.clipsToBounds = YES;
+            friendView.layer.cornerRadius = 5.0;
+            friendView.frame = CGRectMake(((space+imageSize)*index),0,imageSize, imageSize);
+            
+            [friendButton setFrame:friendView.frame];
+            [self.friendsScrollView addSubview:friendView];
+            [self.friendsScrollView addSubview:friendButton];
+            index++;
+        }
+        [self.friendsScrollView setContentSize:CGSizeMake(((space*(index+1))+(imageSize*(index+1))),34)];
+    }
     
     if ([self.navigationItem.rightBarButtonItem.title isEqualToString:@"POST"]) {
     //recommend section
     int index2 = 0;
     
-    [self.recScrollView.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
-    self.recScrollView.showsHorizontalScrollIndicator=NO;
-    
-    for (FDUser *recipient in [FDPost.userPost.recommendedTo allObjects]) {
-        UIImageView *recommendee = [[UIImageView alloc] initWithFrame:CGRectMake(((self.recScrollView.frame.origin.x)+((space+imageSize)*index2)),(self.recScrollView.frame.origin.y), imageSize, imageSize)];
-        UIButton *recommendeeButton = [UIButton buttonWithType:UIButtonTypeCustom];
-        recommendeeButton.titleLabel.hidden = YES;
-        [recommendeeButton addTarget:self action:@selector(profileTappedFromNewPost:) forControlEvents:UIControlEventTouchUpInside];
-        recommendeeButton.titleLabel.text = recipient.facebookId;
-        [recommendee setImageWithURL:[Utilities profileImageURLForFacebookID:recipient.facebookId]];
+    if (self.post.recommendedTo.count > 0){
+        [self rearrangeButton:self.recButton andView:self.recScrollView];
+        [self.recScrollView.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
+        self.recScrollView.showsHorizontalScrollIndicator=NO;
         
-        recommendee.userInteractionEnabled = YES;
-        recommendee.clipsToBounds = YES;
-        recommendee.layer.cornerRadius = 5.0;
-        recommendee.frame = CGRectMake(((space+imageSize)*index2),0,imageSize, imageSize);
-        
-        [recommendeeButton setFrame:recommendee.frame];
-        [self.recScrollView addSubview:recommendee];
-        [self.recScrollView addSubview:recommendeeButton];
-        index2++;
+        for (FDUser *recipient in [FDPost.userPost.recommendedTo allObjects]) {
+            UIImageView *recommendee = [[UIImageView alloc] initWithFrame:CGRectMake(((self.recScrollView.frame.origin.x)+((space+imageSize)*index2)),(self.recScrollView.frame.origin.y), imageSize, imageSize)];
+            UIButton *recommendeeButton = [UIButton buttonWithType:UIButtonTypeCustom];
+            recommendeeButton.titleLabel.hidden = YES;
+            [recommendeeButton addTarget:self action:@selector(profileTappedFromNewPost:) forControlEvents:UIControlEventTouchUpInside];
+            recommendeeButton.titleLabel.text = recipient.facebookId;
+            [recommendee setImageWithURL:[Utilities profileImageURLForFacebookID:recipient.facebookId]];
+            
+            recommendee.userInteractionEnabled = YES;
+            recommendee.clipsToBounds = YES;
+            recommendee.layer.cornerRadius = 5.0;
+            recommendee.frame = CGRectMake(((space+imageSize)*index2),0,imageSize, imageSize);
+            
+            [recommendeeButton setFrame:recommendee.frame];
+            [self.recScrollView addSubview:recommendee];
+            [self.recScrollView addSubview:recommendeeButton];
+            index2++;
+        }
+        [self.recScrollView setContentSize:CGSizeMake(((space*(index2+1))+(imageSize*(index2+1))),34)];
     }
-    [self.recScrollView setContentSize:CGSizeMake(((space*(index2+1))+(imageSize*(index2+1))),34)];
     } else [self.recButton setHidden:YES];
     //social tagging section
     /*[self.friendsContainerView.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
@@ -374,7 +411,24 @@ static NSDictionary *categoryImages = nil;
     self.noRecommendationsContainerView.hidden = (self.post.recommendedTo.count > 0);*/
 }
 
+- (void)rearrangeButton:(UIButton*)button andView:(UIView*)view  {
+    
+    [UIView animateWithDuration:.3 delay:.25 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        [button setFrame:CGRectMake(6,button.frame.origin.y,button.frame.size.width, button.frame.size.height)];
+        [view setAlpha:1.0];
+    } completion:^(BOOL finished) {
+        
+    }];
+}
 
+- (void)disArrangeButton:(UIButton*)button andView:(UIView*)view  {
+    [UIView animateWithDuration:.3 delay:.25 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        [button setFrame:CGRectMake(115,button.frame.origin.y,button.frame.size.width, button.frame.size.height)];
+        [view setAlpha:0.0];
+    } completion:^(BOOL finished) {
+        
+    }];
+}
 
 #pragma mark - UITextViewDelegate Methods
 
@@ -494,8 +548,156 @@ static NSDictionary *categoryImages = nil;
     oauthTumblrAppViewController *vc = [[oauthTumblrAppViewController alloc] init];
     [self presentModalViewController:vc animated:YES];
 }*/
+
+#pragma mark - Private
+#pragma mark - UIActionSheetDelegate
+
+- (void)actionSheet:(UIActionSheet *)actionSheet
+clickedButtonAtIndex:(NSInteger)buttonIndex
+{
+    if (actionSheet == self.twitterActionSheet){
+        if (buttonIndex != (actionSheet.numberOfButtons - 1)) {
+            [_apiManager
+             performReverseAuthForAccount:_accounts[buttonIndex]
+             withHandler:^(NSData *responseData, NSError *error) {
+                 if (responseData) {
+                     NSString *responseStr = [[NSString alloc]
+                                              initWithData:responseData
+                                              encoding:NSUTF8StringEncoding];
+                     
+                     NSArray *parts = [responseStr
+                                       componentsSeparatedByString:@"&"];
+                     NSLog(@"parts: %@",parts);
+                     for (NSString *part in parts){
+                         if ([part rangeOfString:@"oauth_token="].location != NSNotFound){
+                             NSLog(@"part: %@",[[part componentsSeparatedByString:@"="] lastObject]);
+                             //[_user setTwitterAuthToken:[[part componentsSeparatedByString:@"="] lastObject]];
+                         } else if ([part rangeOfString:@"oauth_token_secret="].location != NSNotFound){
+                             
+                         } else if ([part rangeOfString:@"user_id="].location != NSNotFound){
+                             NSLog(@"part: %@",[[part componentsSeparatedByString:@"="] lastObject]);
+                             //[_user setTwitterId:[[part componentsSeparatedByString:@"="] lastObject]];
+                         } else {
+                             NSLog(@"part: %@",[[part componentsSeparatedByString:@"="] lastObject]);
+                             //[_user setTwitterScreenName:[[part componentsSeparatedByString:@"="] lastObject]];
+                         }
+                     }
+                     
+                     dispatch_async(dispatch_get_main_queue(), ^{
+                        // NSLog(@"twitter user: %@",_user.twitterId);
+                        // NSLog(@"twitter auth token: %@",_user.twitterAuthToken);
+                        // NSLog(@"twitter screename: %@",_user.twitterScreenName);
+                     });
+                 }
+                 else {
+                     NSLog(@"Error!\n%@", [error localizedDescription]);
+                 }
+             }];
+        }
+    } else [(FDAppDelegate*)[UIApplication sharedApplication].delegate hideLoadingOverlay];
+}
+
+- (void)refreshTwitterAccounts
+{
+    //  Get access to the user's Twitter account(s)
+    [self obtainAccessToAccountsWithBlock:^(BOOL granted) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            if (granted) {
+                self.twitterButton.enabled = YES;
+                NSLog(@"You have access to the user's Twitter accounts");
+                [self performReverseAuth:nil];
+            }
+            else {
+                NSLog(@"You were not granted access to the Twitter accounts.");
+                [self showTwitterSettings];
+            }
+        });
+    }];
+}
+
+- (void)showTwitterSettings{
+    TWTweetComposeViewController *tweetViewController = [[TWTweetComposeViewController alloc] init];
+    
+    // Create the completion handler block.
+    [tweetViewController setCompletionHandler:^(TWTweetComposeViewControllerResult result)
+     {
+         [self dismissViewControllerAnimated:YES completion:nil];
+     }];
+    
+    // Present the tweet composition view controller modally.
+    [self presentViewController:tweetViewController animated:YES completion:nil];
+    //tweetViewController.view.hidden = YES;
+    for (UIView *view in tweetViewController.view.subviews){
+        [view removeFromSuperview];
+    }
+}
+
+- (void)obtainAccessToAccountsWithBlock:(void (^)(BOOL))block
+{
+    NSLog(@"should be obtaining access to twitter through  block");
+    ACAccountType *twitterType = [_accountStore
+                                  accountTypeWithAccountTypeIdentifier:
+                                  ACAccountTypeIdentifierTwitter];
+    
+    ACAccountStoreRequestAccessCompletionHandler handler =
+    ^(BOOL granted, NSError *error) {
+        if (granted) {
+            self.accounts = [_accountStore accountsWithAccountType:twitterType];
+        }
+        
+        block(granted);
+    };
+    
+    //  This method changed in iOS6.  If the new version isn't available, fall
+    //  back to the original (which means that we're running on iOS5+).
+    if ([_accountStore
+         respondsToSelector:@selector(requestAccessToAccountsWithType:
+                                      options:
+                                      completion:)]) {
+             [_accountStore requestAccessToAccountsWithType:twitterType
+                                                    options:nil
+                                                 completion:handler];
+         }
+    else {
+        [_accountStore requestAccessToAccountsWithType:twitterType
+                                 withCompletionHandler:handler];
+    }
+}
+
+- (void)performReverseAuth:(id)sender
+{
+    if ([TWAPIManager isLocalTwitterAccountAvailable]) {
+        self.twitterActionSheet = [[UIActionSheet alloc]
+                                initWithTitle:@"Choose an Account"
+                                delegate:self
+                                cancelButtonTitle:nil
+                                destructiveButtonTitle:nil
+                                otherButtonTitles:nil];
+        
+        for (ACAccount *acct in _accounts) {
+            [self.twitterActionSheet addButtonWithTitle:acct.username];
+        }
+        
+        [self.twitterActionSheet addButtonWithTitle:@"Cancel"];
+        [self.twitterActionSheet setDestructiveButtonIndex:[_accounts count]];
+        [self.twitterActionSheet showInView:self.view];
+    }
+    else {
+        UIAlertView *alert = [[UIAlertView alloc]
+                              initWithTitle:@"No Accounts"
+                              message:@"Please configure a Twitter "
+                              "account in Settings.app"
+                              delegate:nil
+                              cancelButtonTitle:@"OK"
+                              otherButtonTitles:nil];
+        [alert show];
+    }
+}
+
+
+
 -(void)removePhoto {
-    FDPost.userPost.photoImage = nil;
+    NSLog(@"should be removing post photo");
     [UIView animateWithDuration:0.25 animations:^{
         CGAffineTransform shrinkTransform = CGAffineTransformMakeScale(0.001, 0.001);
         self.photoBoxView.transform = shrinkTransform;
@@ -503,6 +705,8 @@ static NSDictionary *categoryImages = nil;
         self.photoBoxView.alpha = 0.0;
         self.photoButton.alpha = 0.0;
     } completion:^(BOOL finished) {
+        FDPost.userPost.photoImage = nil;
+        [self.post setDetailImageUrlString:nil];
         [self showPostInfo];
         self.photoButton.transform = CGAffineTransformIdentity;
         self.photoBoxView.transform = CGAffineTransformIdentity;
@@ -554,6 +758,7 @@ static NSDictionary *categoryImages = nil;
 - (void)updateCrossPostButtons {
     if ([[NSUserDefaults standardUserDefaults] boolForKey:kDefaultsTwitterActive]) {
         [self.twitterButton setImage:[UIImage imageNamed:@"twitter.png"] forState:UIControlStateNormal];
+        //[self refreshTwitterAccounts];
     } else {
         [self.twitterButton setImage:[UIImage imageNamed:@"twitterGray.png"] forState:UIControlStateNormal];
     }
@@ -583,18 +788,21 @@ static NSDictionary *categoryImages = nil;
     self.postButtonItem.enabled = NO;
     self.navigationItem.leftBarButtonItem.enabled = NO;
     self.navigationItem.rightBarButtonItem.enabled = NO;
+
     [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
     if ([self.postButtonItem.title isEqualToString:@"POST"]){
         [[FDAPIClient sharedClient] submitPost:FDPost.userPost success:^(id result) {
-            //if posting to Twitter
-            if ([[NSUserDefaults standardUserDefaults] boolForKey:kDefaultsTwitterActive]) [self postToTwitter:[[result objectForKey:@"post"] objectForKey:@"id"]];
+            [[NSUserDefaults standardUserDefaults] setBool:YES forKey:kJustPosted];
+
             //if posting to Foursquare
             if ([[NSUserDefaults standardUserDefaults] boolForKey:kDefaultsFoursquareActive]) {
                 [[FDFoursquareAPIClient sharedClient] checkInVenue:FDPost.userPost.FDVenueId postCaption:FDPost.userPost.caption withPostId:[[result objectForKey:@"post"] objectForKey:@"id"]];
             }
+            //if posting to Twitter
+            if ([[NSUserDefaults standardUserDefaults] boolForKey:kDefaultsTwitterActive]) [self postToTwitter:[FDPost userPost] withPostId:[[result objectForKey:@"post"] objectForKey:@"id"]];
             
             //if posting to Instagram
-            if ([[NSUserDefaults standardUserDefaults] boolForKey:kDefaultsInstagramActive]) {
+            if ([[NSUserDefaults standardUserDefaults] boolForKey:kDefaultsInstagramActive] && ![[NSUserDefaults standardUserDefaults] boolForKey:kDefaultsTwitterActive]) {
                 UIImage *instaImage = FDPost.userPost.photoImage;
                 NSURL *instagramURL = [NSURL URLWithString:@"instagram://app"];
                 if ([[UIApplication sharedApplication] canOpenURL:instagramURL]) {
@@ -622,7 +830,6 @@ static NSDictionary *categoryImages = nil;
             [((FDAppDelegate *)[UIApplication sharedApplication].delegate) hideLoadingOverlay];
             [[NSNotificationCenter defaultCenter] postNotificationName:@"RefreshFeed" object:nil];
             [self.navigationController dismissViewControllerAnimated:YES completion:nil];
-            
         } failure:^(NSError *error) {
              self.postButtonItem.enabled = YES;
              self.navigationItem.leftBarButtonItem.enabled = YES;
@@ -632,7 +839,8 @@ static NSDictionary *categoryImages = nil;
         }];
     } else {
         [[FDAPIClient sharedClient] editPost:FDPost.userPost success:^(id result) {
-            //success editing post. now go back to the original feedview instead 
+            //success editing post. now go back to the original feedview instead
+            [[NSUserDefaults standardUserDefaults] setBool:YES forKey:kJustPosted];
             [((FDAppDelegate *)[UIApplication sharedApplication].delegate) hideLoadingOverlay];
             [[NSNotificationCenter defaultCenter] postNotificationName:@"RefreshFeed" object:nil];
             [self.navigationController popViewControllerAnimated:YES];
@@ -648,9 +856,9 @@ static NSDictionary *categoryImages = nil;
 }
 
 - (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info {
+    [picker dismissViewControllerAnimated:YES completion:nil];
     UIImage *image = [info objectForKey:UIImagePickerControllerEditedImage];
-    FDPost.userPost.photoImage = image;
-
+    FDPost.userPost.photoImage = [info objectForKey:UIImagePickerControllerEditedImage];
     NSString *albumName = @"FOODIA";
     [self.library addAssetsGroupAlbumWithName:albumName
                                   resultBlock:^(ALAssetsGroup *group) {
@@ -694,7 +902,8 @@ static NSDictionary *categoryImages = nil;
                                        NSLog(@"saved image failed.\nerror code %i\n%@", error.code, [error localizedDescription]);
                                    }
                                }];
-    [picker dismissViewControllerAnimated:YES completion:nil];
+
+    [self showPostInfo];
 }
 
 - (IBAction)editCategory:(id)sender {
@@ -708,8 +917,8 @@ static NSDictionary *categoryImages = nil;
     [super viewDidUnload];
 }
 
-- (void)postToTwitter:(id)postId {
-    // Create an account store object.
+- (void)postToTwitter:(FDPost*)post withPostId:(NSString*)postId {
+    /*// Create an account store object.
     ACAccountStore *accountStore = [[ACAccountStore alloc] init];
     
     // Create an account type that ensures Twitter accounts are retrieved.
@@ -721,8 +930,8 @@ static NSDictionary *categoryImages = nil;
         if(granted) {
                              // Grab the available accounts
                              NSArray *twitterAccounts = [accountStore accountsWithAccountType:twitterAccountType];
-                             
                              if ([twitterAccounts count] > 0) {
+                                 NSLog(@"these are your twitter accounts: ")
                                  NSLog(@"twitter account exists");
                                  // Use the first account for simplicity
                                  ACAccount *account = [twitterAccounts objectAtIndex:0];
@@ -731,42 +940,50 @@ static NSDictionary *categoryImages = nil;
                                  
                                  //  The endpoint that we wish to call
                                  NSURL *url = [NSURL URLWithString:@"https://api.twitter.com/1/statuses/update.json"];
-                                 
+                                 */
                                  //  Build the request with our parameter
-                                 TWRequest *request =
-                                 [[TWRequest alloc] initWithURL:url
-                                                     parameters:nil
-                                                  requestMethod:TWRequestMethodPOST];
-                                 
-                                 NSData *myData = [[@"Posting with #FOODIA! http://posts.foodia.com/p/" stringByAppendingString:[postId stringValue]] dataUsingEncoding:NSUTF8StringEncoding];
-                                 [request addMultiPartData:myData withName:@"status" type:@"text/plain"];
-                                 // Attach the account object to this request
-                                 [request setAccount:account];
-                                 
-                                 [request performRequestWithHandler:
-                                  ^(NSData *responseData, NSHTTPURLResponse *urlResponse, NSError *error) {
-                                      if (!responseData) {
-                                          // inspect the contents of error
-                                          NSLog(@"%@", error);
-                                          
-                                      } else {
+         if ([SLComposeViewController isAvailableForServiceType:SLServiceTypeTwitter])
+         {
+             SLComposeViewController *tweetSheet = [SLComposeViewController
+                                                    composeViewControllerForServiceType:SLServiceTypeTwitter];
+             [tweetSheet setInitialText:[NSString stringWithFormat:@"%@ on #FOODIA | http://posts.foodia.com/p/%@", post.foodiaObject, postId]];
+             if (FDPost.userPost.photoImage){
+                [tweetSheet addImage:FDPost.userPost.photoImage];
+             }
+             tweetSheet.completionHandler = ^(TWTweetComposeViewControllerResult result) {
+                 switch (result) {
+                     case TWTweetComposeViewControllerResultCancelled:
+                     {
+                         [self.navigationController popViewControllerAnimated:YES];
+                     }
+                         break;
+                         
+                     case TWTweetComposeViewControllerResultDone:
+                     {
+                         [self dismissViewControllerAnimated:YES completion:nil];
+                         //if posting to Instagram
+                         if ([[NSUserDefaults standardUserDefaults] boolForKey:kDefaultsInstagramActive]) [[NSNotificationCenter defaultCenter] postNotificationName:@"PostToInstagram" object:nil];
+                        [[[UIAlertView alloc] initWithTitle:@"Thanks!" message:@"Nice tweet ;)" delegate:self cancelButtonTitle:@"You're welcome" otherButtonTitles:nil] show];
 
-                                      }
-                                      [[NSNotificationCenter defaultCenter] postNotificationName:@"kNotificationNewsFeedShouldRefresh" object:nil];
-                                      
-                                      //[self finished];
-                                      
-                                  }];
-                                 
-                             } // if ([twitterAccounts count] > 0)
+                     }
+                         break;
+                         
+                     default:
+                         break;
+                 }
+             };
+             
+             [[self.navigationController.viewControllers objectAtIndex:self.navigationController.viewControllers.count-1] presentViewController:tweetSheet animated:YES completion:nil];
+
         } else {
+            NSLog(@"not set up to tweet");
             // The user rejected your request
-            UIAlertView *errorSharingTwitter = [[UIAlertView alloc] initWithTitle:@"Twitter unavailable " message:@"We were unable to connect to your Twitter account on this device" delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil];
-            [errorSharingTwitter show];
-        }// if (granted)
-    }];
+            /*UIAlertView *errorSharingTwitter = [[UIAlertView alloc] initWithTitle:@"Twitter unavailable " message:@"We were unable to connect to your Twitter account on this device" delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil];
+            [errorSharingTwitter show];*/
+            [self refreshTwitterAccounts];
+        }
 }
-
+                                       
 - (void) alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex
 {
     if ([[alertView buttonTitleAtIndex:buttonIndex] isEqualToString:@"Delete"]){
@@ -777,7 +994,10 @@ static NSDictionary *categoryImages = nil;
             NSLog(@"error");
             [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"We weren't able to delete your post right now. Please try again soon." delegate:self cancelButtonTitle:@"Okay" otherButtonTitles: nil] show];
         }];
-    } else self.navigationItem.rightBarButtonItem.enabled = YES;
+    } else if ([[alertView buttonTitleAtIndex:buttonIndex] isEqualToString:@"You're welcome"]) {
+        NSLog(@"clicked you're welcome");
+        [self.navigationController dismissViewControllerAnimated:YES completion:nil];
+    }   self.navigationItem.rightBarButtonItem.enabled = YES;
 }
 
 /*- (NSString *)twitterStatusString {

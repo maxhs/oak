@@ -7,6 +7,7 @@
 //
 
 #import "FDMenuViewController.h"
+#import "Constants.h"
 #import "ECSlidingViewController.h"
 #import <MessageUI/MessageUI.h>
 #import "FDCache.h"
@@ -25,6 +26,7 @@
 #import "FDFeedNavigationViewController.h"
 #import "Utilities.h"
 #import "Flurry.h"
+#import "UIButton+WebCache.h"
 
 @interface FDMenuViewController () <MFMailComposeViewControllerDelegate>
 @property (nonatomic, strong) NSArray *activityItems;
@@ -39,7 +41,7 @@
 {
     [super viewDidLoad];
     [Flurry logEvent:@"ViewingMenu" timed:YES];
-    [self refresh];
+    //[self refresh];
     [self.slidingViewController setAnchorRightRevealAmount:264.0f];
     self.slidingViewController.underLeftWidthLayout = ECFullWidth;
     self.tableView.separatorColor = [UIColor colorWithWhite:.1 alpha:.1];
@@ -49,6 +51,32 @@
     self.tableView.delegate = self;
     self.tableView.dataSource = self;
     self.tableView.scrollEnabled = YES;
+    [self shrink];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(shrink) name:@"ShrinkMenuView" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(shrink) name:@"GrowMenuView" object:nil];
+}
+
+- (void) grow {
+    if (self.tableView.alpha != 1.0){
+        [UIView animateWithDuration:.2 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+            //self.tableView.transform = CGAffineTransformMakeScale(0.90f, 0.90f);
+            [self.tableView setAlpha:1.0];
+        } completion:^(BOOL finished) {
+       
+        }];
+    }
+}
+
+- (void) shrink {
+    NSLog(@"should be shrinking");
+    if (self.tableView.alpha != 0.0) {
+        [UIView animateWithDuration:.2 delay:.05 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+            //self.tableView.transform = CGAffineTransformMakeScale(0.80f, 0.80f);
+            [self.tableView setAlpha:0.0];
+        } completion:^(BOOL finished) {
+            
+        }];
+    }
 }
 
 - (void)viewDidUnload
@@ -82,7 +110,7 @@
         static NSString *CellIdentifier = @"MenuCell";
         UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
         UIView *cellbg = [[UIView alloc] init];
-        [cellbg setBackgroundColor:[UIColor darkGrayColor]];
+        [cellbg setBackgroundColor:kColorLightBlack];
         cell.selectedBackgroundView = cellbg;
             switch (indexPath.row) {
                 case 0:
@@ -108,16 +136,18 @@
         static NSString *CellIdentifier = @"NotificationCell";
         UITableViewCell *cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CellIdentifier];
         UIView *cellbg = [[UIView alloc] init];
-        [cellbg setBackgroundColor:[UIColor darkGrayColor]];
+        [cellbg setBackgroundColor:kColorLightBlack];
         cell.selectedBackgroundView = cellbg;
         FDNotification *notification = [self.notifications objectAtIndex:indexPath.row];
         UIButton *profileButton = [UIButton buttonWithType:UIButtonTypeCustom];
-        UIImageView *profileImageView = [[UIImageView alloc] initWithFrame:CGRectMake(5,7,36,36)];
-        [profileImageView setImageWithURL:[Utilities profileImageURLForFacebookID:notification.fromUserFbid]];
-        profileImageView.clipsToBounds = YES;
-        profileImageView.layer.cornerRadius = 5.0;
-        profileImageView.layer.shouldRasterize = YES;
-        profileImageView.layer.rasterizationScale = [UIScreen mainScreen].scale;
+        [profileButton setFrame:CGRectMake(5,7,40,40)];
+        [profileButton setImageWithURL:[Utilities profileImageURLForFacebookID:notification.fromUserFbid]forState:UIControlStateNormal];
+        profileButton.imageView.layer.cornerRadius = 20.0;
+        [profileButton.imageView setBackgroundColor:[UIColor clearColor]];
+        [profileButton.imageView.layer setBackgroundColor:[UIColor clearColor].CGColor];
+        
+        profileButton.imageView.layer.shouldRasterize = YES;
+        profileButton.imageView.layer.rasterizationScale = [UIScreen mainScreen].scale;
         UILabel *messageLabel = [[UILabel alloc] initWithFrame:CGRectMake(50,4,180,40)];
         [messageLabel setTextColor:[UIColor darkGrayColor]];
         if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 6) {
@@ -142,13 +172,11 @@
         } else {
             timeLabel.text = [Utilities timeIntervalSinceStartDate:notification.postedAt];
         }
-        CGRect imagePicFrame = profileImageView.frame;
-        [profileButton setFrame:imagePicFrame];
         [profileButton setBackgroundColor:[UIColor clearColor]];
         [profileButton addTarget:self action:@selector(showProfile:) forControlEvents:UIControlEventTouchUpInside];
         profileButton.titleLabel.text = notification.fromUserFbid;
         profileButton.titleLabel.hidden = YES;
-        [cell addSubview:profileImageView];
+        [cell addSubview:profileButton];
         [cell addSubview:messageLabel];
         [cell addSubview:timeLabel];
         [cell addSubview:profileButton];
@@ -166,7 +194,7 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    
+    [self.feedRequestOperation cancel];
     if (indexPath.section == 1) {
         FDNotification *notification = [self.notifications objectAtIndex:indexPath.row];
         if (notification.targetPostId != nil) {
@@ -199,6 +227,7 @@
             NSString *domainName = [[NSBundle mainBundle] bundleIdentifier];
             [[NSUserDefaults standardUserDefaults] removePersistentDomainForName:domainName];
             [self.slidingViewController dismissViewControllerAnimated:YES completion:nil];
+            NSLog(@"facebook id: %@",[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookId]);
         }
             break;
         default:
@@ -291,6 +320,7 @@
 
 - (void)refresh
 {
+    [self grow];
     self.feedRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getActivitySuccess:^(NSMutableArray *notifications) {
         self.notifications = notifications;
         self.feedRequestOperation = nil;

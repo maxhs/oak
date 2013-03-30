@@ -134,9 +134,9 @@ static void *AVCamFocusModeObserverContext = &AVCamFocusModeObserverContext;
 			CGRect bounds = [view bounds];
 			[newCaptureVideoPreviewLayer setFrame:bounds];
 			
-			if ([newCaptureVideoPreviewLayer isOrientationSupported]) {
-				[newCaptureVideoPreviewLayer setOrientation:AVCaptureVideoOrientationPortrait];
-			}
+			//if ([newCaptureVideoPreviewLayer isOrientationSupported]) {
+			//	[newCaptureVideoPreviewLayer setOrientation:AVCaptureVideoOrientationPortrait];
+			//}
 			
 			[newCaptureVideoPreviewLayer setVideoGravity:AVLayerVideoGravityResizeAspectFill];
 			

@@ -322,6 +322,30 @@ static int kCacheMemoryLimit;
     return stalenessLevel > kMenuStaleSeconds;
 }
 
+#pragma mark -Ranked posts caching methods
+
+
++ (void)cacheRankedPosts:(NSMutableArray*)posts {
+    [self cacheData:[NSKeyedArchiver archivedDataWithRootObject:posts]
+             toFile:@"Ranked.archive"];
+}
+
++ (NSMutableArray*)getCachedRankedPosts {
+    return [NSKeyedUnarchiver unarchiveObjectWithData:[self dataForFile:@"Ranked.archive"]];
+}
+
++ (BOOL)isRankedPostCacheStale {
+    // if it is in memory cache, it is not stale
+    if([recentlyAccessedKeys containsObject:@"Ranked.archive"])
+        return NO;
+    
+	NSString *archivePath = [[FDCache cacheDirectory] stringByAppendingPathComponent:@"Featured.archive"];
+    
+    NSTimeInterval stalenessLevel = [[[[NSFileManager defaultManager] attributesOfItemAtPath:archivePath error:nil] fileModificationDate] timeIntervalSinceNow];
+    
+    return stalenessLevel > kMenuStaleSeconds;
+}
+
 #pragma mark - Featured Posts Caching Methods
 
 + (void)cacheFeaturedPosts:(NSMutableArray*)posts {

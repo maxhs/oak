@@ -12,6 +12,8 @@
 
 @interface FDComment : FDRecord
 @property (nonatomic, strong) FDUser *user;
+@property (nonatomic, strong) NSNumber *commentId;
+@property (nonatomic, strong) NSNumber *postId;
 @property (nonatomic, strong) NSString *body;
 @property (nonatomic, strong) NSNumber *epochTime;
 - (NSDate *)date;

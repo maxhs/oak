@@ -2,10 +2,10 @@
 <archive type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="8.00">
 	<data>
 		<int key="IBDocument.SystemTarget">1296</int>
-		<string key="IBDocument.SystemVersion">12C2034</string>
+		<string key="IBDocument.SystemVersion">12D78</string>
 		<string key="IBDocument.InterfaceBuilderVersion">3084</string>
-		<string key="IBDocument.AppKitVersion">1187.34</string>
-		<string key="IBDocument.HIToolboxVersion">625.00</string>
+		<string key="IBDocument.AppKitVersion">1187.37</string>
+		<string key="IBDocument.HIToolboxVersion">626.00</string>
 		<object class="NSMutableDictionary" key="IBDocument.PluginVersions">
 			<string key="NS.key.0">com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
 			<string key="NS.object.0">2083</string>
@@ -39,13 +39,29 @@
 						<reference key="NSNextResponder" ref="768606828"/>
 						<int key="NSvFlags">256</int>
 						<array class="NSMutableArray" key="NSSubviews">
+							<object class="IBUIImageView" id="969654917">
+								<reference key="NSNextResponder" ref="273411747"/>
+								<int key="NSvFlags">292</int>
+								<string key="NSFrame">{{3, -2}, {104, 104}}</string>
+								<reference key="NSSuperview" ref="273411747"/>
+								<reference key="NSWindow"/>
+								<reference key="NSNextKeyView" ref="777519049"/>
+								<string key="NSReuseIdentifierKey">_NS:9</string>
+								<float key="IBUIAlpha">0.0</float>
+								<bool key="IBUIUserInteractionEnabled">NO</bool>
+								<string key="targetRuntimeIdentifier">IBCocoaTouchFramework</string>
+								<object class="NSCustomResource" key="IBUIImage" id="858808946">
+									<string key="NSClassName">NSImage</string>
+									<string key="NSResourceName">featuredPhotoBackground.png</string>
+								</object>
+							</object>
 							<object class="IBUIImageView" id="777519049">
 								<reference key="NSNextResponder" ref="273411747"/>
 								<int key="NSvFlags">256</int>
 								<string key="NSFrame">{{5, 0}, {100, 100}}</string>
 								<reference key="NSSuperview" ref="273411747"/>
 								<reference key="NSWindow"/>
-								<reference key="NSNextKeyView" ref="453362016"/>
+								<reference key="NSNextKeyView" ref="925312189"/>
 								<string key="NSReuseIdentifierKey">_NS:9</string>
 								<object class="NSColor" key="IBUIBackgroundColor">
 									<int key="NSColorSpace">3</int>
@@ -58,13 +74,26 @@
 								<bool key="IBUIUserInteractionEnabled">NO</bool>
 								<string key="targetRuntimeIdentifier">IBCocoaTouchFramework</string>
 							</object>
+							<object class="IBUIImageView" id="925312189">
+								<reference key="NSNextResponder" ref="273411747"/>
+								<int key="NSvFlags">292</int>
+								<string key="NSFrame">{{108, -2}, {104, 104}}</string>
+								<reference key="NSSuperview" ref="273411747"/>
+								<reference key="NSWindow"/>
+								<reference key="NSNextKeyView" ref="453362016"/>
+								<string key="NSReuseIdentifierKey">_NS:9</string>
+								<float key="IBUIAlpha">0.0</float>
+								<bool key="IBUIUserInteractionEnabled">NO</bool>
+								<string key="targetRuntimeIdentifier">IBCocoaTouchFramework</string>
+								<reference key="IBUIImage" ref="858808946"/>
+							</object>
 							<object class="IBUIImageView" id="453362016">
 								<reference key="NSNextResponder" ref="273411747"/>
 								<int key="NSvFlags">256</int>
 								<string key="NSFrame">{{110, 0}, {100, 100}}</string>
 								<reference key="NSSuperview" ref="273411747"/>
 								<reference key="NSWindow"/>
-								<reference key="NSNextKeyView" ref="903081979"/>
+								<reference key="NSNextKeyView" ref="163051494"/>
 								<string key="NSReuseIdentifierKey">_NS:9</string>
 								<object class="NSColor" key="IBUIBackgroundColor">
 									<int key="NSColorSpace">3</int>
@@ -74,6 +103,19 @@
 								<float key="IBUIAlpha">0.0</float>
 								<bool key="IBUIUserInteractionEnabled">NO</bool>
 								<string key="targetRuntimeIdentifier">IBCocoaTouchFramework</string>
+							</object>
+							<object class="IBUIImageView" id="163051494">
+								<reference key="NSNextResponder" ref="273411747"/>
+								<int key="NSvFlags">292</int>
+								<string key="NSFrame">{{213, -2}, {104, 104}}</string>
+								<reference key="NSSuperview" ref="273411747"/>
+								<reference key="NSWindow"/>
+								<reference key="NSNextKeyView" ref="903081979"/>
+								<string key="NSReuseIdentifierKey">_NS:9</string>
+								<float key="IBUIAlpha">0.0</float>
+								<bool key="IBUIUserInteractionEnabled">NO</bool>
+								<string key="targetRuntimeIdentifier">IBCocoaTouchFramework</string>
+								<reference key="IBUIImage" ref="858808946"/>
 							</object>
 							<object class="IBUIImageView" id="903081979">
 								<reference key="NSNextResponder" ref="273411747"/>
@@ -96,7 +138,7 @@
 						<string key="NSFrameSize">{320, 104}</string>
 						<reference key="NSSuperview" ref="768606828"/>
 						<reference key="NSWindow"/>
-						<reference key="NSNextKeyView" ref="777519049"/>
+						<reference key="NSNextKeyView" ref="969654917"/>
 						<string key="NSReuseIdentifierKey">_NS:11</string>
 						<object class="NSColor" key="IBUIBackgroundColor">
 							<int key="NSColorSpace">3</int>
@@ -146,6 +188,30 @@
 					</object>
 					<int key="connectionID">50</int>
 				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBCocoaTouchOutletConnection" key="connection">
+						<string key="label">photoBackground</string>
+						<reference key="source" ref="768606828"/>
+						<reference key="destination" ref="969654917"/>
+					</object>
+					<int key="connectionID">80</int>
+				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBCocoaTouchOutletConnection" key="connection">
+						<string key="label">photoBackground1</string>
+						<reference key="source" ref="768606828"/>
+						<reference key="destination" ref="925312189"/>
+					</object>
+					<int key="connectionID">81</int>
+				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBCocoaTouchOutletConnection" key="connection">
+						<string key="label">photoBackground2</string>
+						<reference key="source" ref="768606828"/>
+						<reference key="destination" ref="163051494"/>
+					</object>
+					<int key="connectionID">82</int>
+				</object>
 			</array>
 			<object class="IBMutableOrderedSet" key="objectRecords">
 				<array key="orderedObjects">
@@ -173,6 +239,9 @@
 							<reference ref="453362016"/>
 							<reference ref="903081979"/>
 							<reference ref="777519049"/>
+							<reference ref="969654917"/>
+							<reference ref="925312189"/>
+							<reference ref="163051494"/>
 						</array>
 						<reference key="parent" ref="0"/>
 					</object>
@@ -194,6 +263,21 @@
 						<reference key="parent" ref="768606828"/>
 						<string key="objectName">Photo View</string>
 					</object>
+					<object class="IBObjectRecord">
+						<int key="objectID">74</int>
+						<reference key="object" ref="969654917"/>
+						<reference key="parent" ref="768606828"/>
+					</object>
+					<object class="IBObjectRecord">
+						<int key="objectID">75</int>
+						<reference key="object" ref="925312189"/>
+						<reference key="parent" ref="768606828"/>
+					</object>
+					<object class="IBObjectRecord">
+						<int key="objectID">76</int>
+						<reference key="object" ref="163051494"/>
+						<reference key="parent" ref="768606828"/>
+					</object>
 				</array>
 			</object>
 			<dictionary class="NSMutableDictionary" key="flattenedProperties">
@@ -206,12 +290,15 @@
 				<string key="4.IBPluginDependency">com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
 				<string key="44.IBPluginDependency">com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
 				<string key="45.IBPluginDependency">com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
+				<string key="74.IBPluginDependency">com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
+				<string key="75.IBPluginDependency">com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
+				<string key="76.IBPluginDependency">com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
 			</dictionary>
 			<dictionary class="NSMutableDictionary" key="unlocalizedProperties"/>
 			<nil key="activeLocalization"/>
 			<dictionary class="NSMutableDictionary" key="localizations"/>
 			<nil key="sourceID"/>
-			<int key="maxID">72</int>
+			<int key="maxID">82</int>
 		</object>
 		<object class="IBClassDescriber" key="IBDocument.Classes">
 			<array class="NSMutableArray" key="referencedPartialClassDescriptions">
@@ -219,11 +306,26 @@
 					<string key="className">FDPostGridCell</string>
 					<string key="superclassName">UITableViewCell</string>
 					<dictionary class="NSMutableDictionary" key="outlets">
+						<string key="photoBackground">UIImageView</string>
+						<string key="photoBackground1">UIImageView</string>
+						<string key="photoBackground2">UIImageView</string>
 						<string key="photoImageView">UIImageView</string>
 						<string key="photoImageView1">UIImageView</string>
 						<string key="photoImageView2">UIImageView</string>
 					</dictionary>
 					<dictionary class="NSMutableDictionary" key="toOneOutletInfosByName">
+						<object class="IBToOneOutletInfo" key="photoBackground">
+							<string key="name">photoBackground</string>
+							<string key="candidateClassName">UIImageView</string>
+						</object>
+						<object class="IBToOneOutletInfo" key="photoBackground1">
+							<string key="name">photoBackground1</string>
+							<string key="candidateClassName">UIImageView</string>
+						</object>
+						<object class="IBToOneOutletInfo" key="photoBackground2">
+							<string key="name">photoBackground2</string>
+							<string key="candidateClassName">UIImageView</string>
+						</object>
 						<object class="IBToOneOutletInfo" key="photoImageView">
 							<string key="name">photoImageView</string>
 							<string key="candidateClassName">UIImageView</string>
@@ -252,6 +354,10 @@
 		</object>
 		<bool key="IBDocument.PluginDeclaredDependenciesTrackSystemTargetVersion">YES</bool>
 		<int key="IBDocument.defaultPropertyAccessControl">3</int>
+		<object class="NSMutableDictionary" key="IBDocument.LastKnownImageSizes">
+			<string key="NS.key.0">featuredPhotoBackground.png</string>
+			<string key="NS.object.0">{108, 108}</string>
+		</object>
 		<string key="IBCocoaTouchPluginVersion">2083</string>
 	</data>
 </archive>

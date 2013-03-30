@@ -6,13 +6,12 @@
 //  Copyright (c) 2013 FOODIA. All rights reserved.
 //
 
-#import "FDProfileButton.h"
 #import <MapKit/MapKit.h>
 
 @interface FDProfileCell : UITableViewCell
 
 @property (weak, nonatomic) id delegate;
-@property (nonatomic, nonatomic)     IBOutlet FDProfileButton     *profileButton;
+@property (nonatomic, nonatomic)     IBOutlet UIButton     *profileButton;
 @property (nonatomic)                IBOutlet MKMapView *mapView;
 @property (nonatomic,retain)         IBOutlet UILabel       *postCountLabel;
 @property (nonatomic,retain)         IBOutlet UILabel       *followerCountLabel;

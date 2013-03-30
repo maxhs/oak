@@ -50,9 +50,11 @@
     isRefreshing_ = NO;
     self.tableView.rowHeight = [FDPostGridCell cellHeight];
     self.tableView.showsVerticalScrollIndicator = NO;
-    [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
+    
     self.canLoadAdditionalPosts = YES;
     [self refresh];
+    //[self loadFromCache];
+    
     // set up the pull-to-refresh header
     if (refreshHeaderView_ == nil) {
         
@@ -188,11 +190,14 @@
     }
 }
 
--(void) tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath
-{
-    if([indexPath row] == ((NSIndexPath*)[[tableView indexPathsForVisibleRows] lastObject]).row && tableView == self.tableView){
-        //end of loading
-        [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
+- (void)tableView:(UITableView *)tableView didEndDisplayingCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath {
+    if ([cell isKindOfClass:[FDPostGridCell class]]){
+        FDPostGridCell *thisCell = (FDPostGridCell*)cell;
+        [UIView animateWithDuration:.25 animations:^{
+            [thisCell.photoBackground setAlpha:0.0];
+            [thisCell.photoBackground1 setAlpha:0.0];
+            [thisCell.photoBackground2 setAlpha:0.0];
+        }];
     }
 }
 
@@ -230,7 +235,7 @@
 }*/
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    if(indexPath.section == 0) return 48;
+    if(indexPath.section == 0) return 46;
     else return 105;
 }
 
@@ -266,8 +271,8 @@
     CGFloat delta = scrollView.contentOffset.y - _lastContentOffsetY;
     if (delta > 0.f && prevDelta <= 0.f) {
         [[NSNotificationCenter defaultCenter] postNotificationName:@"HideSlider" object:self];
-    } else if (delta < 0.f && prevDelta >= 0.f) {
-        [[NSNotificationCenter defaultCenter] postNotificationName:@"RevealSlider" object:self];
+    } else if (delta < -5.f && prevDelta >= 0.f) {
+        //[[NSNotificationCenter defaultCenter] postNotificationName:@"RevealSlider" object:self];
     }
     self.previousContentDelta = delta;
     

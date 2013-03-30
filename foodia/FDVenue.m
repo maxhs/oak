@@ -99,7 +99,7 @@
             NSMutableArray *myMembers = [NSMutableArray arrayWithCapacity:[value count]];
             for (id valueMember in value) {
                 FoursquareCategory *populatedMember = [FoursquareCategory instanceFromDictionary:valueMember];
-                [myMembers addObject:populatedMember];
+                if (populatedMember.primary && ![populatedMember.shortName isEqualToString:@"Electronics"])[myMembers addObject:populatedMember];
             }
             self.categories = myMembers;
         }

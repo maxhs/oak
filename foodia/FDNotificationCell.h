@@ -8,7 +8,6 @@
 
 #import <UIKit/UIKit.h>
 #import "FDNotification.h"
-#import "FDProfileButton.h"
 @interface FDNotificationCell : UITableViewCell
 
 @property (weak, nonatomic) IBOutlet UILabel *messageLabel;

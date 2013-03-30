@@ -39,8 +39,6 @@
     
     self.facebook.sessionDelegate = self;
     [self performSetup];
-    [[FDAPIClient sharedClient] setFacebookID:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookId]];
-    [[FDAPIClient sharedClient] setFacebookAccessToken:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookAccessToken]];
     [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"JustLaunched"];
     NSSetUncaughtExceptionHandler(&uncaughtExceptionHandler);
     [Flurry startSession:kFlurryAPIKey];
@@ -176,12 +174,9 @@ void uncaughtExceptionHandler(NSException *exception) {
             NSDictionary<FBGraphUser> *user,
             NSError *error) {
               if (!error) {
-                  [[FDAPIClient sharedClient] setFacebookID: user.id];
-                  [[FDAPIClient sharedClient] setFacebookAccessToken:session.accessToken];
                   [[NSUserDefaults standardUserDefaults] setObject:user.id forKey:kUserDefaultsFacebookId];
                   [[NSUserDefaults standardUserDefaults] setObject:session.accessToken forKey:kUserDefaultsFacebookAccessToken];
-                  [[NSUserDefaults standardUserDefaults] setObject:user.name forKey:@"userName"];
-                  
+                  [[NSUserDefaults standardUserDefaults] setObject:user.name forKey:kUserDefaultsUserName];
                   [Utilities cacheUserProfileImage];
                   [self sessionStateChanged:session state:state error:error user:user];
               } 

@@ -20,6 +20,11 @@
 @property (weak, nonatomic) IBOutlet UIButton *detailPhotoButton;
 @property (weak, nonatomic) IBOutlet UIButton *slideCellButton;
 @property (weak, nonatomic) IBOutlet UIImageView *photoImageView;
+@property (weak, nonatomic) IBOutlet UIImageView *photoBackground;
+@property (weak, nonatomic) IBOutlet UILabel *likeCountLabel;
+@property (weak, nonatomic) IBOutlet UILabel *recCountLabel;
+@property (weak, nonatomic) IBOutlet UILabel *timeLabel;
+@property (weak, nonatomic) IBOutlet UIButton *cellMotionButton;
 - (void)configureForPost:(FDPost *)post;
 + (CGFloat)cellHeight;
 - (IBAction)slideCell;

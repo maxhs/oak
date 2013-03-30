@@ -12,4 +12,6 @@
 @property (nonatomic,strong) NSMutableArray *notifications;
 @property (nonatomic,strong) AFJSONRequestOperation *feedRequestOperation;
 - (void)refresh;
+- (void)grow;
+- (void)shrink;
 @end

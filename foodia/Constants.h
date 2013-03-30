@@ -3,7 +3,13 @@
 #define kUserDefaultsId @"kDefaultsKeyUserId"
 #define kUserDefaultsFacebookId @"FacebookID"
 #define kUserDefaultsFacebookAccessToken @"FacebookAccessToken"
+#define kUserDefaultsAuthenticationToken @"AuthenticationToken"
+#define kUserDefaultsEmail @"Email"
+#define kUserDefaultsPassword @"Password"
+#define kUserDefaultsUserName @"UserName"
+#define kUserDefaultsAvatarUrl @"AvatarUrl"
 
+#define kJustPosted @"JustPosted"
 #define kDefaultsTwitterActive @"kDefaultsTwitterActive"
 #define kDefaultsInstagramActive @"kDefaultsInstagramActive"
 #define kDefaultsFacebookActive @"kDefaultsFacebookActive"
@@ -15,7 +21,7 @@
 
 #define kAvenirMedium @"AvenirNextCondensed-Medium"
 #define kAvenirDemiBold @"AvenirNextCondensed-DemiBold"
-
+#define kColorLightBlack [UIColor colorWithWhite:.18 alpha:1.0]
 #define kColorBlue [UIColor colorWithRed:102.f/255.f Green:153.f/255.f Blue:204.f/255.f Alpha:1.f]
 #define kColorOutlineGray [UIColor colorwithRed:211.f/255.f Green:211.f/255.f Blue:211.f/255.f Alpha:1.f]
 #define kColorButtonFollowing [UIColor colorWithRed:102.0/255.0 green:172.0/255.0 blue:250.0/255.0 alpha:1.0]

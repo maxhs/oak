@@ -43,7 +43,7 @@
 @property (nonatomic, retain) NSSet    * comments;
 @property (nonatomic, retain) FDVenue  * venue;
 @property (nonatomic, retain) NSString *FDVenueId;
-@property (nonatomic, retain) UIImage  * photoImage;
+@property (nonatomic, strong) UIImage  * photoImage;
 @property (nonatomic, retain) CLLocation  * location;
 @property (nonatomic) BOOL  * customVenue;
 @property (nonatomic, retain) NSNumber *postId;

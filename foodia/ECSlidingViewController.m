@@ -321,6 +321,7 @@ NSString *const ECSlidingViewTopDidReset          = @"ECSlidingViewTopDidReset";
 - (void)anchorTopViewTo:(ECSide)side
 {
   [self anchorTopViewTo:side animations:nil onComplete:nil];
+    
 }
 
 - (void)anchorTopViewTo:(ECSide)side animations:(void (^)())animations onComplete:(void (^)())complete
@@ -356,11 +357,13 @@ NSString *const ECSlidingViewTopDidReset          = @"ECSlidingViewTopDidReset";
       [[NSNotificationCenter defaultCenter] postNotificationName:key object:self userInfo:nil];
     });
   }];
+    
 }
 
 - (void)anchorTopViewOffScreenTo:(ECSide)side
 {
   [self anchorTopViewOffScreenTo:side animations:nil onComplete:nil];
+
 }
 
 - (void)anchorTopViewOffScreenTo:(ECSide)side animations:(void(^)())animations onComplete:(void(^)())complete
@@ -391,10 +394,13 @@ NSString *const ECSlidingViewTopDidReset          = @"ECSlidingViewTopDidReset";
       [[NSNotificationCenter defaultCenter] postNotificationName:key object:self userInfo:nil];
     });
   }];
+    
 }
 
 - (void)resetTopView
+
 {
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"ShrinkMenuView" object:nil];
   [self resetTopViewWithAnimations:nil onComplete:nil];
 }
 
@@ -665,6 +671,14 @@ NSString *const ECSlidingViewTopDidReset          = @"ECSlidingViewTopDidReset";
   } else {
     [NSException raise:@"Invalid Width Layout" format:@"underRightWidthLayout must be a valid ECViewWidthLayout"];
   }
+}
+
+- (void)updateUnderAboveLayout {
+
+}
+
+-(void) underAboveWillAppear {
+    
 }
 
 @end

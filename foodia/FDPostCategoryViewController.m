@@ -14,6 +14,7 @@
 #import "UIButton+WebCache.h"
 #import "SDImageCache.h"
 #import <QuartzCore/QuartzCore.h>
+#import "Flurry.h"
 
 @interface FDPostCategoryViewController () <UITextFieldDelegate>
 @property (nonatomic, weak) IBOutlet UIImageView *dummyView;
@@ -88,6 +89,7 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    [Flurry logEvent:@"Viewing category screen" timed:YES];
     self.navigationItem.rightBarButtonItem = nil;
     if (self.isEditing == NO) {
         self.thePost = [[FDPost alloc] init];
@@ -235,7 +237,7 @@
     button = [self setupButtonForContainer:self.eatingContainerView titleView:self.eatingTitleView placeholderImage:[UIImage imageNamed:@"category_eat"] imageUrl:imageUrl delay:0.5*[[ordinals objectAtIndex:0] floatValue]];
     [button addTarget:self action:@selector(selectEat:) forControlEvents:UIControlEventTouchUpInside];
     
-    imageArray = [self.categoryImageURLs objectForKey:@"Making"];
+    imageArray = [self.categoryImageURLs objectForKey:@"Cooking"];
     imageUrl = nil;
     if (imageArray.count) {
         imageUrl = [NSURL URLWithString:[imageArray objectAtIndex:arc4random()%imageArray.count]];

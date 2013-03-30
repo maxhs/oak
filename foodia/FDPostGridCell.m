@@ -56,21 +56,24 @@ static NSDictionary *placeholderImages;
             [UIView animateWithDuration:.25 animations:^{
                 [self.photoImageView setImage:image];
                 [self.photoImageView setAlpha:1.0];
-                [self addShadow:self.photoImageView];
+                [self.photoBackground setAlpha:0.8];
+                //[self addShadow:self.photoImageView];
             }];
         }];
         [self.photoImageView1 setImageWithURL:post1.featuredImageURL completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType) {
             [UIView animateWithDuration:.25 animations:^{
                 [self.photoImageView1 setImage:image];
                 [self.photoImageView1 setAlpha:1.0];
-                [self addShadow:self.photoImageView1];
+                [self.photoBackground1 setAlpha:0.8];
+                //[self addShadow:self.photoImageView1];
             }];
         }];
         [self.photoImageView2 setImageWithURL:post2.featuredImageURL completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType) {
             [UIView animateWithDuration:.25 animations:^{
                 [self.photoImageView2 setImage:image];
                 [self.photoImageView2 setAlpha:1.0];
-                [self addShadow:self.photoImageView2];
+                [self.photoBackground2 setAlpha:0.8];
+                //[self addShadow:self.photoImageView2];
             }];
         }];
 
@@ -80,7 +83,7 @@ static NSDictionary *placeholderImages;
     }
 }
 
--(void)addShadow:(UIImageView *)photoImageViewToShadow {
+/*-(void)addShadow:(UIImageView *)photoImageViewToShadow {
     CGPathRef path = [UIBezierPath bezierPathWithRect:photoImageViewToShadow.bounds].CGPath;
     [photoImageViewToShadow.layer setShadowPath:path];
     photoImageViewToShadow.layer.shouldRasterize = YES;
@@ -90,6 +93,6 @@ static NSDictionary *placeholderImages;
     photoImageViewToShadow.layer.shadowOpacity = 1;
     photoImageViewToShadow.layer.shadowRadius = 2.0;
     photoImageViewToShadow.clipsToBounds = NO;
-}
+}*/
 
 @end

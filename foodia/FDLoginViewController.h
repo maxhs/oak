@@ -11,5 +11,6 @@
 @interface FDLoginViewController : UIViewController
 - (IBAction)login:(id)sender;
 - (IBAction)showEmailConnect;
+- (IBAction)cancelEmailConnect;
 - (void)loginFailed;
 @end

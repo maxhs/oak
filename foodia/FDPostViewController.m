@@ -35,10 +35,11 @@
 NSString *const kPlaceholderAddCommentPrompt = @"Add your two cents...";
 static NSDictionary *placeholderImages;
 
-@interface FDPostViewController () <UITableViewDataSource, UITableViewDelegate, UITextViewDelegate, UIScrollViewDelegate, UIActionSheetDelegate, MFMailComposeViewControllerDelegate, MFMessageComposeViewControllerDelegate, UIAlertViewDelegate>
+@interface FDPostViewController () <UITableViewDataSource, UITableViewDelegate, UITextViewDelegate, UIScrollViewDelegate, UIActionSheetDelegate, MFMailComposeViewControllerDelegate, MFMessageComposeViewControllerDelegate, UIAlertViewDelegate, UIGestureRecognizerDelegate>
 
 @property (nonatomic,strong) AFJSONRequestOperation *postRequestOperation;
 @property (weak, nonatomic) IBOutlet UIImageView *photoImageView;
+@property (weak, nonatomic) IBOutlet UIImageView *photoBackground;
 @property (weak,nonatomic) IBOutlet UIButton *photoButton;
 @property (weak, nonatomic) IBOutlet UIButton *posterButton;
 @property (weak, nonatomic) IBOutlet UIButton *likeButton;
@@ -56,26 +57,37 @@ static NSDictionary *placeholderImages;
 @property (weak,nonatomic) IBOutlet UIView *titleView;
 @property (strong, nonatomic) FDComment *posterComment;
 @property (weak, nonatomic) IBOutlet UIProgressView *progressView;
-//@property (nonatomic) UITapGestureRecognizer *doubleTap;
 @property (nonatomic, strong) FDPost *post;
 @property (nonatomic, strong) NSArray *comments;
 @property (strong, nonatomic) NSString *likerFacebookId;
 @property (strong, nonatomic) NSString *commenterFacebookId;
+@property (weak, nonatomic) IBOutlet UIImageView *likeNotificationImageView;
+@property (weak, nonatomic) IBOutlet UIView *likeNotificationContainer;
+@property (strong, nonatomic) UIImageView *loadingOverlay;
+@property (strong, nonatomic) UILabel *holdLabel;
+@property (weak, nonatomic) IBOutlet UIPinchGestureRecognizer *pinchGesture;
+@property (weak, nonatomic) IBOutlet UIPanGestureRecognizer *panGesture;
+@property BOOL isHoldingPost;
 @property CGRect captionRect;
 @property CGRect socialLabelRect;
 @property CGRect newTableHeaderView;
 @property CGRect screenRect;
 @property CGFloat screenWidth;
 @property CGFloat screenHeight;
-@property CGFloat photoImageViewY;
-@property CGFloat photoImageViewX;
+@property BOOL justLiked;
+-(IBAction)handlePhotoPinch:(UIPinchGestureRecognizer*)pinchGesture;
+- (IBAction)handlePan:(UIPanGestureRecognizer *)recognizer;
 @end
 
 @implementation FDPostViewController
 
-@synthesize likersScrollView, addComment, likerFacebookId, commenterFacebookId, captionRect, socialLabelRect, newTableHeaderView, whiteCaption, screenRect, screenWidth, screenHeight, /*doubleTap, */photoImageViewY, photoImageViewX;
+@synthesize likersScrollView, addComment, likerFacebookId, commenterFacebookId, captionRect, socialLabelRect, newTableHeaderView, whiteCaption, screenRect, screenWidth, screenHeight;
 @synthesize post = _post;
 @synthesize posterComment = _posterComment;
+@synthesize justLiked = _justLiked;
+@synthesize loadingOverlay = _loadingOverlay;
+@synthesize holdLabel = _holdLabel;
+@synthesize isHoldingPost;
 
 + (void)initialize {
     if (self == [FDPostViewController class]) {
@@ -93,14 +105,16 @@ static NSDictionary *placeholderImages;
 
 - (void)viewDidLoad
 {
+    //self.view.transform = CGAffineTransformMakeScale(.9, .9);
     [super viewDidLoad];
     [Flurry logEvent:@"ViewingPost" timed:YES];
-    [self.navigationController setNavigationBarHidden:NO];
-    if (self.navigationItem.rightBarButtonItem != nil){
-        [self.navigationItem.rightBarButtonItem setEnabled:NO];
-    }
+    [self.navigationController setNavigationBarHidden:NO animated:YES];
+    _holdLabel = [[UILabel alloc] init];
+    _loadingOverlay = [[UIImageView alloc] init];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(willShowKeyboard) name:UIKeyboardWillShowNotification object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(willHideKeyboard) name:UIKeyboardWillHideNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(refresh) name:@"RefreshPostView" object:nil];
+    
     [[NSUserDefaults standardUserDefaults] setBool:true
                                             forKey:kDefaultsEnlargePhoto];
     [[NSUserDefaults standardUserDefaults] setBool:false
@@ -108,28 +122,31 @@ static NSDictionary *placeholderImages;
     self.posterComment = [[FDComment alloc] init];
     self.screenRect = [[UIScreen mainScreen] bounds];
     self.screenWidth = screenRect.size.width;
-    self.screenHeight = screenRect.size.height;
-    //self.doubleTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(zoomPhoto:)];
-    //self.doubleTap.numberOfTapsRequired = 2;
-    self.photoImageViewX = 0;
-    self.tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
+    self.screenHeight = screenRect.size.height;    self.tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
     
     self.recButton.layer.borderColor = [UIColor colorWithWhite:1.0 alpha:.4].CGColor;
     self.recButton.layer.borderWidth = 1.0f;
     self.recButton.backgroundColor = [UIColor clearColor];
     self.recButton.layer.cornerRadius = 17.0f;
     
+    self.likeNotificationImageView.layer.shadowColor = [UIColor whiteColor].CGColor;
+    self.likeNotificationImageView.layer.shadowOffset = CGSizeMake(0, 0);
+    self.likeNotificationImageView.layer.shadowOpacity = 1;
+    self.likeNotificationImageView.layer.shadowRadius = 20.0;
     
     UIImage *likeButtonImage;
     if ([self.post isLikedByUser]) {
-        likeButtonImage = [UIImage imageNamed:@"feedLikeButtonRed.png"];
+        likeButtonImage = [UIImage imageNamed:@"light_smile"];
+        [self.likeButton setBackgroundColor:kColorLightBlack];
+        self.likeButton.layer.borderColor = kColorLightBlack.CGColor;
     } else {
-        likeButtonImage = [UIImage imageNamed:@"feedLikeButtonGray.png"];
+        likeButtonImage = [UIImage imageNamed:@"dark_smile"];
+        self.likeButton.layer.borderColor = [UIColor colorWithWhite:.1 alpha:.1].CGColor;
+        self.likeButton.backgroundColor = [UIColor whiteColor];
     }
-    self.likeButton.layer.borderColor = [UIColor colorWithWhite:.1 alpha:.1].CGColor;
+    
     [self.likeButton setImage:likeButtonImage forState:UIControlStateNormal];
     self.likeButton.layer.borderWidth = 1.0f;
-    self.likeButton.backgroundColor = [UIColor whiteColor];
     self.likeButton.layer.cornerRadius = 17.0f;
     self.likeButton.layer.shouldRasterize = YES;
     self.likeButton.layer.rasterizationScale = [UIScreen mainScreen].scale;
@@ -175,10 +192,41 @@ static NSDictionary *placeholderImages;
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
+    /*[UIView animateWithDuration:.075 delay:.15 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        self.view.transform = CGAffineTransformIdentity;
+    } completion:^(BOOL finished) {
+       
+    }];*/
+    
     [TestFlight passCheckpoint:@"Post Detail view"];
     if ([[NSUserDefaults standardUserDefaults] boolForKey:kDefaultsBlackView]){
         [self.navigationController setNavigationBarHidden:YES animated:YES];
     }
+    
+    [self.likeNotificationContainer setHidden:YES];
+    
+    UITapGestureRecognizer *oneTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(expandImage:)];
+    oneTap.numberOfTapsRequired = 1;
+    [oneTap setEnabled:YES];
+    oneTap.delegate = self;
+    [self.photoImageView addGestureRecognizer:oneTap];
+    
+    UITapGestureRecognizer *doubleTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tapToLike)];
+    doubleTap.numberOfTapsRequired = 2;
+    [doubleTap setEnabled:YES];
+    doubleTap.delegate = self;
+    [self.photoImageView addGestureRecognizer:doubleTap];
+    
+    [oneTap requireGestureRecognizerToFail:doubleTap];
+    
+    UILongPressGestureRecognizer *pressAndHold = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(holdOntoPost)];
+    [pressAndHold setEnabled:YES];
+    pressAndHold.delegate = self;
+    pressAndHold.minimumPressDuration = 0.3;
+    [self.photoImageView addGestureRecognizer:pressAndHold];
+    
+    //[pressAndHold requireGestureRecognizerToFail:oneTap];
+    
     // look for a cached detail version of this post
     // if none exists, load from the API
     /*FDPost *cachedPost = [FDCache getCachedPostForIdentifier:self.postIdentifier];
@@ -312,7 +360,7 @@ static NSDictionary *placeholderImages;
     self.postRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getDetailsForPostWithIdentifier:self.postIdentifier success:^(FDPost *post) {
         self.post = post;
         [self showPostDetails];
-        self.locationButton.layer.borderColor = [UIColor colorWithWhite:1.0 alpha:.4].CGColor;
+        self.locationButton.layer.borderColor = [UIColor whiteColor].CGColor;
         self.locationButton.layer.borderWidth = 1.0f;
         self.locationButton.layer.cornerRadius = 17.0f;
         if ([self.post.locationName isEqualToString:@""]){
@@ -329,13 +377,18 @@ static NSDictionary *placeholderImages;
 
 - (void)showPostDetails {
     //Add en edit button if the post is editable
+    UIBarButtonItem *editButton;
     if ([self.post.user.facebookId isEqualToString:[[NSUserDefaults standardUserDefaults]objectForKey:@"FacebookID"]]){
-        UIBarButtonItem *editButton = [[UIBarButtonItem alloc] initWithTitle:@"EDIT" style:UIBarButtonItemStyleBordered target:self action:@selector(updatePost)];
-        self.navigationItem.rightBarButtonItem = editButton;
+        editButton = [[UIBarButtonItem alloc] initWithTitle:@"EDIT" style:UIBarButtonItemStyleBordered target:self action:@selector(updatePost)];
+        
+        
     }
     [self.posterButton setImageWithURL:[Utilities profileImageURLForFacebookID:self.post.user.facebookId] forState:UIControlStateNormal];
-    self.posterButton.layer.cornerRadius = 25.0f;
-    self.posterButton.clipsToBounds = YES;
+    self.posterButton.imageView.layer.cornerRadius = 25.0f;
+    //clips to bounds kills performance
+    //self.posterButton.clipsToBounds = YES;
+    [self.posterButton.imageView setBackgroundColor:[UIColor clearColor]];
+    [self.posterButton.imageView.layer setBackgroundColor:[UIColor whiteColor].CGColor];
     [UIView animateWithDuration:.25 animations:^{
         [self.likeButton setAlpha:1.0];
         [self.likeCountLabel setAlpha:1.0];
@@ -351,27 +404,22 @@ static NSDictionary *placeholderImages;
                 self.photoImageView.image = image;
                 [UIView animateWithDuration:.25 animations:^{
                     [self.photoImageView setAlpha:1.0];
-                    self.photoImageView.layer.shadowColor = [UIColor darkGrayColor].CGColor;
-                    self.photoImageView.layer.shadowOffset = CGSizeMake(0, 1);
-                    self.photoImageView.layer.shadowOpacity = 1;
-                    self.photoImageView.layer.shadowRadius = 3.0;
-                    self.photoImageView.clipsToBounds = NO;
+                    [self.photoBackground setAlpha:0.6];
                 }];
-                [self.navigationItem.rightBarButtonItem setEnabled:YES];
+                self.navigationItem.rightBarButtonItem = editButton;
             }
         }];
     } else {
         [self.photoImageView setImage:[FDPostViewController placeholderImageForCategory:self.post.category]];
-        [UIView animateWithDuration:.25 animations:^{
+        [UIView animateWithDuration:.25 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
             [self.photoImageView setAlpha:1.0];
-            self.photoImageView.layer.shadowColor = [UIColor darkGrayColor].CGColor;
-            self.photoImageView.layer.shadowOffset = CGSizeMake(0, 1);
-            self.photoImageView.layer.shadowOpacity = 1;
-            self.photoImageView.layer.shadowRadius = 3.0;
-            self.photoImageView.clipsToBounds = NO;
+            [self.photoBackground setAlpha:0.6];
             [self.likeButton setAlpha:1.0];
             [self.likeCountLabel setAlpha:1.0];
             [self.likersScrollView setAlpha:1.0];
+            
+        }completion:^(BOOL finished) {
+            self.navigationItem.rightBarButtonItem = editButton;
         }];
     }
     
@@ -415,8 +463,16 @@ static NSDictionary *placeholderImages;
     else self.captionTextView.hidden = YES;*/
     
     UIImage *likeButtonImage;
-    if (self.post.isLikedByUser) likeButtonImage = [UIImage imageNamed:@"feedLikeButtonRed.png"];
-    else likeButtonImage = [UIImage imageNamed:@"feedLikeButtonGray.png"];
+    if (self.post.isLikedByUser) {
+        likeButtonImage = [UIImage imageNamed:@"light_smile"];
+        [self.likeButton setBackgroundColor:kColorLightBlack];
+        [self.likeButton.layer setBorderColor:kColorLightBlack.CGColor];
+    } else {
+        likeButtonImage = [UIImage imageNamed:@"dark_smile.png"];
+        [self.likeButton setBackgroundColor:[UIColor whiteColor]];
+        self.likeButton.layer.borderColor = [UIColor colorWithWhite:.1 alpha:.1].CGColor;;
+    }
+
     
     [self.likeButton setImage:likeButtonImage forState:UIControlStateNormal];
     
@@ -458,9 +514,11 @@ static NSDictionary *placeholderImages;
                                      success:^(FDPost *newPost) {
                                          [Flurry logEvent:@"likeSuccess"];
                                          self.post = newPost;
+
+                                         //conditionally change the like count number
                                          int t = [newPost.likeCount intValue] + 1;
-                                         
-                                         [newPost setLikeCount:[[NSNumber alloc] initWithInt:t]];
+                                         if (!self.justLiked) [newPost setLikeCount:[[NSNumber alloc] initWithInt:t]];
+                                         self.justLiked = YES;
 
                                          [self showPostDetails];
                                      } failure:^(NSError *error) {
@@ -496,7 +554,7 @@ static NSDictionary *placeholderImages;
                          }
                          //[self.foodiaObjectTextView setFrame:CGRectMake(0, 0, 320, 66)];
                        
-                         [self.locationButton setFrame:CGRectMake(170,self.screenHeight-60, 140,34)];
+                         [self.locationButton setFrame:CGRectMake(160,self.screenHeight-60, 150,34)];
                      }
                      completion:^(BOOL finished){
                          
@@ -525,54 +583,49 @@ static NSDictionary *placeholderImages;
     if ([[NSUserDefaults standardUserDefaults] boolForKey:kDefaultsEnlargePhoto]) {
         [self.navigationController setNavigationBarHidden:YES animated:YES];
         [self makeBlackView];
+        [UIView animateWithDuration:.1 animations:^{
+            [self.photoBackground setAlpha:0.0];
+        }];
         [UIView animateWithDuration:0.425
                           delay:0.0
                         options: UIViewAnimationOptionCurveEaseInOut
                      animations:^{
-                         self.photoImageView.layer.shadowColor = [UIColor darkGrayColor].CGColor;
-                         self.photoImageView.layer.shadowOffset = CGSizeMake(0, 1);
-                         self.photoImageView.layer.shadowOpacity = 0;
-                         self.photoImageView.layer.shadowRadius = 0;
-                         self.photoImageView.clipsToBounds = NO;
-                         [self.posterButton setAlpha:0.0];
-                         if ([UIScreen mainScreen].bounds.size.height == 568) {
-                             [self.photoImageView setFrame:CGRectMake(0,halfScreenHeight-170,320,320)];
-                             self.photoButton.frame = CGRectMake(0,0,self.screenWidth,self.screenHeight-60);
-                         } else {
-                             [self.photoImageView setFrame:CGRectMake(0,10,320,320)];
-                             self.photoButton.frame = CGRectMake(0,10,320,320);
-                         }
                          
                          [self.view addSubview:self.photoImageView];
-                         [self.view addSubview:self.photoButton];
+                         [self.view addSubview:self.likeNotificationContainer];
+                         if ([UIScreen mainScreen].bounds.size.height == 568) {
+                             [self.photoImageView setFrame:CGRectMake(0,halfScreenHeight-170,320,320)];
+                             [self.likeNotificationContainer setFrame:CGRectMake(110, 185, 100, 100)];
+                         } else {
+                             [self.photoImageView setFrame:CGRectMake(0,10,320,320)];
+                         }
                      }
                      completion:^(BOOL finished){
                          [[NSUserDefaults standardUserDefaults] setBool:false
                                                                  forKey:kDefaultsEnlargePhoto];
                          [[NSUserDefaults standardUserDefaults] setBool:true
                                                                  forKey:kDefaultsBlackView];
-                         /*[self.view addGestureRecognizer:doubleTap];
-                         self.doubleTap.enabled = YES;*/
-                         self.photoImageViewY = self.photoImageView.frame.origin.y;
-                         self.photoImageViewX = 0;
+                         
+                         [self.pinchGesture setEnabled:YES];
+                         [self.panGesture setEnabled:YES];
                      }];
     } else {
-        [self.photoImageView setFrame:CGRectMake(0-self.photoImageViewX,self.photoImageViewY-20,self.photoImageView.frame.size.width,self.photoImageView.frame.size.height)];
-        [UIView animateWithDuration:0.4
+        [UIView animateWithDuration:.20 delay:.25 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+            [self.photoBackground setAlpha:0.6];
+        }completion:^(BOOL finished) {}];
+        [self.navigationController setNavigationBarHidden:NO animated:YES];
+        [UIView animateWithDuration:0.35
                               delay:0.0
                             options: UIViewAnimationOptionCurveEaseInOut
                          animations:^{
-                             self.photoImageView.layer.shadowColor = [UIColor darkGrayColor].CGColor;
-                             self.photoImageView.layer.shadowOffset = CGSizeMake(0, 1);
-                             self.photoImageView.layer.shadowOpacity = 1;
-                             self.photoImageView.layer.shadowRadius = 3.0;
-                             self.photoImageView.clipsToBounds = NO;
+                             self.photoImageView.transform = CGAffineTransformIdentity;
                              [self.posterButton setAlpha:1.0];
                              [self.photoImageView setFrame:CGRectMake(5,5,310,310)];
-                             [self.photoButton setFrame:CGRectMake(5,5,310,310)];
                              [self.tableHeaderView addSubview:self.photoImageView];
-                             [self.tableHeaderView addSubview:self.photoButton];
-                             [self.tableHeaderView insertSubview:self.posterButton aboveSubview:self.photoButton];
+                             [self.tableHeaderView addSubview:self.likeNotificationContainer];
+                             [self.likeNotificationContainer setFrame:CGRectMake(110, 110, 100, 100)];
+                             [self.tableHeaderView insertSubview:self.posterButton aboveSubview:self.photoImageView];
+                             [self.tableHeaderView bringSubviewToFront:self.likeNotificationContainer];
                              [self removeBlackView];
                          }
          
@@ -581,17 +634,17 @@ static NSDictionary *placeholderImages;
                                                                      forKey:kDefaultsEnlargePhoto];
                              [[NSUserDefaults standardUserDefaults] setBool:false
                                                                      forKey:kDefaultsBlackView];
-                             //self.doubleTap.enabled = NO;
-                             //[self.view removeGestureRecognizer:doubleTap];
+                             [self.pinchGesture setEnabled:NO];
+                             [self.panGesture setEnabled:NO];
                              
                          }];
         [self.view addSubview:self.tableView];
-        [self.navigationController setNavigationBarHidden:NO animated:YES];
+        
     }
 }
 
 -(void) scrollViewDidScroll:(UIScrollView *)scrollView {
-    self.photoImageViewX = scrollView.contentOffset.x;
+    //self.photoImageViewX = scrollView.contentOffset.x;
     if (scrollView == self.likersScrollView) [Flurry logEvent:@"likersScrollViewDidScroll"];
 }
 
@@ -633,38 +686,38 @@ static NSDictionary *placeholderImages;
     self.likersScrollView.showsHorizontalScrollIndicator=NO;
     
     float imageSize = 34.0;
-    float space = 10.0;
+    float space = 6.0;
     int index = 0;
 
     for (NSDictionary *viewer in viewers) {
         if ([viewer objectForKey:@"facebook_id"] != [NSNull null]){
-            UIImageView *heart = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"feedLikeButtonRed.png"]];
-            UIImageView *likerView = [[UIImageView alloc] initWithFrame:CGRectMake(((self.likersScrollView.frame.origin.x)+((space+imageSize)*index)),(self.likersScrollView.frame.origin.y), imageSize, imageSize)];
-            UIButton *likerButton = [UIButton buttonWithType:UIButtonTypeCustom];
+            UIImageView *face = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"light_smile"]];
+            UIButton *viewerButton = [UIButton buttonWithType:UIButtonTypeCustom];
+            [viewerButton setFrame:CGRectMake(((space+imageSize)*index),0,imageSize, imageSize)];
             
             //passing liker facebook id as a string instead of NSNumber so that it can hold more data. crafty.
-            likerButton.titleLabel.text = [viewer objectForKey:@"facebook_id"];
-            likerButton.titleLabel.hidden = YES;
+            viewerButton.titleLabel.text = [viewer objectForKey:@"facebook_id"];
+            viewerButton.titleLabel.hidden = YES;
             
             //[likerButton setTag: [[liker objectForKey:@"facebook_id"] integerValue]];
-            [likerButton addTarget:self action:@selector(profileTappedFromLikers:) forControlEvents:UIControlEventTouchUpInside];
-            [likerView setImageWithURL:[Utilities profileImageURLForFacebookID:[viewer objectForKey:@"facebook_id"]]];
-            //[likerView setUserId:[liker objectForKey:@"facebook_id"]];
-            likerView.userInteractionEnabled = YES;
-            likerView.clipsToBounds = YES;
-            likerView.layer.cornerRadius = 5.0;
-            likerView.frame = CGRectMake(((space+imageSize)*index),0,imageSize, imageSize);
-            heart.frame = CGRectMake((((space+imageSize)*index)+20),16,20,20);
-            [likerButton setFrame:likerView.frame];
-            heart.clipsToBounds = NO;
-            [self.likersScrollView addSubview:likerView];
+            [viewerButton addTarget:self action:@selector(profileTappedFromLikers:) forControlEvents:UIControlEventTouchUpInside];
+            [viewerButton setImageWithURL:[Utilities profileImageURLForFacebookID:[viewer objectForKey:@"facebook_id"]] forState:UIControlStateNormal];
+
+            viewerButton.imageView.layer.cornerRadius = 5.0;
+            [viewerButton.imageView setBackgroundColor:[UIColor clearColor]];
+            [viewerButton.imageView.layer setBackgroundColor:[UIColor whiteColor].CGColor];
+            viewerButton.imageView.layer.shouldRasterize = YES;
+            viewerButton.imageView.layer.rasterizationScale = [UIScreen mainScreen].scale;
+            face.frame = CGRectMake((((space+imageSize)*index)+18),18,20,20);
+            
+            [self.likersScrollView addSubview:viewerButton];
             for (NSDictionary *liker in likers) {
                 if ([[liker objectForKey:@"facebook_id"] isEqualToString:[viewer objectForKey:@"facebook_id"]]){
-                    [self.likersScrollView addSubview:heart];
+                    [self.likersScrollView addSubview:face];
                     break;
                 }
             }
-            [self.likersScrollView addSubview:likerButton];
+            
             index++;
         }
     }
@@ -703,13 +756,17 @@ static NSDictionary *placeholderImages;
     if (indexPath.section == 0) {
         UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"AddComment"];
         UIImageView *imageView = (UIImageView *)[cell viewWithTag:66];
+        [imageView setImageWithURL:[Utilities profileImageURLForCurrentUser]];
+        [imageView setBackgroundColor:[UIColor clearColor]];
+        [imageView.layer setBackgroundColor:[UIColor whiteColor].CGColor];
         imageView.layer.cornerRadius = 3.0f;
         imageView.clipsToBounds = YES;
-        [imageView setImageWithURL:[Utilities profileImageURLForCurrentUser]];
+        imageView.layer.shouldRasterize = YES;
+        imageView.layer.rasterizationScale = [UIScreen mainScreen].scale;
+        
         UITextView *textView = (UITextView *)[cell viewWithTag:67];
         textView.layer.borderColor = [UIColor colorWithWhite:.5 alpha:.4].CGColor;
         textView.layer.cornerRadius = 3.0f;
-        textView.clipsToBounds = YES;
         textView.layer.borderWidth = 0.5f;
         return cell;
     } else if (self.post.caption.length > 0 && indexPath.section == 1) {
@@ -718,28 +775,47 @@ static NSDictionary *placeholderImages;
         [self.posterComment setUser:self.post.user];
         [self.posterComment setEpochTime:self.post.epochTime];
         [cell configureForComment:self.posterComment];
-        cell.profileImageView.layer.cornerRadius = 3.0;
+
         commenterButton.titleLabel.text = self.posterComment.user.facebookId;
         commenterButton.titleLabel.hidden = YES;
+        [commenterButton setImageWithURL:[Utilities profileImageURLForFacebookID:self.posterComment.user.facebookId] forState:UIControlStateNormal];
+        commenterButton.imageView.layer.cornerRadius = 3.0;
+        [commenterButton.imageView setBackgroundColor:[UIColor clearColor]];
+        [commenterButton.imageView.layer setBackgroundColor:[UIColor whiteColor].CGColor];
+        commenterButton.imageView.layer.shouldRasterize = YES;
+        commenterButton.imageView.layer.rasterizationScale = [UIScreen mainScreen].scale;
+        
         self.commenterFacebookId = self.posterComment.user.facebookId;
-        commenterButton.frame = cell.cellPhotoRect;
+        [commenterButton setFrame:CGRectMake(8,11,36,36)];
         [commenterButton addTarget:self action:@selector(profileTappedFromComment:) forControlEvents:UIControlEventTouchUpInside];
         [cell addSubview:commenterButton];
         return cell;
     } else {
     
-    UIButton *commenterButton = [UIButton buttonWithType:UIButtonTypeCustom];
-    FDComment *comment = [self.comments objectAtIndex:indexPath.row];
-    [cell configureForComment:comment];
-    cell.profileImageView.layer.cornerRadius = 3.0;
-    commenterButton.titleLabel.text = comment.user.facebookId;
-    commenterButton.titleLabel.hidden = YES;
-    self.commenterFacebookId = comment.user.facebookId;
-    commenterButton.frame = cell.cellPhotoRect;
-    [commenterButton addTarget:self action:@selector(profileTappedFromComment:) forControlEvents:UIControlEventTouchUpInside];
-    [cell addSubview:commenterButton];
-    [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
-    return cell;
+        UIButton *commenterButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        [commenterButton setFrame:CGRectMake(8,11,36,36)];
+        FDComment *comment = [self.comments objectAtIndex:indexPath.row];
+        [cell configureForComment:comment];
+    
+        commenterButton.titleLabel.text = comment.user.facebookId;
+        commenterButton.titleLabel.hidden = YES;
+        [commenterButton setImageWithURL:[Utilities profileImageURLForFacebookID:comment.user.facebookId] forState:UIControlStateNormal];
+        commenterButton.imageView.layer.cornerRadius = 3.0;
+        [commenterButton.imageView setBackgroundColor:[UIColor clearColor]];
+        [commenterButton.imageView.layer setBackgroundColor:[UIColor whiteColor].CGColor];
+        commenterButton.imageView.layer.shouldRasterize = YES;
+        commenterButton.imageView.layer.rasterizationScale = [UIScreen mainScreen].scale;
+        self.commenterFacebookId = comment.user.facebookId;
+        
+        if ([comment.user.facebookId isEqualToString:[[NSUserDefaults standardUserDefaults] objectForKey:@"FacebookID"]]){
+            [cell.editButton setHidden:NO];
+            //[cell.editButton addTarget:self action:@selector(editComment:) forControlEvents:UIControlEventTouchUpInside];
+        }
+        
+        [commenterButton addTarget:self action:@selector(profileTappedFromComment:) forControlEvents:UIControlEventTouchUpInside];
+        [cell addSubview:commenterButton];
+        [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
+        return cell;
     }
 }
 
@@ -755,8 +831,13 @@ static NSDictionary *placeholderImages;
 }
 
 - (CGFloat)heightForPosterComment {
-    CGSize bodySize = [self.post.caption sizeWithFont:[UIFont fontWithName:@"AvenirNextCondensed-Medium" size:16] constrainedToSize:CGSizeMake(207, 100000)];
+    CGSize bodySize = [self.post.caption sizeWithFont:[UIFont fontWithName:kAvenirMedium size:16] constrainedToSize:CGSizeMake(207, 100000)];
     return MAX(33 + bodySize.height + 5.f, 60.f);
+}
+
+- (void)editComment:(id)sender {
+    NSLog(@"should be editing this comment");
+    //[self.tableView setContentOffset:CGPointMake(0,(self.tableView.tableHeaderView.frame.size.height)+66) animated:YES];
 }
 
 #pragma mark - UITextViewDelegate Methods
@@ -765,7 +846,7 @@ static NSDictionary *placeholderImages;
     UIBarButtonItem *cancelButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel target:self action:@selector(doneEditing)];
     [cancelButton setTitle:@"CANCEL"];
     [UIView animateWithDuration:0.325f delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-        self.tableView.contentOffset = CGPointMake(0, (self.tableView.tableHeaderView.frame.size.height/1));
+        self.tableView.contentOffset = CGPointMake(0, (self.tableView.tableHeaderView.frame.size.height));
         [[self navigationItem] setRightBarButtonItem:cancelButton];
     } completion:^(BOOL finished) {
         self.tableView.scrollEnabled = YES;
@@ -797,7 +878,7 @@ static NSDictionary *placeholderImages;
     if ([textView.text isEqualToString:@""]) {
         textView.text = kPlaceholderAddCommentPrompt;
         textView.textColor = [UIColor lightGrayColor];
-        textView.font = [UIFont fontWithName:@"AvenirNextCondensed-Medium" size:15];
+        textView.font = [UIFont fontWithName:kAvenirMedium size:15];
     }
 }
 - (void)willHideKeyboard {
@@ -820,6 +901,88 @@ static NSDictionary *placeholderImages;
     }
     
     return YES;
+}
+
+#pragma mark - Gesture Recognizers
+
+- (IBAction)handlePhotoPinch:(UIPinchGestureRecognizer *)pinchGesture {
+    pinchGesture.view.transform = CGAffineTransformScale(pinchGesture.view.transform, pinchGesture.scale, pinchGesture.scale);
+    pinchGesture.scale = 1;
+}
+
+- (IBAction)handlePan:(UIPanGestureRecognizer *)recognizer {
+    CGPoint translation = [recognizer translationInView:self.view];
+    recognizer.view.center = CGPointMake(recognizer.view.center.x + translation.x,
+                                         recognizer.view.center.y + translation.y);
+    [recognizer setTranslation:CGPointMake(0, 0) inView:self.view];
+}
+
+- (void)holdOntoPost {
+    
+    if (!self.isHoldingPost){
+        [[FDAPIClient sharedClient] holdPost:self.postIdentifier];
+        [self.navigationController setNavigationBarHidden:YES animated:YES];
+        CGFloat width = [[UIScreen mainScreen] bounds].size.width;
+        CGFloat height = [[UIScreen mainScreen] bounds].size.height;
+        [self.loadingOverlay setFrame:CGRectMake(0,-20, width, height)];
+        [self.loadingOverlay setImage:[UIImage imageNamed:@"overlay4"]];
+        [self.loadingOverlay setAlpha:0.0];
+        [self.view insertSubview:self.loadingOverlay aboveSubview:self.navigationController.navigationBar];
+        [self.holdLabel setFrame:CGRectMake(width/2-40, height/2-70, 80,100)];
+        [self.holdLabel setText:@"Keeping this post"];
+        [self.holdLabel setTextAlignment:NSTextAlignmentCenter];
+        [self.holdLabel setNumberOfLines:2];
+        [self.holdLabel setFont:[UIFont fontWithName:kAvenirDemiBold size:20]];
+        [self.holdLabel setTextColor:[UIColor whiteColor]];
+        [self.holdLabel setAlpha:0.0];
+        [self.holdLabel setBackgroundColor:[UIColor clearColor]];
+
+        [self.view addSubview:self.holdLabel];
+        [UIView animateWithDuration:.4 animations:^{
+            [self.loadingOverlay setAlpha:1.0];
+            [self.holdLabel setAlpha:1.0];
+        } completion:^(BOOL finished) {
+            [self performSelector:@selector(removeHoldOverlay) withObject:nil afterDelay:1.75];
+            self.isHoldingPost = YES;
+        }];
+    }
+}
+
+- (void) removeHoldOverlay {
+    [self.navigationController setNavigationBarHidden:NO animated:YES];
+    [UIView animateWithDuration:.4 animations:^{
+        [self.loadingOverlay setAlpha:0.0];
+        [self.holdLabel setAlpha:0.0];
+    } completion:^(BOOL finished) {
+        
+    }];
+}
+
+- (void) tapToLike {
+    [self.likeNotificationContainer setHidden:NO];
+    if (!self.post.isLikedByUser){
+        [self likeButtonTapped:nil];
+        [UIView animateWithDuration:.25 delay:0.1 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+            [self.likeNotificationImageView setAlpha:1.0];
+        } completion:^(BOOL finished) {
+            [self performSelector:@selector(hideLikeNotificationView) withObject:nil afterDelay:1.5];
+        }];
+    } else {
+        [UIView animateWithDuration:.25 delay:0.1 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+            [self.likeNotificationImageView setAlpha:1.0];
+        } completion:^(BOOL finished) {
+            [self performSelector:@selector(hideLikeNotificationView) withObject:nil afterDelay:1.5];
+        }];
+    }
+}
+
+- (void)hideLikeNotificationView {
+    [UIView animateWithDuration:.5 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        [self.likeNotificationImageView setAlpha:0.0];
+    }completion:^(BOOL finished) {
+        [self.likeNotificationContainer setHidden:YES];
+    }];
+    
 }
 
 - (void)viewDidUnload {

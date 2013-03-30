@@ -15,13 +15,9 @@
 @property (weak, nonatomic) IBOutlet UIView             *feedContainerView;
 @property (strong, nonatomic) UISearchDisplayController *searchDisplay;
 @property (strong, nonatomic) UISearchBar *searchBar;
+@property (nonatomic, assign) int lastContentOffsetX;
+@property (nonatomic, assign) int lastContentOffsetY;
 
-- (void)showFeed;
-- (void)showFeatured;
-- (void)showNearby;
-- (void)showRecommended;
-- (void)showProfile;
 - (void)hideSlider;
-//- (void)activateSearch;
-- (NSString *)searchText;
+- (IBAction)rightBarButtonAction;
 @end

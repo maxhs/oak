@@ -7,8 +7,11 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "FDUser.h"
+
 
 @interface FDEmailConnectViewController : UIViewController <UIAlertViewDelegate, UITextFieldDelegate>
-@property (weak, nonatomic) IBOutlet UITextField *emailTextField;
-@property (weak, nonatomic) IBOutlet UITextField *passwordTextField;
+@property (weak, nonatomic) IBOutlet UITextField *nameTextField;
+@property (weak, nonatomic) IBOutlet UITextField *locationTextField;
+@property (strong, nonatomic) FDUser *user;
 @end

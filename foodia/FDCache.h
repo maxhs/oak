@@ -11,6 +11,7 @@
 @class FDPost;
 
 @interface FDCache : NSObject
++ (NSMutableArray*)getCachedRankedPosts;
 + (NSMutableArray*)getCachedFeaturedPosts;
 + (NSMutableArray*)getCachedFeedPosts;
 + (NSDictionary *)getCachedCategoryImageURLs;
@@ -20,13 +21,16 @@
 + (void)clearPostCache;
 
 + (void)cacheCategoryImageURLs:(NSDictionary *)URLs;
-+ (void)cacheFeedPosts:(NSMutableArray*)posts;
+//+ (void)cacheFeedPosts:(NSMutableArray*)posts;
 + (void)cacheFeaturedPosts:(NSMutableArray*)posts;
++ (void)cacheRankedPosts:(NSMutableArray*)posts;
 + (void)cacheDetailPost:(FDPost *)post;
 
++ (BOOL)isRankedPostCacheStale;
 + (BOOL)isFeaturedPostCacheStale;
 + (BOOL)isFeedPostCacheStale;
 + (BOOL)isCategoryImageCacheStale;
+
 
 + (void)cacheNearbyPosts:(NSMutableArray*)posts;
 + (NSMutableArray*)getCachedNearbyPosts;

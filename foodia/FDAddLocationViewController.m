@@ -47,8 +47,10 @@
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     if (([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone && [UIScreen mainScreen].bounds.size.height == 568.0)){
-        self.mapView.frame = CGRectMake(0,0,320,460);
-        self.tableContainerView.frame = CGRectMake(0,460,320,548);
+        self.mapView.frame = CGRectMake(0,0,320,200);
+        self.tableContainerView.frame = CGRectMake(0,200,320,304);
+    } else {
+        
     }
     // there are three possibilities when this view appears:
     
@@ -222,11 +224,10 @@
     [self.searchBar setShowsCancelButton:NO animated:YES];
     [UIView animateWithDuration:0.25 animations:^{
         if (([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone && [UIScreen mainScreen].bounds.size.height == 568.0)){
-            self.tableContainerView.frame = CGRectMake(0, 460, 320, 548);
-            self.mapView.frame = CGRectMake(0,0,320,460);
+            self.tableContainerView.frame = CGRectMake(0, 200, 320, 304);
+            self.mapView.frame = CGRectMake(0,0,320,200);
         } else {
-            self.tableContainerView.frame = CGRectMake(0, 372, 320, 460);
-            self.mapView.frame = CGRectMake(0,0,320,460);
+            self.tableContainerView.frame = CGRectMake(0, 180, 320, 280);
         }
     }];
     [searchBar resignFirstResponder];

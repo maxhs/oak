@@ -23,6 +23,7 @@
 #import "FDCustomSheet.h"
 #import "Facebook.h"
 #import "FDRecommendViewController.h"
+#import "UIButton+WebCache.h"
 
 @interface FDPostTableViewController () <UIActionSheetDelegate, MFMailComposeViewControllerDelegate, MFMessageComposeViewControllerDelegate>
 
@@ -31,6 +32,7 @@
 @property (nonatomic,strong) AFJSONRequestOperation *notificationRequestOperation;
 @property CGFloat previousContentDelta;
 @property (nonatomic, assign) int lastContentOffsetY;
+@property BOOL justLiked;
 
 @end
 
@@ -45,7 +47,7 @@
 @synthesize notificationsPending;
 @synthesize lastContentOffsetY = _lastContentOffsetY;
 @synthesize previousContentDelta;
-
+@synthesize justLiked = _justLiked;
 
 - (id)initWithDelegate:(id)delegate {
     if (self = [super initWithStyle:UITableViewStylePlain]) {
@@ -61,7 +63,6 @@
     [super viewDidLoad];
     isRefreshing_ = NO;
     self.tableView.rowHeight = [FDPostCell cellHeight];
-    
     self.canLoadAdditionalPosts = YES;
     
     // set up the pull-to-refresh header
@@ -82,7 +83,6 @@
         self.tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
     }
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(refresh) name:@"RefreshFeed" object:nil];
-    [self refresh];
 }
 
 -(void)getNotificationCount{
@@ -102,6 +102,8 @@
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
+    [self refresh];
+    self.justLiked = NO;
     [self getNotificationCount];
 }
 
@@ -109,13 +111,13 @@
     [super viewWillDisappear:animated];
     [self.feedRequestOperation cancel];
 }
-- (void)viewDidAppear:(BOOL)animated {
+/*- (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
     
-    /*if(!didLoadFromCache) {
+    if(!didLoadFromCache) {
         [self loadFromCache];
         didLoadFromCache = true;
-    }*/
+    }
 }
 
 - (void)saveCache {
@@ -125,7 +127,7 @@
 - (void)loadFromCache {
     
 }
-
+*/
 // like or unlike the post
 - (void)likeButtonTapped:(UIButton *)button {
     FDPost *post = [self.posts objectAtIndex:button.tag];
@@ -134,7 +136,7 @@
         [[FDAPIClient sharedClient] unlikePost:post
                                        success:^(FDPost *newPost) {
                                            [self.posts replaceObjectAtIndex:button.tag withObject:newPost];
-                                           NSLog(@"self.tableView number of sections: %d",self.tableView.numberOfSections);
+
                                            if (self.tableView.numberOfSections < 2) {
                                                NSIndexPath *path = [NSIndexPath indexPathForRow:button.tag inSection:0];
                                                [self.tableView reloadRowsAtIndexPaths:[NSArray arrayWithObject:path] withRowAnimation:UITableViewRowAnimationFade];
@@ -144,7 +146,10 @@
                                            }
                                        }
                                        failure:^(NSError *error) {
-                                           NSLog(@"unlike failed! %@", error);
+                                           NSLog(@"unlike failed! %@", error.description);
+                                           if (error.description){
+                                               
+                                           }
                                        }
          ];
         
@@ -152,9 +157,12 @@
         [[FDAPIClient sharedClient] likePost:post
                                      success:^(FDPost *newPost) {
                                          [self.posts replaceObjectAtIndex:button.tag withObject:newPost];
-                                         int t = [newPost.likeCount intValue] + 1;
                                          
-                                         [newPost setLikeCount:[[NSNumber alloc] initWithInt:t]];
+                                         //conditionally change the like count number
+                                         int t = [newPost.likeCount intValue] + 1;
+                                         if (!self.justLiked) [newPost setLikeCount:[[NSNumber alloc] initWithInt:t]];
+                                         self.justLiked = YES;
+                                         
                                          if (self.tableView.numberOfSections == 1) {
                                              NSIndexPath *path = [NSIndexPath indexPathForRow:button.tag inSection:0];
                                              [self.tableView reloadRowsAtIndexPaths:[NSArray arrayWithObject:path] withRowAnimation:UITableViewRowAnimationFade];
@@ -166,7 +174,7 @@
                                              [self.tableView reloadRowsAtIndexPaths:[NSArray arrayWithObject:path] withRowAnimation:UITableViewRowAnimationFade];
                                          }
                                      } failure:^(NSError *error) {
-                                         NSLog(@"like failed! %@", error);
+                                         NSLog(@"like failed! %@", error.description);
                                      }
          ];
     }
@@ -205,9 +213,7 @@
         static NSString *NotificationCellIdentifier = @"NotificationCellIdenfitier";
         UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:NotificationCellIdentifier];
         if (cell == nil) {
-            NSArray *nib = [[NSBundle mainBundle] loadNibNamed:@"NotificationCell" owner:self options:nil];
-            
-            cell = (UITableViewCell *)[nib objectAtIndex:0];
+            cell = [[[NSBundle mainBundle] loadNibNamed:@"NotificationCell" owner:self options:nil] lastObject];
         }
         [((UIButton *)[cell viewWithTag:1]) addTarget:self action:@selector(revealMenu) forControlEvents:UIControlEventTouchUpInside];
         if (notificationsPending == 1) {
@@ -220,7 +226,7 @@
     } else if (indexPath.section == 1) {
         static NSString *PostCellIdentifier = @"PostCell";
         FDPostCell *cell = (FDPostCell *)[tableView dequeueReusableCellWithIdentifier:PostCellIdentifier];
-        if (cell.photoImageView == nil) {
+        if (cell == nil) {
             cell = [[[NSBundle mainBundle] loadNibNamed:@"FDPostCell" owner:self options:nil] lastObject];
         }
         FDPost *post = [self.posts objectAtIndex:indexPath.row];
@@ -274,7 +280,7 @@
         [commentButton.titleLabel setTextColor:[UIColor lightGrayColor]];
         
         [cell.scrollView addSubview:commentButton];
-        if (cell.scrollView.contentOffset.x != 0) [cell.scrollView setContentOffset:CGPointMake(0,0) animated:NO];
+    
         return cell;
         
     } else {
@@ -305,7 +311,15 @@
     }
 }
 
-
+- (void)tableView:(UITableView *)tableView didEndDisplayingCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath {
+    if ([cell isKindOfClass:[FDPostCell class]]){
+        FDPostCell *thisCell = (FDPostCell*)cell;
+        [thisCell.scrollView setContentOffset:CGPointMake(0,0) animated:NO];
+        [UIView animateWithDuration:.2 animations:^{
+            [thisCell.photoBackground setAlpha:0.0];
+        }];
+    }
+}
 
 - (void)recommend:(id)sender {
     UIButton *button = (UIButton *)sender;
@@ -409,7 +423,6 @@
 - (FDPostCell *)showLikers:(FDPostCell *)cell forPost:(FDPost *)post{
     NSDictionary *likers = post.likers;
     NSDictionary *viewers = post.viewers;
-    NSLog(@"post.viewers: %@",viewers);
     [cell.likersScrollView.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
     cell.likersScrollView.showsHorizontalScrollIndicator = NO;
     
@@ -419,36 +432,35 @@
     
     for (NSDictionary *viewer in viewers) {
         if ([viewer objectForKey:@"facebook_id"] != [NSNull null]){
-            UIImageView *heart = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"feedLikeButtonRed.png"]];
-            UIImageView *likerView = [[UIImageView alloc] initWithFrame:CGRectMake(((cell.likersScrollView.frame.origin.x)+((space+imageSize)*index)),(cell.likersScrollView.frame.origin.y), imageSize, imageSize)];
+            UIImageView *face = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"light_smile"]];
+            //UIImageView *likerView = [[UIImageView alloc] initWithFrame:CGRectMake(((space+imageSize)*index),0,imageSize, imageSize)];
             UIButton *viewerButton = [UIButton buttonWithType:UIButtonTypeCustom];
-            
+            [viewerButton setFrame:CGRectMake(((space+imageSize)*index),0,imageSize, imageSize)];
+            [cell.likersScrollView addSubview:viewerButton];
             //passing liker facebook id as a string instead of NSNumber so that it can hold more data. crafty.
             viewerButton.titleLabel.text = [viewer objectForKey:@"facebook_id"];
             viewerButton.titleLabel.hidden = YES;
             
             [viewerButton addTarget:self action:@selector(profileTappedFromLikers:) forControlEvents:UIControlEventTouchUpInside];
-            [likerView setImageWithURL:[Utilities profileImageURLForFacebookID:[viewer objectForKey:@"facebook_id"]]];
-            //[likerView setUserId:[liker objectForKey:@"facebook_id"]];
-            likerView.userInteractionEnabled = YES;
-            likerView.clipsToBounds = YES;
-            likerView.layer.cornerRadius = 5.0;
+            [viewerButton setImageWithURL:[Utilities profileImageURLForFacebookID:[viewer objectForKey:@"facebook_id"]] forState:UIControlStateNormal];
+            viewerButton.imageView.layer.cornerRadius = 5.0;
             //rasterize to improve performance
-            likerView.layer.shouldRasterize = YES;
-            likerView.layer.rasterizationScale = [UIScreen mainScreen].scale;
-            
-            likerView.frame = CGRectMake(((space+imageSize)*index),0,imageSize, imageSize);
-            heart.frame = CGRectMake((((space+imageSize)*index)+20),16,20,20);
-            [viewerButton setFrame:likerView.frame];
-            heart.clipsToBounds = NO;
-            [cell.likersScrollView addSubview:likerView];
+
+            [viewerButton.imageView setBackgroundColor:[UIColor clearColor]];
+            [viewerButton.imageView.layer setBackgroundColor:[UIColor whiteColor].CGColor];
+            viewerButton.imageView.layer.shouldRasterize = YES;
+            viewerButton.imageView.layer.rasterizationScale = [UIScreen mainScreen].scale;
+
+            face.frame = CGRectMake((((space+imageSize)*index)+18),18,20,20);
+            //[viewerButton setFrame:likerView.frame];
+            //[cell.likersScrollView addSubview:likerView];
             for (NSDictionary *liker in likers) {
                 if ([[liker objectForKey:@"facebook_id"] isEqualToString:[viewer objectForKey:@"facebook_id"]]){
-                    [cell.likersScrollView addSubview:heart];
+                    [cell.likersScrollView addSubview:face];
                     break;
                 }
             }
-            [cell.likersScrollView addSubview:viewerButton];
+
             index++;
         }
         [cell.likersScrollView setContentSize:CGSizeMake(((space*(index+1))+(imageSize*(index+1))),40)];
@@ -573,7 +585,6 @@
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {	
 	[self.refreshHeaderView egoRefreshScrollViewDidScroll:self.tableView];
-    
     if (scrollView.contentOffset.y + scrollView.bounds.size.height > scrollView.contentSize.height - [(UITableView*)scrollView rowHeight]*10) {
         [self didShowLastRow];
     }
@@ -582,8 +593,8 @@
     CGFloat delta = scrollView.contentOffset.y - _lastContentOffsetY;
     if (delta > 0.f && prevDelta <= 0.f) {
         [[NSNotificationCenter defaultCenter] postNotificationName:@"HideSlider" object:self];
-    } else if (delta < 0.f && prevDelta >= 0.f) {
-        [[NSNotificationCenter defaultCenter] postNotificationName:@"RevealSlider" object:self];
+    } else if (delta < -5.f && prevDelta >= 0.f) {
+        //[[NSNotificationCenter defaultCenter] postNotificationName:@"RevealSlider" object:self];
     }
     self.previousContentDelta = delta;
 }
@@ -615,6 +626,18 @@
 
 - (BOOL)egoRefreshTableHeaderDataSourceIsLoading:(EGORefreshTableHeaderView*)view {
 	return self.isRefreshing; // should return if data source model is reloading
+}
+
+- (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    // Return NO if you do not want the specified item to be editable.
+    return YES;
+}
+// Override to support conditional rearranging of the table view.
+- (BOOL)tableView:(UITableView *)tableView canMoveRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    // Return NO if you do not want the item to be re-orderable.
+    return YES;
 }
 
 @end

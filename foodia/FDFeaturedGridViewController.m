@@ -21,26 +21,43 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     [Flurry logPageView];
-    [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
 }
 
 - (void)loadFromCache {
     NSMutableArray *cachedPosts = [FDCache getCachedFeaturedPosts];
+    NSLog(@"cached posts? %@",cachedPosts);
     if (cachedPosts == nil) {
         [self refresh];
     } else {
-        self.posts = cachedPosts;
-        [self reloadData];
-        if ([FDCache isFeaturedPostCacheStale])
-            [self refresh];
+        if ([FDCache isFeaturedPostCacheStale]) [self refresh];
+        else {
+            self.posts = cachedPosts;
+            [self reloadData];
+        }
     }
+}
+
+- (void)loadFresh {
+    
 }
 
 - (void)saveCache {
     [FDCache cacheFeaturedPosts:self.posts];
 }
 
+
+-(void) tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    if([indexPath row] == ((NSIndexPath*)[[tableView indexPathsForVisibleRows] lastObject]).row && tableView == self.tableView){
+        //end of loading
+        [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
+        //NSLog(@"should be saving the cache");
+        //[self saveCache];
+    }
+}
+
 - (void)refresh {
+    [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
     [TestFlight passCheckpoint:@"Viewing Featured Grid View"];
     [Flurry logEvent:@"Viewing featured grid" timed:YES];
     // if we already have some posts in the feed, get the feed since the last post
@@ -51,7 +68,6 @@
             }
             [self reloadData];
             self.feedRequestOperation = nil;
-            
         } failure:^(NSError *error) {
             NSLog(@"Failure...");
             self.feedRequestOperation = nil;
@@ -61,16 +77,12 @@
         // otherwise, get the intial feed
     } else {
         self.feedRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getFeaturedPostsSuccess:^(NSMutableArray *posts) {
-            
             self.posts = posts;
-        
             [self reloadData];
             self.feedRequestOperation = nil;
-            
         } failure:^(NSError *error) {
             self.feedRequestOperation = nil;
             [self reloadData];
-            
         }];
     }
 
