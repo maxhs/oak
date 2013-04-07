@@ -31,10 +31,13 @@
 #define BASE_URL @"http://posts.foodia.com/api/v3"
 #define CONNECTIVITY_PATH @"apn_registrations"
 #define SESSION_PATH @"sessions"
+#define FORGOT_PASSWORD_PATH @"sessions/forgot_password.json"
 #define FEED_PATH @"posts.json"
 #define FEATURED_PATH @"posts/featured.json"
 #define PROFILE_PATH @"user.json"
-#define USER_FOOD_SEARCH_PATH @"user/food_search.json"
+#define PROFILE_FEED_PATH @"posts/profile.json"
+#define USER_PLACE_SEARCH_PATH @"user/place_search.json"
+#define USER_POST_SEARCH_PATH @"user/post_search.json"
 #define RECOMMENDED_PATH @"posts/recommended.json"
 #define ACTIVITY_PATH @"user_notifications.json"
 #define ACTIVITY_COUNT_PATH @"new_notifications.json"
@@ -48,6 +51,8 @@
 #define MAP_PATH @"posts/map.json"
 #define PLACES_PATH @"posts/places.json"
 #define PEOPLE_PATH @"follows"
+#define FOLLOWERS_PATH @"follows/followers.json"
+#define FOLLOWING_PATH @"follows/following.json"
 #define RECOMMEND_PATH @"recommendations"
 
 typedef void(^OperationSuccess)(AFHTTPRequestOperation *operation, id result);
@@ -78,22 +83,6 @@ static FDAPIClient *singleton;
     return singleton;
 }
 
-/*- (AFJSONRequestOperation *)checkConnectivitySuccess:(RequestSuccess)success
-                                             failure:(RequestFailure)failure
-{
-OperationFailure opFailure = ^(AFHTTPRequestOperation *operation, NSError *error) {
-    failure(error);
-};
-
-OperationSuccess opSuccess = ^(AFHTTPRequestOperation *operation, id responseObject) {
-    success(responseObject);
-};
-return [self requestOperationWithMethod:@"GET"
-                                   path:CONNECTIVITY_PATH
-                             parameters:nil
-                                success:opSuccess
-                                failure:opFailure];
-}*/
 - (AFHTTPRequestOperation *)deviceConnectivity
 {
     OperationFailure opFailure = ^(AFHTTPRequestOperation *operation, NSError *error) {
@@ -189,16 +178,16 @@ return [self requestOperationWithMethod:@"GET"
 
 #pragma mark - Profile methods
 // Profile Details
-
 - (AFJSONRequestOperation *)getProfileDetails:(NSString *)uid
                                       success:(RequestSuccess)success
                                       failure:(RequestFailure)failure
 {
     
-    NSDictionary *parameters = [NSDictionary dictionaryWithObjectsAndKeys:uid,@"user_id", nil];
+    NSDictionary *parameters = [NSDictionary dictionaryWithObjectsAndKeys:uid,@"user_id",[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId], @"current_user_id", nil];
     
     OperationSuccess opSuccess = ^(AFHTTPRequestOperation *operation, id responseObject) {
-        success(responseObject);
+        NSLog(@"getprofiledetails response objefc: %@",responseObject);
+        success([responseObject objectForKey:@"user"]);
     };
     OperationFailure opFailure = ^(AFHTTPRequestOperation *operation, NSError *error) {
         //[(FDAppDelegate *) [UIApplication sharedApplication].delegate setupNoConnection];
@@ -212,22 +201,70 @@ return [self requestOperationWithMethod:@"GET"
     return op;
 }
 
-- (AFJSONRequestOperation *)updateProfileDetails:(NSNumber *)userId
-                                       name:(NSString *)name
-                                        location:(NSString *)location
-                                       userPhoto:(UIImage *)userImage
+- (AFJSONRequestOperation *)getFollowers:(NSString *)uid
                                       success:(RequestSuccess)success
                                       failure:(RequestFailure)failure
 {
     
-    NSDictionary *parameters = [NSDictionary dictionaryWithObjectsAndKeys:name,@"user[name]", location,@"user[location]",userId, @"user[id]", nil];
+    NSDictionary *parameters = [NSDictionary dictionaryWithObjectsAndKeys:uid,@"user_id",[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId], @"current_user_id", nil];
     
     OperationSuccess opSuccess = ^(AFHTTPRequestOperation *operation, id responseObject) {
+        success([self usersFromJSONArray:[responseObject objectForKey:@"followships"]]);
+    };
+    OperationFailure opFailure = ^(AFHTTPRequestOperation *operation, NSError *error) {
+        //[(FDAppDelegate *) [UIApplication sharedApplication].delegate setupNoConnection];
+        failure(error);
+    };
+    AFJSONRequestOperation *op = [self requestOperationWithMethod:@"GET"
+                                                             path:FOLLOWERS_PATH
+                                                       parameters:parameters
+                                                          success:opSuccess
+                                                          failure:opFailure];
+    return op;
+}
+
+- (AFJSONRequestOperation *)getFollowing:(NSString *)uid
+                                 success:(RequestSuccess)success
+                                 failure:(RequestFailure)failure
+{
+    
+    NSDictionary *parameters = [NSDictionary dictionaryWithObjectsAndKeys:uid,@"user_id",[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId], @"current_user_id", nil];
+    
+    OperationSuccess opSuccess = ^(AFHTTPRequestOperation *operation, id responseObject) {
+        success([self usersFromJSONArray:[responseObject objectForKey:@"followships"]]);
+    };
+    OperationFailure opFailure = ^(AFHTTPRequestOperation *operation, NSError *error) {
+        //[(FDAppDelegate *) [UIApplication sharedApplication].delegate setupNoConnection];
+        failure(error);
+    };
+    AFJSONRequestOperation *op = [self requestOperationWithMethod:@"GET"
+                                                             path:FOLLOWING_PATH
+                                                       parameters:parameters
+                                                          success:opSuccess
+                                                          failure:opFailure];
+    return op;
+}
+
+- (AFJSONRequestOperation *)updateProfileDetails:(NSNumber *)userId
+                                            name:(NSString *)name
+                                        location:(NSString *)location
+                                       userPhoto:(UIImage *)userImage
+                                        password:(NSString*)password
+                                         success:(RequestSuccess)success
+                                         failure:(RequestFailure)failure
+{
+    
+    NSMutableDictionary *parameters = [NSMutableDictionary dictionaryWithObjectsAndKeys:name,@"user[name]", location,@"user[location]", nil];
+    
+    if (password.length) [parameters setObject:password forKey:@"user[password]"];
+    
+    OperationSuccess opSuccess = ^(AFHTTPRequestOperation *operation, id responseObject) {
+        NSLog(@"update profile details response object: %@", responseObject);
         FDUser *user = [[FDUser alloc] initWithDictionary:[responseObject objectForKey:@"user"]];
         success(user);
     };
     OperationFailure opFailure = ^(AFHTTPRequestOperation *operation, NSError *error) {
-        //[(FDAppDelegate *) [UIApplication sharedApplication].delegate setupNoConnection];
+        NSLog(@"update profile details ERROR: %@", error.description);
         failure(error);
     };
     
@@ -247,6 +284,26 @@ AFJSONRequestOperation *op = (AFJSONRequestOperation *)[self HTTPRequestOperatio
     return op;
 }
 
+- (AFJSONRequestOperation *)getProfilePic:(NSString *)userId
+                                  success:(RequestSuccess)success
+                                  failure:(RequestFailure)failure {
+    NSDictionary *parameters = [NSDictionary dictionaryWithObjectsAndKeys:userId,@"user_id", nil];
+    
+    OperationSuccess opSuccess = ^(AFHTTPRequestOperation *operation, id responseObject) {
+        if ([responseObject objectForKey:@"avatar_url"] != [NSNull null]){
+            success([NSURL URLWithString:[responseObject objectForKey:@"avatar_url"]]);
+        }
+    };
+    OperationFailure opFailure = ^(AFHTTPRequestOperation *operation, NSError *error) {
+        failure(error);
+    };
+    return [self requestOperationWithMethod:@"GET"
+                                                             path:@"user/profile_pic.json"
+                                                       parameters:parameters
+                                                          success:opSuccess
+                                                          failure:opFailure];
+}
+
 // Profile feed (i.e. feed with only posts by the user)
 
 - (AFHTTPRequestOperation *)getFeedForProfile:(NSString *)uid
@@ -254,7 +311,7 @@ AFJSONRequestOperation *op = (AFJSONRequestOperation *)[self HTTPRequestOperatio
                                           failure:(RequestFailure)failure
 {
     
-    NSDictionary *parameters = [NSDictionary dictionaryWithObjectsAndKeys:uid,@"for_profile", nil];
+    NSDictionary *parameters = [NSDictionary dictionaryWithObjectsAndKeys:uid,@"profile_id", nil];
     
     OperationSuccess opSuccess = ^(AFHTTPRequestOperation *operation, id responseObject) {
         success([self postsFromJSONArray:[responseObject objectForKey:@"posts"]]);
@@ -263,7 +320,7 @@ AFJSONRequestOperation *op = (AFJSONRequestOperation *)[self HTTPRequestOperatio
         failure(error);
     };
     AFHTTPRequestOperation *op = [self requestOperationWithMethod:@"GET"
-                                                             path:FEED_PATH
+                                                             path:PROFILE_FEED_PATH
                                                        parameters:parameters
                                                           success:opSuccess
                                                           failure:opFailure];
@@ -297,7 +354,7 @@ AFJSONRequestOperation *op = (AFJSONRequestOperation *)[self HTTPRequestOperatio
                                          failure:(RequestFailure)failure
 {
     NSString *moreProfile = [NSString stringWithFormat:@"%@,%@", uid, beforePost.epochTime];
-    NSDictionary *parameters = [NSDictionary dictionaryWithObjectsAndKeys:moreProfile,@"for_more_profile", nil];
+    NSDictionary *parameters = [NSDictionary dictionaryWithObjectsAndKeys:moreProfile,@"more_profile_id", nil];
     
     OperationSuccess opSuccess = ^(AFHTTPRequestOperation *operation, id responseObject) {
         success([self postsFromJSONArray:[responseObject objectForKey:@"posts"]]);
@@ -307,7 +364,7 @@ AFJSONRequestOperation *op = (AFJSONRequestOperation *)[self HTTPRequestOperatio
     };
     
     return [self requestOperationWithMethod:@"GET"
-                                       path:FEED_PATH
+                                       path:PROFILE_FEED_PATH
                                  parameters:parameters
                                     success:opSuccess
                                     failure:opFailure];
@@ -432,7 +489,6 @@ AFJSONRequestOperation *op = (AFJSONRequestOperation *)[self HTTPRequestOperatio
 {
     
     OperationSuccess opSuccess = ^(AFHTTPRequestOperation *operation, id responseObject) {
-        NSLog(@"responseobject: %@",responseObject);
         success([self postsFromJSONArray:[responseObject objectForKey:@"posts"]]);
     };
     OperationFailure opFailure = ^(AFHTTPRequestOperation *operation, NSError *error) {
@@ -562,11 +618,10 @@ AFJSONRequestOperation *op = (AFJSONRequestOperation *)[self HTTPRequestOperatio
                                                     failure:(RequestFailure)failure
 {
     NSString *pathForPost = [NSString stringWithFormat:@"posts/%@.json", postIdentifier];
-    NSDictionary *parameters = @{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookId]};
+    NSDictionary *parameters = @{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]};
     
     OperationFailure opFailure = ^(AFHTTPRequestOperation *operation, NSError *error)
     {
-        //[(FDAppDelegate *) [UIApplication sharedApplication].delegate setupNoConnection];
         failure(error);
     };
     
@@ -588,6 +643,7 @@ AFJSONRequestOperation *op = (AFJSONRequestOperation *)[self HTTPRequestOperatio
 
 - (AFJSONRequestOperation *)getCategoryImageURLsWithSuccess:(RequestSuccess)success
                                                     failure:(RequestFailure)failure {
+    NSDictionary *parameters = @{@"big":@"awesome"};
     OperationFailure opFailure = ^(AFHTTPRequestOperation *operation, NSError *error)
     {
         failure(error);
@@ -598,11 +654,21 @@ AFJSONRequestOperation *op = (AFJSONRequestOperation *)[self HTTPRequestOperatio
         success([responseObject objectForKey:@"imageURLs"]);
     };
     
-    return [self requestOperationWithMethod:@"GET"
-                                       path:CATEGORY_IMAGE_PATH
-                                 parameters:nil
-                                    success:opSuccess
-                                    failure:opFailure];
+    if ([UIScreen mainScreen].bounds.size.height == 568){
+        NSLog(@"should be getting big photos");
+        return [self requestOperationWithMethod:@"GET"
+                                           path:CATEGORY_IMAGE_PATH
+                                     parameters:parameters
+                                        success:opSuccess
+                                        failure:opFailure];
+    } else {
+        return [self requestOperationWithMethod:@"GET"
+                                           path:CATEGORY_IMAGE_PATH
+                                     parameters:nil
+                                        success:opSuccess
+                                        failure:opFailure];
+    }
+        
 }
 
 #pragma mark - Foodia Object Searching
@@ -631,12 +697,11 @@ AFJSONRequestOperation *op = (AFJSONRequestOperation *)[self HTTPRequestOperatio
                                     failure:opFailure];
 }
 
-- (AFJSONRequestOperation *)getSearchResultsForUser:(NSString *)userId
-                                              query:(NSString *)query
-                                            success:(RequestSuccess)success
-                                            failure:(RequestFailure)failure {
+- (AFJSONRequestOperation *)getVenuesForUser:(NSString *)userId
+                                     success:(RequestSuccess)success
+                                     failure:(RequestFailure)failure {
     
-    NSDictionary *parameters = [NSDictionary dictionaryWithObjectsAndKeys:userId,@"for_user",query,@"search", nil];
+    NSDictionary *parameters = [NSDictionary dictionaryWithObjectsAndKeys:userId,@"user_id", nil];
     
     OperationFailure opFailure = ^(AFHTTPRequestOperation *operation, NSError *error)
     {
@@ -645,11 +710,44 @@ AFJSONRequestOperation *op = (AFJSONRequestOperation *)[self HTTPRequestOperatio
     
     OperationSuccess opSuccess = ^(AFHTTPRequestOperation *operation, id responseObject)
     {
-        success([responseObject objectForKey:@"objects"]);
+        NSLog(@"response obejct from venue search: %@",responseObject);
+        success([responseObject objectForKey:@"locations"]);
     };
     
     return [self requestOperationWithMethod:@"GET"
-                                       path:USER_FOOD_SEARCH_PATH
+                                       path:USER_PLACE_SEARCH_PATH
+                                 parameters:parameters
+                                    success:opSuccess
+                                    failure:opFailure];
+}
+
+- (AFJSONRequestOperation *)getUserPosts:(NSString *)userId
+                                forQuery:(NSString *)query
+                               withVenue:(NSString *)venue
+                          nearCoordinate:(CLLocation *)location
+                                 success:(RequestSuccess)success
+                                 failure:(RequestFailure)failure {
+    
+    NSMutableDictionary *parameters = [NSMutableDictionary dictionaryWithObjectsAndKeys:userId,@"user_id",nil];
+    if (query) [parameters setObject:query forKey:@"search_string"];
+    if (venue) [parameters setObject:venue forKey:@"venue_string"];
+    if (location) {
+        [parameters setObject:[NSString stringWithFormat:@"%f",location.coordinate.latitude] forKey:@"latitude"];
+        [parameters setObject:[NSString stringWithFormat:@"%f",location.coordinate.longitude] forKey:@"longitude"];
+    }
+    NSLog(@"search_post parameters: %@", parameters);
+    OperationFailure opFailure = ^(AFHTTPRequestOperation *operation, NSError *error)
+    {
+        failure(error);
+    };
+    
+    OperationSuccess opSuccess = ^(AFHTTPRequestOperation *operation, id responseObject)
+    {
+        success([self postsFromJSONArray:[responseObject objectForKey:@"posts"]]);
+    };
+    
+    return [self requestOperationWithMethod:@"GET"
+                                       path:USER_POST_SEARCH_PATH
                                  parameters:parameters
                                     success:opSuccess
                                     failure:opFailure];
@@ -804,23 +902,18 @@ AFJSONRequestOperation *op = (AFJSONRequestOperation *)[self HTTPRequestOperatio
                                failure:(RequestFailure)failure {
     
     
-    NSMutableDictionary * parameters = [NSMutableDictionary dictionaryWithObjectsAndKeys:[NSDate date], @"post[posted_at]",post.foodiaObject,@"post[object_string]",post.category,@"post[category_name]",[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookId],@"facebook_id",[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookAccessToken],@"facebook_access_token", nil];
-    /*
-    NSMutableDictionary * parameters = [@{
-    @"post[posted_at]"              : [NSDate date],
-    @"post[object_string]"          : post.foodiaObject,
-    @"post[category_name]"          : post.category,
-    @"facebook_id"                  : self.facebookID,
-    @"facebook_access_token"        : self.facebookAccessToken
-    } mutableCopy];
-    */
+    NSMutableDictionary * parameters = [NSMutableDictionary dictionaryWithObjectsAndKeys:[NSDate date], @"post[posted_at]",post.category,@"post[category_name]",[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId],@"post[user_id]",nil];
+    
+    if (post.foodiaObject.length) {
+        [parameters setObject:post.foodiaObject forKey:@"post[object_string]"];
+    }
     
     if ([[NSUserDefaults standardUserDefaults] boolForKey:@"OpenGraph"]) {
         NSLog(@"should be sharing via OG");
         [parameters setObject:post.foodiaObject
                        forKey:@"post[og]"];
     }
-    if (post.withFriends) {
+    if (post.withFriends.count && [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookAccessToken]) {
         NSMutableArray *mutableArray = [NSMutableArray arrayWithCapacity:post.withFriends.count];
         for (FDUser *user in post.withFriends) {
             [mutableArray addObject:[NSString stringWithFormat:@"%@|%@", user.facebookId, user.name]];
@@ -828,7 +921,7 @@ AFJSONRequestOperation *op = (AFJSONRequestOperation *)[self HTTPRequestOperatio
         [parameters setObject:[mutableArray componentsJoinedByString:@","]
                        forKey:@"post[with_friends]"];
     }
-    if (post.recommendedTo) {
+    if (post.recommendedTo.count && [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookAccessToken]) {
         NSMutableArray *mutableArray = [NSMutableArray arrayWithCapacity:post.recommendedTo.count];
         for (FDUser *user in post.recommendedTo) {
             [mutableArray addObject:[NSString stringWithFormat:@"%@|%@", user.facebookId, user.name]];
@@ -836,19 +929,19 @@ AFJSONRequestOperation *op = (AFJSONRequestOperation *)[self HTTPRequestOperatio
         [parameters setObject:[mutableArray componentsJoinedByString:@","]
                        forKey:@"post[recommend_friends]"];
     }
-    if (post.caption){[parameters setObject:post.caption
+    if (post.caption.length){[parameters setObject:post.caption
                                      forKey:@"post[message]"];}
     if (post.location){
         [parameters setObject:[NSString stringWithFormat:@"%f",post.location.coordinate.latitude]
-                       forKey:@"post[latitude]"];
+                       forKey:@"post[location_latitude]"];
         [parameters setObject:[NSString stringWithFormat:@"%f",post.location.coordinate.longitude]
-                       forKey:@"post[longitude]"];
+                       forKey:@"post[location_longitude]"];
     }
-    if (post.locationName){
+    if (post.locationName.length){
         [parameters setObject:post.locationName
                        forKey:@"post[location_name]"];
     }
-    if (post.FDVenueId){
+    if (post.FDVenueId.length){
         [parameters setObject:post.FDVenueId forKey:@"post[foursquareid]"];
     }
     OperationSuccess opSuccess = ^(AFHTTPRequestOperation *operation, id result) {
@@ -891,7 +984,6 @@ AFJSONRequestOperation *op = (AFJSONRequestOperation *)[self HTTPRequestOperatio
     
     OperationSuccess opSuccess = ^(AFHTTPRequestOperation *operation, id result) {
         success(result);
-        NSLog(@"result from delete post method");
     };
     
     OperationFailure opFailure = ^(AFHTTPRequestOperation *operation, NSError *error) {
@@ -913,7 +1005,7 @@ AFJSONRequestOperation *op = (AFJSONRequestOperation *)[self HTTPRequestOperatio
                                failure:(RequestFailure)failure {
     
     
-    NSMutableDictionary * parameters = [NSMutableDictionary dictionaryWithObjectsAndKeys:[NSDate date], @"post[posted_at]",post.foodiaObject,@"post[object_string]",post.category,@"post[category_name]",post.identifier, @"post[identifier]",[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookId],@"facebook_id",[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookAccessToken],@"facebook_access_token", nil];
+    NSMutableDictionary * parameters = [NSMutableDictionary dictionaryWithObjectsAndKeys:[NSDate date], @"post[posted_at]",post.foodiaObject,@"post[object_string]",post.category,@"post[category_name]",post.identifier, @"post[identifier]", nil];
     if (post.withFriends) {
         NSMutableArray *mutableArray = [NSMutableArray arrayWithCapacity:post.withFriends.count];
         for (FDUser *user in post.withFriends) {
@@ -1013,27 +1105,41 @@ AFJSONRequestOperation *op = (AFJSONRequestOperation *)[self HTTPRequestOperatio
 }
 
 
-- (AFJSONRequestOperation *)connectUser:(NSString*)emailParams
-                                password:(NSString*)passwordParams
-                                 signup:(BOOL)signup
-                                 success:(RequestSuccess)success
-                                 failure:(RequestFailure)failure {
-    NSLog(@"password: %@",passwordParams);
-        NSMutableDictionary *parameters = [NSMutableDictionary dictionaryWithObjectsAndKeys:emailParams, @"email", passwordParams, @"password", nil];
+- (AFJSONRequestOperation *)connectUser:(NSString*)name
+                                  email:(NSString*)email
+                               password:(NSString*)password
+                                 signup:(BOOL) signup
+                                   fbid:(NSString*)facebookId
+                                success:(RequestSuccess)success
+                                failure:(RequestFailure)failure {
+    NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
+    
+    if (email) {
+        [parameters setObject:email forKey:@"email"];
+        [parameters setObject:password forKey:@"password"];
+    }
+    if (name) {
+        [parameters setObject:name forKey:@"name"];
+    }
     if (signup) [parameters setObject:[NSNumber numberWithBool:YES] forKey:@"signup"];
         NSDictionary *rootParameters = [NSDictionary dictionaryWithObject:parameters forKey:@"user"];
-    
     OperationFailure opFailure = ^(AFHTTPRequestOperation *operation, NSError *error)
     {
-        NSLog(@"failure from user register method: %@",error.description);
+        NSLog(@"failure from user connect method: %@",error.description);
         failure(error);
     };
     
     OperationSuccess opSuccess = ^(AFHTTPRequestOperation *operation, id responseObject)
     {
-        [[NSUserDefaults standardUserDefaults] setObject:emailParams forKey:kUserDefaultsEmail];
-        [[NSUserDefaults standardUserDefaults] setObject:passwordParams forKey:kUserDefaultsPassword];
+        if (email)[[NSUserDefaults standardUserDefaults] setObject:email forKey:kUserDefaultsEmail];
+        if (password)[[NSUserDefaults standardUserDefaults] setObject:password forKey:kUserDefaultsPassword];
+        NSLog(@"connect user responseobject: %@",responseObject);
         FDUser *user = [[FDUser alloc] initWithDictionary:[responseObject objectForKey:@"user"]];
+        [[NSUserDefaults standardUserDefaults] setObject:user.avatarUrl forKey:kUserDefaultsAvatarUrl];
+        [[NSUserDefaults standardUserDefaults] setObject:user.name forKey:kUserDefaultsUserName];
+        [[NSUserDefaults standardUserDefaults] setObject:user.userId forKey:kUserDefaultsId];
+        [[NSUserDefaults standardUserDefaults] setObject:user.authenticationToken forKey:kUserDefaultsAuthenticationToken];
+        
         success(user);
     };
         return [self requestOperationWithMethod:@"POST"
@@ -1042,6 +1148,29 @@ AFJSONRequestOperation *op = (AFJSONRequestOperation *)[self HTTPRequestOperatio
                                         success:opSuccess
                                         failure:opFailure
                 ];
+}
+
+- (AFJSONRequestOperation *)forgotPassword:(NSString*)email
+                                   success:(RequestSuccess)success
+                                   failure:(RequestFailure)failure {
+    NSDictionary *parameters = [NSDictionary dictionaryWithObjectsAndKeys:email, @"email", nil];
+    OperationFailure opFailure = ^(AFHTTPRequestOperation *operation, NSError *error)
+    {
+        NSLog(@"failure from user forgot password method: %@",error.description);
+        failure(error);
+    };
+    
+    OperationSuccess opSuccess = ^(AFHTTPRequestOperation *operation, id responseObject)
+    {
+        NSLog(@"result from password reset method: %@", responseObject);
+        success(responseObject);
+    };
+    return [self requestOperationWithMethod:@"GET"
+                                       path:FORGOT_PASSWORD_PATH
+                                 parameters:parameters
+                                    success:opSuccess
+                                    failure:opFailure
+            ];
 }
 
 
@@ -1086,7 +1215,8 @@ AFJSONRequestOperation *op = (AFJSONRequestOperation *)[self HTTPRequestOperatio
 
 - (AFJSONRequestOperation *)getPeopleListSuccess:(RequestSuccess)success failure:(RequestFailure)failure {
     return [self requestOperationWithMethod:@"GET" path:PEOPLE_PATH parameters:nil success:^(AFHTTPRequestOperation *operation, id result) {
-        success([self usersFromJSONArray:result]);
+        NSLog(@"result: %@",result);
+        success([self usersFromJSONArray:[result objectForKey:@"followships"]]);
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         failure(error);
     }];
@@ -1099,7 +1229,7 @@ AFJSONRequestOperation *op = (AFJSONRequestOperation *)[self HTTPRequestOperatio
     for(FDUser *obj in [recommendes allObjects]) {
         [dict addObject:obj.facebookId];
     }
-    NSDictionary *parameters = [NSDictionary dictionaryWithObjectsAndKeys:dict,@"recommendees",post.identifier,@"post_id", message, @"message", nil];
+    NSDictionary *parameters = [NSDictionary dictionaryWithObjectsAndKeys:dict,@"recommendees",post.identifier,@"identifier", message, @"message", nil];
     return [self requestOperationWithMethod:@"POST" path:RECOMMEND_PATH parameters:parameters success:^(AFHTTPRequestOperation *operation, id result) {
         FDPost *post = [[FDPost alloc] initWithDictionary:[result objectForKey:@"post"]];
         success(post);
@@ -1117,14 +1247,14 @@ AFJSONRequestOperation *op = (AFJSONRequestOperation *)[self HTTPRequestOperatio
 {
     
     NSMutableDictionary *allParameters = [[NSMutableDictionary alloc] init];
-    if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookId] && [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookAccessToken]) {
-        [allParameters addEntriesFromDictionary:[NSDictionary dictionaryWithObjectsAndKeys:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookAccessToken],@"facebook_access_token",[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookId], @"facebook_id",self.deviceToken,@"device_token", nil]];
-    } else if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] && [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsAuthenticationToken]){
-        [allParameters addEntriesFromDictionary:[NSDictionary dictionaryWithObjectsAndKeys:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsAuthenticationToken],@"authentication_token",[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsPassword],@"user[password]",self.deviceToken,@"device_token", nil]];
-    }
-
-    if (parameters) [allParameters addEntriesFromDictionary:parameters];
     
+    [allParameters addEntriesFromDictionary:[NSDictionary dictionaryWithObjectsAndKeys:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId],@"user_id",[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsPassword], @"password",[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsAuthenticationToken],@"authentication_token",nil]];
+    
+    if (self.deviceToken) [allParameters setObject:self.deviceToken forKey:@"device_token"];
+    if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookId] && [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookAccessToken]) {
+        [allParameters addEntriesFromDictionary:[NSDictionary dictionaryWithObjectsAndKeys:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookAccessToken],@"facebook_access_token",[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookId], @"facebook_id", nil]];
+    }
+    if (parameters) [allParameters addEntriesFromDictionary:parameters];
     return [super requestWithMethod:method
                                path:[[self.baseURL URLByAppendingPathComponent:path] absoluteString]
                          parameters:allParameters];

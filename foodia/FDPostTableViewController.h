@@ -19,6 +19,7 @@
 @property (nonatomic) BOOL canLoadAdditionalPosts;
 @property (nonatomic) NSInteger notificationsPending;
 @property (nonatomic) BOOL didLoadFromCache;
+@property (nonatomic, strong) NSMutableArray *swipedCells;
 
 - (void)reloadData;
 - (void)refresh;

@@ -40,7 +40,7 @@
     UILabel *navTitle = [[UILabel alloc] init];
     navTitle.frame = CGRectMake(0,0,200,40);
     navTitle.text = @"THE PLACES I'VE BEEN";
-    navTitle.font = [UIFont fontWithName:@"AvenirNextCondensed-Medium" size:21];
+    navTitle.font = [UIFont fontWithName:kAvenirMedium size:21];
     navTitle.backgroundColor = [UIColor clearColor];
     navTitle.textColor = [UIColor blackColor];
     navTitle.textAlignment = NSTextAlignmentCenter;

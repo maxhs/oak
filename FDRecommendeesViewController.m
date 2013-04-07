@@ -28,7 +28,7 @@
     navTitle.frame = CGRectMake(0,0,200,44);
     navTitle.text = @"I'M RECOMMENDING";
     
-    navTitle.font = [UIFont fontWithName:@"AvenirNextCondensed-Medium" size:21];
+    navTitle.font = [UIFont fontWithName:kAvenirMedium size:21];
     navTitle.backgroundColor = [UIColor clearColor];
     navTitle.textColor = [UIColor blackColor];
     navTitle.textAlignment = NSTextAlignmentCenter;
@@ -40,7 +40,7 @@
     for(UIView *subView in self.searchDisplayController.searchBar.subviews) {
         if ([subView isKindOfClass:[UITextField class]]) {
             UITextField *searchField = (UITextField *)subView;
-            searchField.font = [UIFont fontWithName:@"AvenirNextCondensed-Medium" size:15];
+            searchField.font = [UIFont fontWithName:kAvenirMedium size:15];
         }
     }
     //replace ugly background
@@ -83,7 +83,7 @@
     [cellbg setBackgroundColor:[UIColor darkGrayColor]];
     cell.selectedBackgroundView = cellbg;
 
-    cell.button.hidden = YES;
+    cell.actionButton.hidden = YES;
     if(self.searchDisplayController.searchBar.text.length == 0) {
         FDUser *friend = [self.people objectAtIndex:indexPath.row];
         if ([self.recommendeeIds containsObject:friend.facebookId]) {

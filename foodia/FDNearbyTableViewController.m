@@ -48,7 +48,7 @@
     for(UIView *subView in self.locationSearchBar.subviews) {
         if ([subView isKindOfClass:[UITextField class]]) {
             UITextField *searchField = (UITextField *)subView;
-            searchField.font = [UIFont fontWithName:@"AvenirNextCondensed-Medium" size:15];
+            searchField.font = [UIFont fontWithName:kAvenirMedium size:15];
         }
     }
     self.locationSearch = [[UISearchDisplayController alloc] initWithSearchBar:self.locationSearchBar contentsController:self];
@@ -131,7 +131,7 @@
             UILabel *noResults = [[UILabel alloc] initWithFrame:CGRectMake(0,0,300,176)];
             noResultsView.tag = 123455;
             noResults.text = @"Sorry, but we couldn't find any results. Please try again with a different location. \n ... \n Or pull down to return your Current Location.";
-            noResults.font = [UIFont fontWithName:@"AvenirNextCondensed-Medium" size:18];
+            noResults.font = [UIFont fontWithName:kAvenirMedium size:18];
             noResults.textColor = [UIColor lightGrayColor];
             noResults.numberOfLines = 5;
             [noResults setBackgroundColor:[UIColor clearColor]];
@@ -164,7 +164,7 @@
             current = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:currentLocation];
             current.textLabel.text = @"Current Location";
             current.selectionStyle = UITableViewCellSelectionStyleGray;
-            [current.textLabel setFont:[UIFont fontWithName:@"AvenirNextCondensed-Medium" size:18]];
+            [current.textLabel setFont:[UIFont fontWithName:kAvenirMedium size:18]];
             [current.textLabel setTextColor:[UIColor blueColor]];
         }
         
@@ -175,7 +175,7 @@
         
         if (addSearchLocation == nil) {
             addSearchLocation = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"addSearchLocation"];
-            [addSearchLocation.textLabel setFont:[UIFont fontWithName:@"AvenirNextCondensed-Medium" size:18]];
+            [addSearchLocation.textLabel setFont:[UIFont fontWithName:kAvenirMedium size:18]];
             [addSearchLocation.textLabel setTextColor:[UIColor darkGrayColor]];
             addSearchLocation.selectionStyle = UITableViewCellSelectionStyleGray;
         }

@@ -22,10 +22,10 @@
 @property (nonatomic, weak) IBOutlet UIView *drinkingContainerView;
 @property (nonatomic, weak) IBOutlet UIView *shoppingContainerView;
 @property (nonatomic, weak) IBOutlet UIView *makingContainerView;
-@property (nonatomic, weak) IBOutlet UIView *makingTitleView;
-@property (nonatomic, weak) IBOutlet UIView *eatingTitleView;
-@property (nonatomic, weak) IBOutlet UIView *shoppingTitleView;
-@property (nonatomic, weak) IBOutlet UIView *drinkingTitleView;
+@property (nonatomic, weak) IBOutlet UILabel *makingTitleView;
+@property (nonatomic, weak) IBOutlet UILabel *eatingTitleView;
+@property (nonatomic, weak) IBOutlet UILabel *shoppingTitleView;
+@property (nonatomic, weak) IBOutlet UILabel *drinkingTitleView;
 @property (nonatomic, weak) IBOutlet UIButton *cameraButton;
 @property (nonatomic, weak) IBOutlet UIButton *doneButton;
 @property (nonatomic, weak) IBOutlet UIButton *plusButton;
@@ -95,37 +95,36 @@
         self.thePost = [[FDPost alloc] init];
     }
     [FDPost setUserPost:self.thePost];
+
 }
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
-    self.categoryImageURLs = [FDCache getCachedCategoryImageURLs];
-    if (self.categoryImageURLs == nil || [FDCache isCategoryImageCacheStale]) {
+    //self.categoryImageURLs = [FDCache getCachedCategoryImageURLs];
+    //if (self.categoryImageURLs == nil || [FDCache isCategoryImageCacheStale]) {
         [self getNewCategoryImages];
-    }
-    
-    /*if (([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone && [UIScreen mainScreen].bounds.size.height == 568.0)){
-        //self.view.backgroundColor = [UIColor colorWithPatternImage:[UIImage imageNamed:(@"launchBackground@2x.png")]];
-       // dummyImage = [UIImage imageNamed:(@"foodiaHeader.png")];
-        
-        self.dummyView.backgroundColor = [UIColor colorWithPatternImage:dummyImage];
+    //}
+    if (dummyImage) {
         self.dummyView.alpha = 1.0;
+        self.dummyView.image = self.dummyImage;
+        if (([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone && [UIScreen mainScreen].bounds.size.height == 568.0)) self.dummyView.frame = CGRectMake(0, -44, 320, 548);
+        else self.dummyView.frame = CGRectMake(0, -44, 320, 460);
         self.view.clipsToBounds = NO;
         dummyImage = nil;
         [self hideCategories];
-    } else {*/
-        if (dummyImage) {
-            self.dummyView.alpha = 1.0;
-            self.dummyView.image = self.dummyImage;
-            if (([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone && [UIScreen mainScreen].bounds.size.height == 568.0)) self.dummyView.frame = CGRectMake(0, -44, 320, 548);
-            else self.dummyView.frame = CGRectMake(0, -44, 320, 460);
-            self.view.clipsToBounds = NO;
-            dummyImage = nil;
-            [self hideCategories];
-        } else {
-            [self showCategories];
-        }
-    //}
+    } else {
+        [self showCategories];
+    }
+    if ([[[UIDevice currentDevice] systemVersion] floatValue] < 6) {
+        [self.objectTextField setFont:[UIFont fontWithName:kFuturaMedium size:15]];
+        [self.eatingTitleView setFont:[UIFont fontWithName:kFuturaMedium size:22]];
+        [self.drinkingTitleView setFont:[UIFont fontWithName:kFuturaMedium size:22]];
+        [self.makingTitleView setFont:[UIFont fontWithName:kFuturaMedium size:22]];
+        [self.shoppingTitleView setFont:[UIFont fontWithName:kFuturaMedium size:22]];
+        [self.navigationItem.leftBarButtonItem setTitleTextAttributes:@{UITextAttributeFont:[UIFont fontWithName:kFuturaMedium size:16], UITextAttributeTextColor:[UIColor blackColor]} forState:UIControlStateNormal];
+        [self.navigationItem.leftBarButtonItem setTintColor:[UIColor whiteColor]];
+        [self.navigationItem.leftBarButtonItem setBackButtonBackgroundImage:[UIImage imageNamed:@"emptyBarButton"] forState:UIControlStateNormal barMetrics:UIBarMetricsDefault];
+    }
 }
 
 - (void)viewDidAppear:(BOOL)animated {
@@ -160,7 +159,7 @@
 - (void)getNewCategoryImages {
     self.categoryImageRequestOpertaion = [[FDAPIClient sharedClient] getCategoryImageURLsWithSuccess:^(NSDictionary *result) {
         self.categoryImageURLs = result;
-        [FDCache cacheCategoryImageURLs:self.categoryImageURLs];
+        //[FDCache cacheCategoryImageURLs:self.categoryImageURLs];
     } failure:^(NSError *error) {
         NSLog(@"category image update failed! %@", error.description);
     }];
@@ -299,11 +298,11 @@
     }
 }
 
-- (IBAction)done:(id)sender {
-    
-}
 - (IBAction)selectEat:(id)sender {
     [self.navigationItem setRightBarButtonItem:nextButtonItem animated:YES];
+    if ([[[UIDevice currentDevice] systemVersion] floatValue] < 6) {
+        [self.navigationItem.rightBarButtonItem setTitleTextAttributes:@{UITextAttributeFont:[UIFont fontWithName:kFuturaMedium size:16], UITextAttributeTextColor:[UIColor blackColor]} forState:UIControlStateNormal];
+    }
     self.objectType = @"FoodObject";
     FDPost.userPost.category = @"Eating";
     self.eatingContainerView.userInteractionEnabled = NO;
@@ -316,13 +315,16 @@
         self.makingContainerView.alpha = 0.0;
         self.shoppingContainerView.alpha = 0.0;
         self.drinkingContainerView.alpha = 0.0;
-        self.eatingContainerView.transform = CGAffineTransformMakeTranslation(0, 6-self.eatingContainerView.frame.origin.y);
+        self.eatingContainerView.transform = CGAffineTransformMakeTranslation(0, 5-self.eatingContainerView.frame.origin.y);
     } completion:^(BOOL finished) {
         [self showTextView];
     }];
 }
 - (IBAction)selectMake:(id)sender {
     [self.navigationItem setRightBarButtonItem:nextButtonItem animated:YES];
+    if ([[[UIDevice currentDevice] systemVersion] floatValue] < 6) {
+        [self.navigationItem.rightBarButtonItem setTitleTextAttributes:@{UITextAttributeFont:[UIFont fontWithName:kFuturaMedium size:16], UITextAttributeTextColor:[UIColor blackColor]} forState:UIControlStateNormal];
+    }
     self.objectType = @"FoodObject";
     FDPost.userPost.category = @"Making";
     self.makingContainerView.userInteractionEnabled = NO;
@@ -336,7 +338,7 @@
         self.shoppingContainerView.alpha = 0.0;
         self.eatingContainerView.alpha = 0.0;
         self.drinkingContainerView.alpha = 0.0;
-        self.makingContainerView.transform = CGAffineTransformMakeTranslation(0, 6-self.makingContainerView.frame.origin.y);
+        self.makingContainerView.transform = CGAffineTransformMakeTranslation(0, 5-self.makingContainerView.frame.origin.y);
     } completion:^(BOOL finished) {
         [self showTextView];
 
@@ -344,6 +346,9 @@
 }
 - (IBAction)selectDrink:(id)sender {
     [self.navigationItem setRightBarButtonItem:nextButtonItem animated:YES];
+    if ([[[UIDevice currentDevice] systemVersion] floatValue] < 6) {
+        [self.navigationItem.rightBarButtonItem setTitleTextAttributes:@{UITextAttributeFont:[UIFont fontWithName:kFuturaMedium size:16], UITextAttributeTextColor:[UIColor blackColor]} forState:UIControlStateNormal];
+    }
     self.objectType = @"DrinkObject";
     FDPost.userPost.category = @"Drinking";
     self.drinkingContainerView.userInteractionEnabled = NO;
@@ -356,7 +361,7 @@
         self.makingContainerView.alpha = 0.0;
         self.shoppingContainerView.alpha = 0.0;
         self.eatingContainerView.alpha = 0.0;
-        self.drinkingContainerView.transform = CGAffineTransformMakeTranslation(0, 6-self.drinkingContainerView.frame.origin.y);
+        self.drinkingContainerView.transform = CGAffineTransformMakeTranslation(0, 5-self.drinkingContainerView.frame.origin.y);
     } completion:^(BOOL finished) {
         [self showTextView];
 
@@ -364,6 +369,9 @@
 }
 - (IBAction)selectShop:(id)sender {
     [self.navigationItem setRightBarButtonItem:nextButtonItem animated:YES];
+    if ([[[UIDevice currentDevice] systemVersion] floatValue] < 6) {
+        [self.navigationItem.rightBarButtonItem setTitleTextAttributes:@{UITextAttributeFont:[UIFont fontWithName:kFuturaMedium size:16], UITextAttributeTextColor:[UIColor blackColor]} forState:UIControlStateNormal];
+    }
     self.objectType = @"ShoppingObject";
     FDPost.userPost.category = @"Shopping";
     self.shoppingContainerView.userInteractionEnabled = NO;
@@ -377,7 +385,7 @@
         self.drinkingContainerView.alpha = 0.0;
         self.eatingContainerView.alpha = 0.0;
         
-        self.shoppingContainerView.transform = CGAffineTransformMakeTranslation(0, 6-self.shoppingContainerView.frame.origin.y);
+        self.shoppingContainerView.transform = CGAffineTransformMakeTranslation(0, 5-self.shoppingContainerView.frame.origin.y);
     } completion:^(BOOL finished) {
         [self showTextView];
 
@@ -396,7 +404,7 @@
 - (IBAction)textFieldDidChange:(id)sender {
     [self.searchResultsTableView reloadData];
     [self.searchTimer invalidate];
-    self.searchTimer = [NSTimer scheduledTimerWithTimeInterval:0.5 target:self selector:@selector(startSearchRequest) userInfo:nil repeats:NO];
+    self.searchTimer = [NSTimer scheduledTimerWithTimeInterval:0.25 target:self selector:@selector(startSearchRequest) userInfo:nil repeats:NO];
 }
 
 - (void)showTextView {
@@ -494,7 +502,11 @@
     if (cell == nil) {
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"SearchCell"];
         cell.selectionStyle = UITableViewCellSelectionStyleGray;
-        cell.textLabel.font = [UIFont fontWithName:@"AvenirNextCondensed-Medium" size:15];
+        if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 6) {
+            cell.textLabel.font = [UIFont fontWithName:kAvenirMedium size:15];
+        } else {
+            cell.textLabel.font = [UIFont fontWithName:kFuturaMedium size:15];
+        }
         cell.textLabel.textColor = [UIColor darkGrayColor];
         cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
     }

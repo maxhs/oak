@@ -8,6 +8,7 @@
 #import "Utilities.h"
 #import "Facebook.h"
 #import "SDImageCache.h"
+#import "FDAPIClient.h"
 
 #define TMP NSTemporaryDirectory()
 #define SECOND 1
@@ -27,7 +28,11 @@
 }
 
 + (NSString *)userId {
-    return [[NSUserDefaults standardUserDefaults] objectForKey:@"FacebookID"];
+    return [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookId];
+}
+
++ (NSString *)avatarUrl {
+    return [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsAvatarUrl];
 }
 
 + (NSURL *)profileImageURLForFacebookID:(NSString *)fbid {
@@ -40,15 +45,14 @@
     return URLString;
 }
 
-+ (NSURL *)profileImageForUser:(NSString *)uid {
-    NSString *URLString = [NSString stringWithFormat:@"https://graph.facebook.com/%@/picture?width=120&height=120&access_token=%@", uid, [self accessToken]];
-    return [NSURL URLWithString:URLString];
-    
-}
-
 + (NSURL *)profileImageURLForCurrentUser {
-    NSString *URLString = [NSString stringWithFormat:@"https://graph.facebook.com/%@/picture?width=120&height=120&access_token=%@", [self userId], [self accessToken]];
-    return [NSURL URLWithString:URLString];
+    if ([self userId] && [self accessToken]){
+        NSString *URLString = [NSString stringWithFormat:@"https://graph.facebook.com/%@/picture?width=120&height=120&access_token=%@", [self userId], [self accessToken]];
+        return [NSURL URLWithString:URLString];
+    } else {
+        NSLog(@"avatar url: %@",[self avatarUrl]);
+        return [NSURL URLWithString:[self avatarUrl]];
+    }
 }
 
 + (void)cacheUserProfileImage {

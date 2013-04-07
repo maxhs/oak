@@ -12,5 +12,7 @@
 - (IBAction)login:(id)sender;
 - (IBAction)showEmailConnect;
 - (IBAction)cancelEmailConnect;
+- (IBAction)forgotPassword;
 - (void)loginFailed;
+
 @end

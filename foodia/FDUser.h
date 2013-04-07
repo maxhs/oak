@@ -17,7 +17,9 @@
 @property (nonatomic, retain) NSString * name;
 @property (nonatomic, retain) NSString * email;
 @property (nonatomic, retain) NSString * facebookId;
-@property (nonatomic, retain) NSNumber *userId;
+@property (nonatomic, retain) NSString * fbid;
+@property (nonatomic, retain) NSString * userId;
+@property (nonatomic, retain) NSString * password;
 @property (nonatomic, retain) NSNumber * active;
 @property (nonatomic, retain) NSNumber * following;
 @property (nonatomic, retain) NSNumber * invited;
@@ -25,6 +27,8 @@
 @property (nonatomic, retain) NSString * location;
 @property (nonatomic, retain) NSString * occupation;
 @property (nonatomic, retain) NSString * avatarUrl;
+@property (nonatomic, retain) UIImage * userImage;
+@property (nonatomic, retain) NSString * userImageKey;
 @property (nonatomic, retain) NSString * authenticationToken;
 
 - (void)encodeWithCoder:(NSCoder *)encoder;

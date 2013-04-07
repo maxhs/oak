@@ -11,6 +11,7 @@
 #import "Facebook.h"
 #import "UIImageView+WebCache.h"
 #import "Utilities.h"
+#import "FDAPIClient.h"
 
 @implementation FDNotificationCell
 
@@ -40,13 +41,15 @@
     } else {
         self.timeLabel.text = [Utilities timeIntervalSinceStartDate:notification.postedAt];
     }
-    self.profileButton.tag = [notification.fromUserFbid integerValue];
+    self.profileButton.tag = [notification.fromUserId integerValue];
     // set user photo
-    //[profileButton setUserId:notification.fromUserFbid];
-    [self.profileImageView setImageWithURL:[Utilities profileImageURLForFacebookID:notification.fromUserFbid]];
-    self.profileImageView.clipsToBounds = YES;
-    //self.profileImageView.layer.cornerRadius = 5.0;
-
+    if (notification.fromUserFbid.length) {
+        [self.profileImageView setImageWithURL:[Utilities profileImageURLForFacebookID:notification.fromUserFbid]];
+    } else {
+        [[FDAPIClient sharedClient] getProfilePic:notification.fromUserId success:^(id result) {
+            [self.profileImageView setImageWithURL:result];
+        } failure:^(NSError *error) {}];
+    }
 }
 
 

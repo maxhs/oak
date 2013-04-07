@@ -26,105 +26,151 @@
 #import "FDCustomSheet.h"
 #import "FDPlaceViewController.h"
 #import "FDMenuViewController.h"
+#import "UIButton+WebCache.h"
+#import <CoreLocation/CoreLocation.h>
+
+#define kLargePostList CGRectMake(0,114,320,390)
+#define kSmallPostList CGRectMake(0,114,320,390)
+NSString* const searchBarPlaceholder = @"Search for food and drink";
+NSString* const locationBarPlaceholder = @"Search the places you've been";
 
 @interface FDProfileViewController() <MFMessageComposeViewControllerDelegate, MFMailComposeViewControllerDelegate, UIActionSheetDelegate>
 @property BOOL myProfile;
 @property BOOL justLiked;
 @property (nonatomic) BOOL canLoadMore;
-@property int tableViewHeight;
+@property CGRect postListRect;
+@property (weak, nonatomic) IBOutlet UISearchBar *searchBar;
+@property (weak, nonatomic) IBOutlet UISearchBar *locationSearchBar;
 @property (nonatomic, weak) IBOutlet UIBarButtonItem *activateSearchButton;
 @property (nonatomic, weak) IBOutlet UIView *profileDetailsContainerView;
 @property int *postListHeight;
+@property BOOL isSearching;
 @property (nonatomic, strong) AFHTTPRequestOperation *objectSearchRequestOperation;
+@property (nonatomic, strong) AFHTTPRequestOperation *postSearchRequestOperation;
 @property (weak, nonatomic) IBOutlet UIView *postsButtonBackground;
 @property (weak, nonatomic) IBOutlet UIView *followersButtonBackground;
 @property (weak, nonatomic) IBOutlet UIView *followingButtonBackground;
+@property (strong, nonatomic) UISearchDisplayController *locationSearchDisplayController;
+@property (strong, nonatomic) UIButton *editButton;
+@property BOOL noSearchResults;
+@property (strong, nonatomic) CLGeocoder *geocoder;
+@property (strong, nonatomic) CLLocation *location;
+@property (strong, nonatomic) NSArray *userVenues;
+@property (strong, nonatomic) NSMutableArray *filteredUserVenues;
+@property (strong, nonatomic) NSString *selectedVenue;
 
 @end
 
 @implementation FDProfileViewController
 @synthesize profileButton;
 @synthesize postList;
-//@synthesize posts;
 @synthesize myProfile = _myProfile;
 @synthesize justLiked = _justLiked;
 @synthesize user;
 @synthesize userId;
 @synthesize profileContainerView;
 @synthesize userNameLabel;
-//@synthesize postButton, followersButton, followingButton;
-//@synthesize inviteRequest;
 @synthesize inactiveLabel;
 @synthesize postCountLabel, followingCountLabel, followerCountLabel;
 @synthesize feedRequestOperation;
 @synthesize detailsRequestOperation;
 @synthesize followers;
 @synthesize following;
-@synthesize currTab;
+@synthesize currentTab;
 @synthesize currButton;
 @synthesize canLoadMore;
-@synthesize tableViewHeight;
+@synthesize postListRect = _postListRect;
 @synthesize objectSearchRequestOperation;
+@synthesize postSearchRequestOperation;
+@synthesize editButton = _editButton;
+@synthesize isSearching = _isSearching;
+@synthesize noSearchResults = _noSearchResults;
+@synthesize geocoder = _geocoder;
+@synthesize location = _location;
+@synthesize locationSearchDisplayController = _locationSearchDisplayController;
+@synthesize userVenues = _userVenues;
+@synthesize filteredUserVenues = _filteredUserVenues;
+@synthesize selectedVenue = _selectedVenue;
 
 - (void)initWithUserId:(NSString *)uid {
     self.userId = uid;
     self.canLoadMore = YES;
     self.detailsRequestOperation = [[FDAPIClient sharedClient] getProfileDetails:uid success:^(NSDictionary *result) {
-        if (result) {
-            NSLog(@"result: %@",result);
-            [profileButton setUserId:self.userId];
-            currTab = 0;
-            currButton = @"follow";
-            self.followers = [NSArray array];
-            self.following = [NSArray array];
-            [self showPosts:self.userId];
-            [self.postList setHidden:false];
-            [self.inactiveLabel setHidden:true];
-            self.userNameLabel.text = [result objectForKey:@"name"];
-            [self.userNameLabel setTextColor:[UIColor blackColor]];
-            if([[NSString stringWithFormat:@"%@",[result objectForKey:@"active"]] isEqualToString:@"1"]) {
-                self.postCountLabel.text = [NSString stringWithFormat:@"%@ Posts",[[result objectForKey:@"posts_count"] stringValue]];
-                self.followingCountLabel.text = [NSString stringWithFormat:@"Following %@",[[result objectForKey:@"following_count"] stringValue]];
-                self.followerCountLabel.text = [NSString stringWithFormat:@"%@ Followers",[[result objectForKey:@"followers_count"] stringValue]];
-                if([[NSString stringWithFormat:@"%@",[result objectForKey:@"following"]] isEqualToString:@"1"]) {
-                    [self.socialButton setTitle:@"FOLLOWING" forState:UIControlStateNormal];
-                    [self.socialButton.titleLabel setTextColor:[UIColor lightGrayColor]];
-                    [self.socialButton.layer setBorderColor:[UIColor clearColor].CGColor];
-                    currButton = @"following";
-                } else {
-                    [self.socialButton setTitle:@"FOLLOW" forState:UIControlStateNormal];
-                    [self.socialButton.titleLabel setTextColor:[UIColor redColor]];
-                    [self.socialButton.layer setBorderColor:[UIColor redColor].CGColor];
-                    currButton = @"follow";
-                }
-                self.followers = [result objectForKey:@"followers_arr"];
-                self.following = [result objectForKey:@"following_arr"];
-                [self.postList reloadData];
-            
+        if ([[result objectForKey:@"facebook_id"] length] && [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookAccessToken]) {
+            [profileButton setImageWithURL:[Utilities profileImageURLForFacebookID:[result objectForKey:@"facebook_id"]] forState:UIControlStateNormal];
+        } else if ([result objectForKey:@"avatar_url"] != [NSNull null]) {
+            [profileButton setImageWithURL:[NSURL URLWithString:[result objectForKey:@"avatar_url"]] forState:UIControlStateNormal];
+        }
+        currButton = @"follow";
+        self.followers = [NSArray array];
+        self.following = [NSArray array];
+        self.filteredUserVenues = [NSMutableArray array];
+        if ([result objectForKey:@"id"])[self showPosts:[result objectForKey:@"id"]];
+        [self.postList setHidden:false];
+        [self.inactiveLabel setHidden:true];
+        if ([result objectForKey:@"name"] != [NSNull null]) self.userNameLabel.text = [result objectForKey:@"name"];
+        [self.userNameLabel setTextColor:[UIColor blackColor]];
+        if([result objectForKey:@"active"]) {
+            self.postCountLabel.text = [NSString stringWithFormat:@"%@ Posts",[[result objectForKey:@"post_count"] stringValue]];
+            self.followingCountLabel.text = [NSString stringWithFormat:@"Following %@",[[result objectForKey:@"following_count"] stringValue]];
+            self.followerCountLabel.text = [NSString stringWithFormat:@"%@ Followers",[[result objectForKey:@"follower_count"] stringValue]];
+            if([result objectForKey:@"is_following"]) {
+                [self.socialButton setTitle:@"FOLLOWING" forState:UIControlStateNormal];
+                [self.socialButton.titleLabel setTextColor:[UIColor lightGrayColor]];
+                [self.socialButton.layer setBorderColor:[UIColor clearColor].CGColor];
+                currButton = @"following";
             } else {
-                [self.socialButton setTitle:@"INVITE" forState:UIControlStateNormal];
-                [self.postList setHidden:true];
-                [self.inactiveLabel setHidden:false];
-                currButton = @"invite";
+                [self.socialButton setTitle:@"FOLLOW" forState:UIControlStateNormal];
+                [self.socialButton.titleLabel setTextColor:[UIColor redColor]];
+                [self.socialButton.layer setBorderColor:[UIColor redColor].CGColor];
+                currButton = @"follow";
             }
+            self.followers = [result objectForKey:@"followers_arr"];
+            self.following = [result objectForKey:@"following_arr"];
+            [self.postList reloadData];
+        
+        } else {
+            [self.socialButton setTitle:@"INVITE" forState:UIControlStateNormal];
+            [self.postList setHidden:true];
+            [self.inactiveLabel setHidden:false];
+            currButton = @"invite";
         }
     } failure:^(NSError *error) {
 
     }];
-    
+    if (self.myProfile){
+        [self.socialButton setHidden:YES];
+        self.editButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        [self.editButton setFrame:CGRectMake(80,0,160,34)];
+        [self.editButton addTarget:self action:@selector(editProfile) forControlEvents:UIControlEventTouchUpInside];
+        [self.editButton setEnabled:YES];
+        [self.editButton setTitle:@"EDIT MY PROFILE" forState:UIControlStateNormal];
+
+        self.editButton.layer.borderWidth = .5f;
+        self.editButton.layer.cornerRadius = 17.0f;
+        self.editButton.layer.borderColor = [UIColor lightGrayColor].CGColor;
+        [self.editButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
+        self.editButton.showsTouchWhenHighlighted = YES;
+        [self.view addSubview:self.editButton];
+        [self.view bringSubviewToFront:self.editButton];
+    }
     self.user = nil;
-    
+    if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 6) {
+        [self.editButton.titleLabel setFont:[UIFont fontWithName:kAvenirMedium size:16]];
+    } else {
+        [self.editButton.titleLabel setFont:[UIFont fontWithName:kFuturaMedium size:16]];
+    }
 }
 
 -(IBAction)followButtonTapped {
     if([currButton isEqualToString:@"follow"]) {
         NSLog(@"Follow Tapped...");
-        (void)[[FDAPIClient sharedClient] followUser:self.userId];
+        [[FDAPIClient sharedClient] followUser:self.userId];
         //temporarily change follow number
         int followerCounter;
         followerCounter = [followerCountLabel.text integerValue];
         followerCounter+=1;
-        followerCountLabel.text = [NSString stringWithFormat:@"%d",followerCounter];
+        followerCountLabel.text = [NSString stringWithFormat:@"%d Followers",followerCounter];
         self.currButton = @"following";
         [self.socialButton setTitle:@"FOLLOWING" forState:UIControlStateNormal];
         [self.socialButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
@@ -134,7 +180,7 @@
         int followerCounter;
         followerCounter = [followerCountLabel.text integerValue];
         followerCounter-=1;
-        followerCountLabel.text = [NSString stringWithFormat:@"%d",followerCounter];
+        followerCountLabel.text = [NSString stringWithFormat:@"%d Followers",followerCounter];
         
         (void)[[FDAPIClient sharedClient] unfollowUser:self.userId];
         
@@ -150,25 +196,18 @@
 }
 
 - (void)viewDidLoad {
-    [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
-    if (!self.userId){
-        self.myProfile = YES;
-        if ([[NSUserDefaults standardUserDefaults] objectForKey:@"FacebookID"]){
-            [self initWithUserId:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookId]];
-        } else {
-            [self initWithUserId:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]];
-        }
-        [self.socialButton setHidden:YES];
-        [self.profileDetailsContainerView setFrame:CGRectMake(0, -18, 320, 76)];
-        [self.profileButton setFrame:CGRectMake(5, 23, 60, 60)];
-        [self.mapView setFrame:CGRectMake(255, 23, 60, 60)];
-    }
-    
+    [Flurry logPageView];
+    self.geocoder = [[CLGeocoder alloc] init];
     [self.postList setSeparatorStyle:UITableViewCellSeparatorStyleNone];
-    currTab = 0;
+    self.currentTab = 0;
     [self.navigationController setNavigationBarHidden:NO];
-    self.mapView.layer.cornerRadius = 5.0f;
-    self.mapView.clipsToBounds = YES;
+    
+    self.profileButton.imageView.layer.cornerRadius = 38.0;
+    [self.profileButton.imageView setBackgroundColor:[UIColor clearColor]];
+    [self.profileButton.imageView.layer setBackgroundColor:[UIColor whiteColor].CGColor];
+    self.profileButton.imageView.layer.shouldRasterize = YES;
+    self.profileButton.imageView.layer.rasterizationScale = [UIScreen mainScreen].scale;
+    
     self.filteredPosts = [NSMutableArray array];
     self.followers = [NSArray array];
     self.following = [NSArray array];
@@ -181,11 +220,22 @@
     self.postsButtonBackground.layer.cornerRadius = 20.0;
     self.followersButtonBackground.layer.cornerRadius = 20.0;
     self.followingButtonBackground.layer.cornerRadius = 20.0;
-    self.tableViewHeight = self.postList.frame.size.height;
-    [self.searchDisplayController setDelegate:self];
-    [self.searchDisplayController.searchBar setDelegate:self];
-    self.searchDisplayController.searchBar.placeholder = @"Search for food, friends, places, etc";
-    for (UIView *view in self.searchDisplayController.searchBar.subviews) {
+    [self.searchBar setDelegate:self];
+    [self.locationSearchBar setDelegate:self];
+    self.searchBar.transform = CGAffineTransformMakeTranslation(320, 0);
+    self.locationSearchBar.transform = CGAffineTransformMakeTranslation(320, 0);
+    self.searchBar.placeholder = searchBarPlaceholder;
+    self.locationSearchBar.placeholder = locationBarPlaceholder;
+    [self.searchDisplayController.searchResultsTableView setSeparatorStyle:UITableViewCellSeparatorStyleNone];
+    self.locationSearchDisplayController = [self.searchDisplayController initWithSearchBar:self.locationSearchBar contentsController:self];
+    for (UIView *view in self.searchBar.subviews) {
+        if ([view isKindOfClass:NSClassFromString(@"UISearchBarBackground")]){
+            UIImageView *header = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"newFoodiaHeader.png"]];
+            [view addSubview:header];
+            break;
+        }
+    }
+    for (UIView *view in self.locationSearchBar.subviews) {
         if ([view isKindOfClass:NSClassFromString(@"UISearchBarBackground")]){
             UIImageView *header = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"newFoodiaHeader.png"]];
             [view addSubview:header];
@@ -193,35 +243,83 @@
         }
     }
     //set custom font in searchBar
-    for(UIView *subView in self.searchDisplayController.searchBar.subviews) {
+    for(UIView *subView in self.searchBar.subviews) {
         if ([subView isKindOfClass:[UITextField class]]) {
             UITextField *searchField = (UITextField *)subView;
-            searchField.font = [UIFont fontWithName:@"AvenirNextCondensed-Medium" size:15];
+            if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 6) {
+                searchField.font = [UIFont fontWithName:kAvenirMedium size:15];
+            } else {
+                searchField.font = [UIFont fontWithName:kFuturaMedium size:15];
+            }
         }
     }
-    self.searchDisplayController.searchBar.showsScopeBar = YES;
-    self.searchDisplayController.searchBar.scopeButtonTitles = [NSArray arrayWithObjects:@"ALL",@"Eat",@"Drink",@"Make",@"Shop",nil];
-    self.searchDisplayController.searchBar.scopeBarBackgroundImage = [UIImage imageNamed:@"newFoodiaHeader.png"];
+    //set custom font in searchBar
+    for(UIView *subView in self.locationSearchBar.subviews) {
+        if ([subView isKindOfClass:[UITextField class]]) {
+            UITextField *searchField = (UITextField *)subView;
+            if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 6) {
+                searchField.font = [UIFont fontWithName:kAvenirMedium size:15];    
+            } else {
+                searchField.font = [UIFont fontWithName:kFuturaMedium size:15];
+            }
+            
+        }
+    }
+    
+    //self.searchDisplayController.searchBar.showsScopeBar = YES;
+    //self.searchDisplayController.searchBar.scopeButtonTitles = [NSArray arrayWithObjects:@"ALL",@"Eat",@"Drink",@"Make",@"Shop",nil];
+    //self.searchDisplayController.searchBar.scopeBarBackgroundImage = [UIImage imageNamed:@"newFoodiaHeader.png"];
     self.socialButton.layer.borderWidth = 1.0f;
     self.socialButton.layer.cornerRadius = 16.0f;
     self.socialButton.layer.borderColor = [UIColor lightGrayColor].CGColor;
     
+    [self.followingButtonBackground setBackgroundColor:kColorLightBlack];
+    [self.followersButtonBackground setBackgroundColor:kColorLightBlack];
     [self.postsButtonBackground setBackgroundColor:kColorLightBlack];
     [self.postCountLabel setTextColor:[UIColor whiteColor]];
     [self.postButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     
+    if (!self.userId){
+        self.myProfile = YES;
+        [self initWithUserId:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]];
+    }
+    
     [super viewDidLoad];
+    
+    if ([[[UIDevice currentDevice] systemVersion] floatValue] < 6) {
+        [self.userNameLabel setFont:[UIFont fontWithName:kFuturaMedium size:20]];
+        [self.eatingButton.titleLabel setFont:[UIFont fontWithName:kFuturaMedium size:15]];
+        [self.drinkingButton.titleLabel setFont:[UIFont fontWithName:kFuturaMedium size:15]];
+        [self.makingButton.titleLabel setFont:[UIFont fontWithName:kFuturaMedium size:15]];
+        [self.shoppingButton.titleLabel setFont:[UIFont fontWithName:kFuturaMedium size:15]];
+        [self.postCountLabel setFont:[UIFont fontWithName:kFuturaMedium size:16]];
+        [self.followerCountLabel setFont:[UIFont fontWithName:kFuturaMedium size:16]];
+        [self.followingCountLabel setFont:[UIFont fontWithName:kFuturaMedium size:16]];
+        [self.socialButton.titleLabel setFont:[UIFont fontWithName:kFuturaMedium size:15]];
+    }
+}
+
+- (void)editProfile {
+    [self performSegueWithIdentifier:@"EditProfile" sender:self];
 }
 
 - (void)viewDidAppear:(BOOL)animated {
+    [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
     [super viewDidAppear:animated];
+    
+    self.noSearchResults = NO;
     self.slidingViewController.panGesture.enabled = NO;
-    [TestFlight passCheckpoint:@"Passed Profile checkpoint"];
-    [Flurry logPageView];
+
     UIBarButtonItem *menuButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"menuBarButtonImage.png"] style:UIBarButtonItemStyleBordered target:self action:@selector(revealMenu:)];
     if (self.navigationController.navigationBar.backItem == nil) {
         self.navigationItem.leftBarButtonItem = menuButton;
     }
+    if ([UIScreen mainScreen].bounds.size.height == 568){
+        [self.postList setFrame:kLargePostList];
+    } else {
+        [self.postList setFrame:kSmallPostList];
+    }
+    self.postListRect = self.postList.frame;
 }
 
 - (void)followCreated:(NSNotification *)notification {
@@ -237,26 +335,34 @@
 }
 
 -(NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
-    if (tableView != self.searchDisplayController.searchResultsTableView) return 3;
-    else return 1;
+    return 3;
+    //else return 1;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    if (tableView == self.searchDisplayController.searchResultsTableView) {
+    if (tableView == self.locationSearchDisplayController.searchResultsTableView && section == 0){
+        return self.filteredUserVenues.count;
+    } else if (self.filteredPosts.count > 0 && section == 0 && currentTab == 0) {
+
         return self.filteredPosts.count;
-    } else if(section == 0 && currTab == 0) {
+    } else if (self.noSearchResults  && tableView != self.locationSearchDisplayController.searchResultsTableView) {
+
+        return 1;
+    } else if(section == 0 && currentTab == 0 && tableView != self.locationSearchDisplayController.searchResultsTableView) {
+
         return self.posts.count;
-    } else if(section == 1 && currTab == 1 && self.followers.count > 0 && self.following.count > 0) {
-        return self.followers.count;
-    } else if(section == 2 && currTab == 2 && self.following.count > 0 && self.followers.count > 0) {
+    } else if(section == 1 && currentTab == 1 && tableView != self.locationSearchDisplayController.searchResultsTableView) {
+
         return self.following.count;
+    } else if(section == 2 && currentTab == 2 && tableView != self.locationSearchDisplayController.searchResultsTableView) {
+        return self.followers.count;
     } else {
         return 0;
     }
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    if(indexPath.section == 0) return 155;
+    if(indexPath.section == 0 && tableView != self.locationSearchDisplayController.searchResultsTableView) return 155;
     else return 44;
 }
 
@@ -273,7 +379,6 @@
 }
 
 -(void)loadPosts:(NSString *)uid{
-
     self.feedRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getFeedForProfile:uid success:^(NSMutableArray *newPosts) {
         self.posts = newPosts;
         if (self.posts.count == 0) {
@@ -282,111 +387,121 @@
                 [self.socialButton setAlpha:1.0];
                 [self.postsButtonBackground setAlpha:1.0];
             }];
-        }
-        [self.postList reloadData];
+            [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
+        } else [self.postList reloadData];
         self.feedRequestOperation = nil;
     } failure:^(NSError *error) {
         self.feedRequestOperation = nil;
-        [self.postList reloadData];
     }];
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-    if (indexPath.section == 0) {
-        FDPostCell *cell = (FDPostCell *)[tableView dequeueReusableCellWithIdentifier:@"PostCell"];
-        if (cell == nil) {
-            NSArray *nib = [[NSBundle mainBundle] loadNibNamed:@"FDPostCell" owner:self options:nil];
-            cell = (FDPostCell *)[nib objectAtIndex:0];
-        }
-        if (tableView == self.searchDisplayController.searchResultsTableView) {
-            FDPost *post = [self.filteredPosts objectAtIndex:indexPath.row];
-            [cell configureForPost:post];
+    if (tableView == self.locationSearchDisplayController.searchResultsTableView) {
+        UITableViewCell *cell = [[UITableViewCell alloc]initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"LocationCell"];
+        NSString *location = (NSString*)[self.filteredUserVenues objectAtIndex:indexPath.row];
+        [cell.textLabel setText:location];
+        if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 6) {
+            [cell.textLabel setFont:[UIFont fontWithName:kAvenirMedium size:15.0]];
         } else {
-            FDPost *post = [self.posts objectAtIndex:indexPath.row];
-            [cell configureForPost:post];
-            cell = [self showLikers:cell forPost:post];
-            [cell bringSubviewToFront:cell.likersScrollView];
-            
-            cell.detailPhotoButton.tag = [post.identifier integerValue];
-            [cell.detailPhotoButton addTarget:self action:@selector(didSelectRow:) forControlEvents:UIControlEventTouchUpInside];
-            
-            UIButton *recButton = [UIButton buttonWithType:UIButtonTypeCustom];
-            [recButton setFrame:CGRectMake(276,52,60,34)];
-            [recButton addTarget:self action:@selector(recommend:) forControlEvents:UIControlEventTouchUpInside];
-            [recButton setTitle:@"Rec" forState:UIControlStateNormal];
-            recButton.layer.borderColor = [UIColor colorWithWhite:.1 alpha:.1].CGColor;
-            recButton.layer.borderWidth = 1.0f;
-            recButton.backgroundColor = [UIColor whiteColor];
-            recButton.layer.cornerRadius = 17.0f;
-            recButton.layer.shouldRasterize = YES;
-            recButton.layer.rasterizationScale = [UIScreen mainScreen].scale;
-            [recButton.titleLabel setFont:[UIFont fontWithName:@"AvenirNextCondensed-Medium" size:15]];
-            [recButton.titleLabel setTextColor:[UIColor lightGrayColor]];
-            recButton.tag = indexPath.row;
-            [cell.scrollView addSubview:recButton];
-            
-            UIButton *commentButton = [UIButton buttonWithType:UIButtonTypeCustom];
-            [commentButton setFrame:CGRectMake(382,52,118,34)];
-            commentButton.tag = [post.identifier integerValue];
-            [commentButton addTarget:self action:@selector(didSelectRow:) forControlEvents:UIControlEventTouchUpInside];
-            [commentButton setTitle:@"Add a comment..." forState:UIControlStateNormal];
-            [commentButton setTitle:@"Nice!" forState:UIControlStateSelected];
-            commentButton.layer.borderColor = [UIColor colorWithWhite:.1 alpha:.1].CGColor;
-            commentButton.layer.borderWidth = 1.0f;
-            commentButton.backgroundColor = [UIColor whiteColor];
-            commentButton.layer.cornerRadius = 17.0f;
-            commentButton.layer.shouldRasterize = YES;
-            commentButton.layer.rasterizationScale = [UIScreen mainScreen].scale;
-            [commentButton.titleLabel setFont:[UIFont fontWithName:@"AvenirNextCondensed-Medium" size:15]];
-            [commentButton.titleLabel setTextColor:[UIColor lightGrayColor]];
-            [cell.scrollView addSubview:commentButton];
-            
-            //capture touch event to show user place map
-            if (post.locationName.length){
-                [cell.locationButton setHidden:NO];
-                [cell.locationButton addTarget:self action:@selector(showPlace:) forControlEvents:UIControlEventTouchUpInside];
-                cell.locationButton.tag = indexPath.row;
-            }
+            [cell.textLabel setFont:[UIFont fontWithName:kFuturaMedium size:15.0]];
+        }
+
+        
+        return cell;
+    } else if (indexPath.section == 0 && !self.noSearchResults) {
+        FDPostCell *cell = (FDPostCell *)[tableView dequeueReusableCellWithIdentifier:@"PostCell"];
+        if (cell == nil) cell = [[[NSBundle mainBundle] loadNibNamed:@"FDPostCell" owner:self options:nil] lastObject];
+        FDPost *post;
+        if (self.filteredPosts.count > 0) {
+            post = [self.filteredPosts objectAtIndex:indexPath.row];
+        } else {
+            post = [self.posts objectAtIndex:indexPath.row];
+        }
+        [cell configureForPost:post];
+        cell = [self showLikers:cell forPost:post];
+        [cell bringSubviewToFront:cell.likersScrollView];
+        
+        cell.detailPhotoButton.tag = [post.identifier integerValue];
+        [cell.detailPhotoButton addTarget:self action:@selector(didSelectRow:) forControlEvents:UIControlEventTouchUpInside];
+        
+        [cell.recButton addTarget:self action:@selector(recommend:) forControlEvents:UIControlEventTouchUpInside];
+        cell.recButton.tag = indexPath.row;
+
+        cell.commentButton.tag = [post.identifier integerValue];
+        [cell.commentButton addTarget:self action:@selector(didSelectRow:) forControlEvents:UIControlEventTouchUpInside];
+        
+        //capture touch event to show user place map
+        if (post.locationName.length){
+            [cell.locationButton setHidden:NO];
+            [cell.locationButton addTarget:self action:@selector(showPlace:) forControlEvents:UIControlEventTouchUpInside];
+            cell.locationButton.tag = indexPath.row;
         }
         [cell.likeButton addTarget:self action:@selector(likeButtonTapped:) forControlEvents:UIControlEventTouchUpInside];
         cell.likeButton.tag = indexPath.row;
         
         return cell;
+    } else if (indexPath.section == 1) {
+        FDUserCell *cell = (FDUserCell *)[tableView dequeueReusableCellWithIdentifier:@"UserCell"];
         
-    } else if(indexPath.section == 1 && tableView != self.searchDisplayController.searchResultsTableView) {
-        FDUserCell *cell = (FDUserCell *)[tableView dequeueReusableCellWithIdentifier:@"UserCell"];
         if (cell == nil) {
-            NSArray *nib = [[NSBundle mainBundle] loadNibNamed:@"FDUserCell" owner:self options:nil];
-            cell = (FDUserCell *)[nib objectAtIndex:0];
+            cell = [[[NSBundle mainBundle] loadNibNamed:@"FDUserCell" owner:self options:nil] lastObject];
         }
-        cell.nameLabel.text = [[self.followers objectAtIndex:indexPath.row] objectForKey:@"name"];
-        [cell setFacebookId:[[self.followers objectAtIndex:indexPath.row] objectForKey:@"fbid"]];
-        [cell.button setHidden:true];
+        FDUser *thisUser = [self.following objectAtIndex:indexPath.row];
+        [cell configureForUser:thisUser];
+        [cell.nameLabel setText:thisUser.name];
+        
+        /*if ([[self.following objectAtIndex:indexPath.row] objectForKey:@"fbid"]){
+            [cell setFacebookId:[[self.following objectAtIndex:indexPath.row] objectForKey:@"fbid"]];
+        } else {
+            [cell setUserId:[[self.following objectAtIndex:indexPath.row] objectForKey:@"id"]];
+        }*/
+        
+        [cell.actionButton setHidden:true];
         [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
         UIButton *peopleButton = [UIButton buttonWithType:UIButtonTypeCustom];
         [cell addSubview:peopleButton];
-        peopleButton.tag = [[[self.followers objectAtIndex:indexPath.row] objectForKey:@"fbid"] integerValue];
+
+        peopleButton.tag = [thisUser.userId integerValue];
         [peopleButton addTarget:self action:@selector(profileTappedFromProfile:) forControlEvents:UIControlEventTouchUpInside];
-        [peopleButton setFrame:cell.imageFrame];
+        [peopleButton setFrame:cell.profileButton.frame];
         return cell;
-    } else if(indexPath.section == 2 && tableView != self.searchDisplayController.searchResultsTableView){
+        
+    } else if (indexPath.section == 2){
         FDUserCell *cell = (FDUserCell *)[tableView dequeueReusableCellWithIdentifier:@"UserCell"];
         if (cell == nil) {
-            NSArray *nib = [[NSBundle mainBundle] loadNibNamed:@"FDUserCell" owner:self options:nil];
-            cell = (FDUserCell *)[nib objectAtIndex:0];
+            cell = [[[NSBundle mainBundle] loadNibNamed:@"FDUserCell" owner:self options:nil] lastObject];
         }
-        cell.nameLabel.text = [[self.following objectAtIndex:indexPath.row] objectForKey:@"name"];
-        [cell setFacebookId:[[self.following objectAtIndex:indexPath.row] objectForKey:@"fbid"]];
-        [cell.button setHidden:true];
+        FDUser *thisUser = [self.followers objectAtIndex:indexPath.row];
+        cell.nameLabel.text = thisUser.name;
+        [cell configureForUser:thisUser];
+        /*if ([[self.followers objectAtIndex:indexPath.row] objectForKey:@"fbid"]){
+            [cell setFacebookId:[[self.followers objectAtIndex:indexPath.row] objectForKey:@"fbid"]];
+        } else {
+            [cell setUserId:[[self.followers objectAtIndex:indexPath.row] objectForKey:@"id"]];
+        }*/
+        [cell.actionButton setHidden:true];
         [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
         UIButton *peopleButton = [UIButton buttonWithType:UIButtonTypeCustom];
         [cell addSubview:peopleButton];
-        peopleButton.tag = [[[self.following objectAtIndex:indexPath.row] objectForKey:@"fbid"] integerValue];
+        
+        peopleButton.tag = [thisUser.userId integerValue];
         [peopleButton addTarget:self action:@selector(profileTappedFromProfile:) forControlEvents:UIControlEventTouchUpInside];
-        [peopleButton setFrame:cell.imageFrame];
+        [peopleButton setFrame:cell.profileButton.frame];
         return cell;
     } else {
+        NSLog(@"returning an empty cell");
+        [self.locationSearchDisplayController.searchResultsTableView setSeparatorStyle:UITableViewCellSeparatorStyleNone];
+        [self.postList setSeparatorStyle:UITableViewCellSeparatorStyleNone];
         UITableViewCell *emptyCell = [[UITableViewCell alloc]initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"EmptyCell"];
+        [emptyCell.textLabel setText:@"No Results"];
+        [emptyCell.textLabel setTextAlignment:NSTextAlignmentCenter];
+        [emptyCell.textLabel setTextColor:[UIColor lightGrayColor]];
+        if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 6) {
+            [emptyCell.textLabel setFont:[UIFont fontWithName:kAvenirMedium size:20.0]];
+        } else {
+            [emptyCell.textLabel setFont:[UIFont fontWithName:kFuturaMedium size:20.0]];
+        }
+        
         emptyCell.userInteractionEnabled = NO;
         return emptyCell;
     }
@@ -410,13 +525,23 @@
 -(void)showPlace:(id)sender {
     [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
     UIButton *button = (UIButton *) sender;
-    [self performSegueWithIdentifier:@"ShowPlace" sender:[self.posts objectAtIndex:button.tag]];
+    if (self.filteredPosts.count > 0) {
+        [self performSegueWithIdentifier:@"ShowPlace" sender:[self.filteredPosts objectAtIndex:button.tag]];
+    } else {
+        [self performSegueWithIdentifier:@"ShowPlace" sender:[self.posts objectAtIndex:button.tag]];
+    }
 }
 
 - (void)recommend:(id)sender {
     UIButton *button = (UIButton *)sender;
     FDPost *post = [self.posts objectAtIndex:button.tag];
-    FDCustomSheet *actionSheet = [[FDCustomSheet alloc] initWithTitle:nil delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:@"Recommend on FOODIA", @"Recommend via Facebook",@"Send a Text", @"Send an Email", nil];
+    FDCustomSheet *actionSheet;
+    if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookAccessToken]){
+        actionSheet = [[FDCustomSheet alloc] initWithTitle:nil delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:@"Recommend on FOODIA", @"Recommend via Facebook",@"Send a Text", @"Send an Email", nil];
+    } else {
+        actionSheet = [[FDCustomSheet alloc] initWithTitle:nil delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:@"Recommend on FOODIA", @"Send a Text", @"Send an Email", nil];
+    }
+     
     [actionSheet setFoodiaObject:post.foodiaObject];
     [actionSheet setPost:post];
     [actionSheet showInView:self.view];
@@ -433,11 +558,11 @@
     }
     FDRecommendViewController *vc = [storyboard instantiateViewControllerWithIdentifier:@"RecommendView"];
     [vc setPost:actionSheet.post];
-    if (buttonIndex == 0) {
+    if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Recommend on FOODIA"]) {
         //Recommending via FOODIA only
         [vc setPostingToFacebook:NO];
         [self.navigationController pushViewController:vc animated:YES];
-    } else if (buttonIndex == 1) {
+    } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Recommend via Facebook"]) {
         
         if ([FBSession.activeSession.permissions
              indexOfObject:@"publish_actions"] == NSNotFound) {
@@ -459,7 +584,7 @@
                     indexOfObject:@"publish_actions"] != NSNotFound) {
             [self.navigationController pushViewController:vc animated:YES];
         }
-    } else if(buttonIndex == 2) {
+    } else if([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Send a Text"]) {
         MFMessageComposeViewController *viewController = [[MFMessageComposeViewController alloc] init];
         if ([MFMessageComposeViewController canSendText]){
             NSString *textBody = [NSString stringWithFormat:@"I just recommended %@ to you from FOODIA!\n Download the app now: itms-apps://itunes.com/apps/foodia",actionSheet.foodiaObject];
@@ -467,7 +592,7 @@
             [viewController setBody:textBody];
             [self presentViewController:viewController animated:YES completion:nil];
         }
-    } else if(buttonIndex == 3) {
+    } else if([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Send an Email"]) {
         if ([MFMailComposeViewController canSendMail]) {
             MFMailComposeViewController* controller = [[MFMailComposeViewController alloc] init];
             controller.mailComposeDelegate = self;
@@ -513,39 +638,41 @@
     [cell.likersScrollView.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
     cell.likersScrollView.showsHorizontalScrollIndicator = NO;
     
-    float imageSize = 36.0;
+    float imageSize = 34.0;
     float space = 6.0;
     int index = 0;
     
     for (NSDictionary *viewer in viewers) {
-        if ([viewer objectForKey:@"facebook_id"] != [NSNull null]) {
+        if ([viewer objectForKey:@"id"] != [NSNull null]) {
             UIImageView *face = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"light_smile"]];
-            UIImageView *likerView = [[UIImageView alloc] initWithFrame:CGRectMake(((cell.likersScrollView.frame.origin.x)+((space+imageSize)*index)),(cell.likersScrollView.frame.origin.y), imageSize, imageSize)];
-            UIButton *likerButton = [UIButton buttonWithType:UIButtonTypeCustom];
+
+            UIButton *viewerButton = [UIButton buttonWithType:UIButtonTypeCustom];
+            [viewerButton setFrame:CGRectMake(((space+imageSize)*index),0,imageSize, imageSize)];
+            if ([[viewer objectForKey:@"facebook_id"] length]){
+                [viewerButton setImageWithURL:[Utilities profileImageURLForFacebookID:[viewer objectForKey:@"facebook_id"]] forState:UIControlStateNormal];
+            } else {
+                [viewerButton setImageWithURL:[viewer objectForKey:@"avatar_url"] forState:UIControlStateNormal];
+            }
+            viewerButton.titleLabel.text = [[viewer objectForKey:@"id"] stringValue];
+            viewerButton.titleLabel.hidden = YES;
             
-            //passing liker facebook id as a string instead of NSNumber so that it can hold more data. crafty.
-            likerButton.titleLabel.text = [viewer objectForKey:@"facebook_id"];
-            likerButton.titleLabel.hidden = YES;
-            
-            [likerButton addTarget:self action:@selector(profileTappedFromLikers:) forControlEvents:UIControlEventTouchUpInside];
-            [likerView setImageWithURL:[Utilities profileImageURLForFacebookID:[viewer objectForKey:@"facebook_id"]]];
-            likerView.userInteractionEnabled = YES;
-            likerView.clipsToBounds = YES;
-            likerView.layer.cornerRadius = 5.0;
-            likerView.frame = CGRectMake(((space+imageSize)*index),0,imageSize, imageSize);
+            [viewerButton addTarget:self action:@selector(profileTappedFromLikers:) forControlEvents:UIControlEventTouchUpInside];
+            [viewerButton.imageView setBackgroundColor:[UIColor clearColor]];
+            [viewerButton.imageView.layer setBackgroundColor:[UIColor clearColor].CGColor];
+            viewerButton.imageView.layer.cornerRadius = 17.0;
+            viewerButton.imageView.layer.shouldRasterize = YES;
+            viewerButton.imageView.layer.rasterizationScale = [UIScreen mainScreen].scale;
             face.frame = CGRectMake((((space+imageSize)*index)+22),18,20,20);
-            [likerButton setFrame:likerView.frame];
-            face.clipsToBounds = NO;
-            [cell.likersScrollView addSubview:likerView];
+            [cell.likersScrollView addSubview:viewerButton];
             for (NSDictionary *liker in likers) {
-                if ([liker objectForKey:@"facebook_id"]){
-                    if ([[liker objectForKey:@"facebook_id"] isEqualToString:[viewer objectForKey:@"facebook_id"]]){
+                if ([liker objectForKey:@"id"]){
+                    if ([[liker objectForKey:@"id"] isEqualToNumber:[viewer objectForKey:@"id"]]){
                         [cell.likersScrollView addSubview:face];
                         break;
                     }
                 }
             }
-            [cell.likersScrollView addSubview:likerButton];
+
             index++;
         }
     }
@@ -554,7 +681,17 @@
 }
 
 -(void)profileTappedFromLikers:(id)sender {
-    [self.delegate performSegueWithIdentifier:@"ShowProfileFromLikers" sender:sender];
+    UIButton *button = (UIButton*)sender;
+    FDProfileViewController *vc;
+    if (([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone && [UIScreen mainScreen].bounds.size.height == 568.0)){
+        UIStoryboard *storyboard5 = [UIStoryboard storyboardWithName:@"iPhone5" bundle:nil];
+        vc = [storyboard5 instantiateViewControllerWithIdentifier:@"ProfileView"];
+    } else {
+        UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"iPhone" bundle:nil];
+        vc = [storyboard instantiateViewControllerWithIdentifier:@"ProfileView"];
+    }
+    [vc initWithUserId:button.titleLabel.text];
+    [self.navigationController pushViewController:vc animated:YES];
 }
 
 -(void)profileTappedFromComment:(id)sender{
@@ -563,7 +700,16 @@
 
 -(void)profileTappedFromProfile:(id)sender {
     UIButton *button = (UIButton *) sender;
-    [self initWithUserId:[NSString stringWithFormat:@"%d",button.tag]];
+    FDProfileViewController *vc;
+    if (([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone && [UIScreen mainScreen].bounds.size.height == 568.0)){
+        UIStoryboard *storyboard5 = [UIStoryboard storyboardWithName:@"iPhone5" bundle:nil];
+        vc = [storyboard5 instantiateViewControllerWithIdentifier:@"ProfileView"];
+    } else {
+        UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"iPhone" bundle:nil];
+        vc = [storyboard instantiateViewControllerWithIdentifier:@"ProfileView"];
+    }
+    [vc initWithUserId:[NSString stringWithFormat:@"%d",button.tag]];
+    [self.navigationController pushViewController:vc animated:YES];
 }
 
 -(void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
@@ -602,21 +748,34 @@
 }
 
 - (IBAction)showFollowers:(id)sender {
-        [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
+    [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
+    [[FDAPIClient sharedClient] getFollowers:self.userId success:^(id result) {
+        self.followers = result;
+        self.currentTab = 2;
+        [self.postList reloadData];
+    } failure:^(NSError *error) {
+
+    }];
     [self resetStatButtonBackgrounds];
     [UIView animateWithDuration:.25 animations:^{
         [self.followersButtonBackground setAlpha:1.0];
         [self.followerCountLabel setTextColor:[UIColor whiteColor]];
         [self.followersButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     }];
-
-    self.currTab = 1;
     [self resetCategoryButtons];
-    [self.postList reloadData];
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    if (tableView == self.searchDisplayController.searchResultsTableView) {
+    if (tableView == self.locationSearchDisplayController.searchResultsTableView) {
+        self.selectedVenue = [self.filteredUserVenues objectAtIndex:indexPath.row];
+        [self.locationSearchDisplayController.searchBar setText:self.selectedVenue];
+        [UIView animateWithDuration:.25 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+            [self.locationSearchDisplayController.searchResultsTableView setAlpha:0.0];
+        } completion:^(BOOL finished) {
+            [self.locationSearchDisplayController.searchResultsTableView setHidden:YES];
+        }];
+        
+    } else if (self.filteredPosts.count > 0) {
         FDPost *selectedPost = (FDPost *)[self.filteredPosts objectAtIndex:indexPath.row];
         [self performSegueWithIdentifier:@"ShowPostFromProfile" sender:selectedPost];
     } else if(indexPath.section == 0) {
@@ -626,30 +785,34 @@
 }
 
 - (IBAction)showFollowing:(id)sender {
-        [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
+    [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
+    [[FDAPIClient sharedClient] getFollowing:self.userId success:^(id result) {
+        self.following = result;
+        self.currentTab = 1;
+        [self.postList reloadData];
+    } failure:^(NSError *error) {
+
+    }];
     [self resetStatButtonBackgrounds];
     [UIView animateWithDuration:.25 animations:^{
         [self.followingButtonBackground setAlpha:1.0];
         [self.followingCountLabel setTextColor:[UIColor whiteColor]];
         [self.followingButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     }];
-    self.currTab = 2;
     [self resetCategoryButtons];
-    [self.postList reloadData];
 }
 
 - (IBAction)showPosts:(id)sender {
-        [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
+    [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
     [self resetStatButtonBackgrounds];
     [UIView animateWithDuration:.25 animations:^{
         [self.postsButtonBackground setAlpha:1.0];
         [self.postCountLabel setTextColor:[UIColor whiteColor]];
         [self.postButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     }];
-    self.currTab = 0;
+    self.currentTab = 0;
     self.canLoadMore = YES;
     [self resetCategoryButtons];
-    //[self.postList reloadData];
     [self loadPosts:self.userId];
 }
 
@@ -753,7 +916,7 @@
 }
 
 - (void)loadAdditionalPosts{
-    if (self.canLoadMore == YES){
+    if (self.canLoadMore == YES && self.filteredPosts == 0){
     self.feedRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getProfileFeedBefore:self.posts.lastObject forProfile:self.userId success:^(NSMutableArray *morePosts) {
         if (morePosts.count == 0){
             self.canLoadMore = NO;
@@ -761,7 +924,7 @@
         } else {
             [self.posts addObjectsFromArray:morePosts];
             NSLog(@"this is self.posts.count after additions: %d", self.posts.count);
-            if (self.posts.count < [self.postCountLabel.text integerValue] && self.canLoadMore == YES)[self loadAdditionalPosts];
+            /*if (self.posts.count < [self.postCountLabel.text integerValue] && self.canLoadMore == YES)[self loadAdditionalPosts];*/
             [self.postList reloadData];
         }
         self.feedRequestOperation = nil;
@@ -781,7 +944,7 @@
 - (IBAction)getFeedForEating {
     [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
     self.canLoadMore = NO;
-    self.currTab = 0;
+    self.currentTab = 0;
     [self resetCategoryButtons];
     [self.eatingButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     [self.eatingButton setBackgroundColor:kColorLightBlack];
@@ -803,7 +966,7 @@
 - (IBAction)getFeedForDrinking {
     [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
     self.canLoadMore = NO;
-    self.currTab = 0;
+    self.currentTab = 0;
     [self resetCategoryButtons];
     [self.drinkingButton setBackgroundColor:kColorLightBlack];
     [self.drinkingButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
@@ -823,7 +986,7 @@
 - (IBAction)getFeedForMaking {
     [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
     self.canLoadMore = NO;
-    self.currTab = 0;
+    self.currentTab = 0;
     [self resetCategoryButtons];
     [self.makingButton setBackgroundColor:kColorLightBlack];
     [self.makingButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
@@ -846,7 +1009,7 @@
     [self.shoppingButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     [self.shoppingButton setBackgroundColor:kColorLightBlack];
     self.canLoadMore = NO;
-    self.currTab = 0;
+    self.currentTab = 0;
     self.feedRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getProfileFeedForCategory:@"Shopping" forProfile:self.userId success:^(NSMutableArray *categoryPosts) {
         if (categoryPosts.count == 0){
             self.canLoadMore = NO;
@@ -870,157 +1033,183 @@
     [self.eatingButton setBackgroundColor:[UIColor clearColor]];
     [self.drinkingButton setTitleColor:[UIColor darkGrayColor] forState:UIControlStateNormal];
     [self.drinkingButton setBackgroundColor:[UIColor clearColor]];
+    [self.drinkingButton setAlpha:1.0];
+    [self.eatingButton setAlpha:1.0];
+    [self.makingButton setAlpha:1.0];
+    [self.shoppingButton setAlpha:1.0];
 }
 
 -(void)searchBarTextDidBeginEditing:(UISearchBar *)searchBar {
-    [self.postList setFrame:CGRectMake(0,0,320,self.view.bounds.size.height)];
-    [self.postList setHidden:YES];
+    [searchBar setShowsCancelButton:YES animated:YES];
+    [self.navigationController setNavigationBarHidden:YES animated:YES];
     [UIView animateWithDuration:UINavigationControllerHideShowBarDuration animations:^{
-        [self.searchDisplayController.searchBar setFrame:CGRectMake(0,0,320,44)];
-        self.profileButton.alpha = 0.0f;
         self.makingButton.alpha = 0.0f;
         self.shoppingButton.alpha = 0.0f;
         self.drinkingButton.alpha = 0.0f;
         self.eatingButton.alpha = 0.0f;
         self.profileDetailsContainerView.alpha = 0.0f;
+        if ([UIScreen mainScreen].bounds.size.height == 568){
+            [self.postList setFrame:CGRectMake(0,88,320,460)];
+        } else {
+            [self.postList setFrame:CGRectMake(0,88,320,372)];
+        }
     }];
     
 }
 
-/*- (void)showTextView {
-    self.searchResults = nil;
-    [self.searchResultsTableView reloadData];
-    [self startSearchRequest];
-    [UIView animateWithDuration:0.2 animations:^{
-        self.textFieldImageView.alpha = 0.9;
-        self.objectTextField.alpha = 1.0;
-        self.clearButton.alpha = 1.0;
-        self.searchResultsTableView.alpha = 1.0;
-    }];
-}*/
-
-
--(void) searchBarCancelButtonClicked:(UISearchBar *)searchBar {
-    [self.filteredPosts removeAllObjects];
-    [self.postList reloadData];
-    [self.postList setHidden:NO];
+-(void)doneEditing {
+    [self.view endEditing:YES];
+    [self.profileDetailsContainerView setHidden:NO];
+    [self.searchBar setShowsCancelButton:NO animated:YES];
+    [self.locationSearchBar setShowsCancelButton:NO animated:YES];
     [UIView animateWithDuration:UINavigationControllerHideShowBarDuration animations:^{
-        [self.searchDisplayController.searchBar setFrame:CGRectMake(0,-44,320,44)];
-        [self.searchDisplayController.searchBar setAlpha:0.0f];
-        self.profileDetailsContainerView.frame = CGRectMake(0,0,320,self.profileDetailsContainerView.bounds.size.height);
-        self.profileButton.alpha = 1.0f;
+        [self moveRight:self.searchBar withDelay:0];
+        [self moveRight:self.locationSearchBar withDelay:.1];
+        //self.profileDetailsContainerView.frame = CGRectMake(0,0,320,self.profileDetailsContainerView.bounds.size.height);
         self.makingButton.alpha = 1.0f;
         self.shoppingButton.alpha = 1.0f;
         self.drinkingButton.alpha = 1.0f;
         self.eatingButton.alpha = 1.0f;
         self.profileDetailsContainerView.alpha = 1.0f;
-        [self.postList setFrame:CGRectMake(0,164,320,self.tableViewHeight)];
+        [self.postList setFrame:self.postListRect];
+        [self.postList setAlpha:1.0];
+    }];
+}
+
+-(void)searchBarSearchButtonClicked:(UISearchBar *)thisSearchBar {
+    self.currentTab = 0;
+    [self.postSearchRequestOperation cancel];
+    [self.view endEditing:YES];
+    [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
+    [self.filteredPosts removeAllObjects];
+    [self.filteredUserVenues removeAllObjects];
+    NSString *searchBarText;
+    NSString *locationSearchText;
+    if (self.searchBar.text.length > 0 && ![self.searchBar.text isEqualToString:searchBarPlaceholder]){
+        searchBarText = [NSString stringWithFormat:@"%%%@%%",self.searchBar.text];
+    } else {
+        searchBarText = nil;
+    }
+    if (self.locationSearchBar.text.length > 0 && ![self.locationSearchBar.text isEqualToString:locationBarPlaceholder]){
+        [self.geocoder geocodeAddressString:self.locationSearchBar.text completionHandler:^(NSArray *placemarks, NSError *error) {
+            MKPlacemark *firstPlacemark = [placemarks objectAtIndex:0];
+            self.location = [[CLLocation alloc] initWithLatitude:firstPlacemark.location.coordinate.latitude longitude:firstPlacemark.location.coordinate.longitude];
+        }];
+        locationSearchText = [NSString stringWithFormat:@"%%%@%%",self.locationSearchBar.text];
+    }
+    if (self.selectedVenue.length) {
+        self.postSearchRequestOperation = [[FDAPIClient sharedClient] getUserPosts:self.userId forQuery:searchBarText withVenue:[NSString stringWithFormat:@"%%%@%%",self.selectedVenue] nearCoordinate:nil success:^(NSMutableArray *result) {
+            if (result.count == 0) {
+                self.noSearchResults = YES;
+                [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
+            } else {
+                self.noSearchResults = NO;
+                self.filteredPosts = result;
+                [self.postList setAlpha:1.0];
+            }
+            [self.postList reloadData];
+            self.postSearchRequestOperation = nil;
+        } failure:^(NSError *error) {
+            NSLog(@"error from getuserposts method: %@", error.description);
+            self.postSearchRequestOperation = nil;
+        }];
+    } else {
+        NSLog(@"self selected venue: %@",self.selectedVenue);
+        self.postSearchRequestOperation = [[FDAPIClient sharedClient] getUserPosts:self.userId forQuery:searchBarText withVenue:nil nearCoordinate:nil success:^(NSMutableArray *result) {
+            if (result.count == 0) {
+                self.noSearchResults = YES;
+                [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
+            } else {
+                self.noSearchResults = NO;
+                self.filteredPosts = result;
+                [self.postList setAlpha:1.0];
+            }
+            [self.postList reloadData];
+            self.postSearchRequestOperation = nil;
+        } failure:^(NSError *error) {
+            NSLog(@"error from getuserposts method: %@", error.description);
+            self.postSearchRequestOperation = nil;
+        }];
+    }
+}
+
+-(void) searchBarCancelButtonClicked:(UISearchBar *)searchBar {
+    self.noSearchResults = NO;
+    self.selectedVenue = nil;
+    [self.filteredPosts removeAllObjects];
+    [self.postList reloadData];
+    [self.navigationController setNavigationBarHidden:NO animated:YES];
+    self.location = nil;
+    [self doneEditing];
+}
+
+-(void)moveLeft:(UISearchBar*)searchBar withDelay:(CGFloat)delay {
+    [UIView animateWithDuration:.5 delay:delay options:UIViewAnimationOptionCurveEaseIn animations:^{
+        searchBar.transform = CGAffineTransformMakeTranslation(-80, 0);
+    } completion:^(BOOL finished) {
+        [UIView animateWithDuration:.2 delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+            searchBar.transform = CGAffineTransformIdentity;
+        } completion:^(BOOL finished) {
+            
+        }];
+    }];
+}
+
+-(void)moveRight:(UISearchBar*)searchBar withDelay:(CGFloat)delay {
+    [UIView animateWithDuration:.75 delay:delay options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        searchBar.transform = CGAffineTransformMakeTranslation(320, 0);
+    } completion:^(BOOL finished) {
+        
     }];
 }
 
 -(IBAction)activateSearch {
-    [self loadAdditionalPosts];
-    if (self.searchDisplayController.searchBar.alpha == 0.0f){
+    //[self loadAdditionalPosts];
+    if (self.searchBar.frame.origin.x == 320){
         [UIView animateWithDuration:UINavigationControllerHideShowBarDuration animations:^{
-            self.searchDisplayController.searchBar.alpha = 1.0f;
-            [self.searchDisplayController.searchBar setFrame:CGRectMake(0,0,320,44)];
-            if (self.myProfile == YES){
-                self.profileDetailsContainerView.frame = CGRectMake(0,22,320,self.profileDetailsContainerView.bounds.size.height);
+            if ([UIScreen mainScreen].bounds.size.height == 568){
+                [self.postList setFrame:CGRectMake(0,88,320,460)];
             } else {
-                self.profileDetailsContainerView.frame = CGRectMake(0,44,320,self.profileDetailsContainerView.bounds.size.height);
+                [self.postList setFrame:CGRectMake(0,88,320,372)];
             }
+            [self.postList setAlpha:.4];
+            [self moveLeft:self.searchBar withDelay:0];
+            [self moveLeft:self.locationSearchBar withDelay:.03];
+            [self.editButton setHidden:YES];
+            [self.profileDetailsContainerView setAlpha:0.0];
+            //self.profileDetailsContainerView.frame = CGRectMake(0,40,320,self.profileDetailsContainerView.bounds.size.height);
             self.makingButton.alpha = 0.0f;
             self.shoppingButton.alpha = 0.0f;
             self.drinkingButton.alpha = 0.0f;
             self.eatingButton.alpha = 0.0f;
             self.buttonBackground.alpha = 0.0f;
+        } completion:^(BOOL finished) {
+            [self.profileDetailsContainerView setHidden:YES];
+            self.userVenues = [NSArray array];
+            [[FDAPIClient sharedClient] getVenuesForUser:self.userId success:^(id result) {
+                self.userVenues = result;
+            } failure:^(NSError *error) {
+                NSLog(@"failure from getvenues: %@",error.description);
+            }];
         }];
     } else {
+        [self.profileDetailsContainerView setHidden:NO];
         [UIView animateWithDuration:UINavigationControllerHideShowBarDuration animations:^{
-            self.searchDisplayController.searchBar.alpha = 0.0f;
-            [self.searchDisplayController.searchBar setFrame:CGRectMake(0,-44,320,44)];
-            self.profileDetailsContainerView.frame = CGRectMake(0,0,320,self.profileDetailsContainerView.bounds.size.height);
+            [self moveRight:self.searchBar withDelay:0];
+            [self moveRight:self.locationSearchBar withDelay:.05];
+            [self.profileDetailsContainerView setAlpha:1.0];
+            //self.profileDetailsContainerView.frame = CGRectMake(0,0,320,self.profileDetailsContainerView.bounds.size.height);
             self.makingButton.alpha = 1.0f;
             self.shoppingButton.alpha = 1.0f;
             self.drinkingButton.alpha = 1.0f;
             self.eatingButton.alpha = 1.0f;
-            self.buttonBackground.alpha = 1.0f;
-            if (self.myProfile == YES){
-            [self.profileDetailsContainerView setFrame:CGRectMake(0, -18, 320, 76)];
-            [self.profileButton setFrame:CGRectMake(5, 23, 60, 60)];
-            [self.mapView setFrame:CGRectMake(255, 23, 60, 60)];
-            }
+            [self.postList setFrame:self.postListRect];
+            [self.editButton setHidden:NO];
+            [self.postList setAlpha:1.0];
         }];
     }
 }
 
-- (void)filterContentForSearchText:(NSString*)searchText scope:(NSString*)originalScope
-{
-    //Update the filtered array based on the search text and scope.
-    [self.filteredPosts removeAllObjects];
-    /*NSString *scope;
-    if ([originalScope isEqualToString:@"Make"]) scope = @"Making";
-    else scope = originalScope;
-    NSLog(@"current scope: %@", scope);
-    // Search the main list for products whose type matches the scope (if selected) and whose name matches searchText; add items that match to the filtered array.
-    if ([scope isEqualToString:@"ALL"]){
-        for (FDPost *post in self.posts){
-            NSString *combinedSearchBase = [NSString stringWithFormat:@"%@ %@", post.socialString, post.caption ];
-            NSPredicate *predicate = [NSPredicate predicateWithFormat:@"(SELF contains[cd] %@)", searchText];
-            if([predicate evaluateWithObject:combinedSearchBase]) {
-                [self.filteredPosts addObject:post];
-            }
-        }
-    } else {
-        for (FDPost *post in self.posts){
-            NSMutableArray *predicateParts = [NSMutableArray arrayWithObjects:[NSPredicate predicateWithFormat:@"(SELF contains[cd] %@)", searchText],[NSPredicate predicateWithFormat:@"(SELF contains[cd] %@)", scope],nil];
-            NSPredicate *combinedPredicate = [NSCompoundPredicate andPredicateWithSubpredicates:predicateParts];
-            NSLog(@"predicate parts: %@",predicateParts);
-            NSLog(@"combinedPredicate: %@", combinedPredicate);
-            NSString *combinedSearchBase = [NSString stringWithFormat:@"%@ %@", post.socialString, post.caption ];
-            if([combinedPredicate evaluateWithObject:combinedSearchBase]) {
-                [self.filteredPosts addObject:post];
-            }
-        }
-    }*/
-    [self.objectSearchRequestOperation cancel];
-
-    RequestSuccess success = ^(NSArray *result) {
-        NSLog(@"preliminary searh results: %@",result);
-        self.filteredPosts = [result mutableCopy];
-        [self.searchDisplayController.searchResultsTableView reloadData];
-    };
-
-    RequestFailure failure = ^(NSError *error) {
-        NSLog(@"object search failed! %@", error.description);
-    };
-
-    AFHTTPRequestOperation *op;
-    op = [[FDAPIClient sharedClient] getSearchResultsForUser:self.userId
-                                                       query:searchText
-                                                     success:success
-                                                     failure:failure];
-    self.objectSearchRequestOperation = op;
-}
-#pragma mark -
-#pragma mark UISearchDisplayController Delegate Methods
-
-- (BOOL)searchDisplayController:(UISearchDisplayController *)controller shouldReloadTableForSearchString:(NSString *)searchString
-{
-    [self filterContentForSearchText:searchString scope:[[self.searchDisplayController.searchBar scopeButtonTitles] objectAtIndex:[self.searchDisplayController.searchBar selectedScopeButtonIndex]]];
-    // Return YES to cause the search result table view to be reloaded.
-    return YES;
-}
-
-
-- (BOOL)searchDisplayController:(UISearchDisplayController *)controller shouldReloadTableForSearchScope:(NSInteger)searchOption
-{
-    [self filterContentForSearchText:[self.searchDisplayController.searchBar text]
-                               scope:[[self.searchDisplayController.searchBar scopeButtonTitles] objectAtIndex:[self.searchDisplayController.searchBar selectedScopeButtonIndex]]];
-    
-    // Return YES to cause the search result table view to be reloaded.
-    return YES;
-}
 
 - (IBAction)revealMenu:(UIBarButtonItem *)sender {
     [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
@@ -1031,8 +1220,69 @@
 
 - (void)viewWillDisappear:(BOOL)animated {
     self.feedRequestOperation = nil;
+    self.objectSearchRequestOperation = nil;
+    self.postSearchRequestOperation = nil;
     [super viewWillDisappear:animated];
     [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
+}
+
+- (void)filterContentForSearchText:(NSString*)searchText scope:(NSString*)scope {
+ 
+ //Update the filtered array based on the search text and scope.
+    [self.filteredUserVenues removeAllObjects]; // First clear the filtered array.
+ 
+ // Search the main list for products whose type matches the scope (if selected) and whose name matches searchText; add items that match to the filtered array.
+    for (NSString *venueName in self.userVenues) {
+        NSPredicate *predicate = [NSPredicate predicateWithFormat:@"(SELF contains[cd] %@)", searchText];
+        if([predicate evaluateWithObject:venueName]) {
+            [self.filteredUserVenues addObject:venueName];
+        }
+    }
+}
+
+
+- (void)searchDisplayControllerDidBeginSearch:(UISearchDisplayController *)controller {
+    NSLog(@"search dispaly controller will start");
+    [self.locationSearchDisplayController.searchResultsTableView setHidden:NO];
+    [UIView animateWithDuration:.25 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        [self.locationSearchDisplayController.searchResultsTableView setAlpha:1.0];
+    } completion:^(BOOL finished) {
+        
+    }];
+    
+}
+
+- (void)searchBar:(UISearchBar *)searchBar textDidChange:(NSString *)searchText {
+    if (searchBar == self.locationSearchDisplayController.searchBar) {
+        [self.locationSearchDisplayController.searchResultsTableView setHidden:NO];
+        [UIView animateWithDuration:.25 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+            [self.locationSearchDisplayController.searchResultsTableView setAlpha:1.0];
+        } completion:^(BOOL finished) {
+            
+        }];
+    }
+}
+
+#pragma mark -
+#pragma mark UISearchDisplayController Delegate Methods
+
+
+- (BOOL)searchDisplayController:(UISearchDisplayController *)controller shouldReloadTableForSearchString:(NSString *)searchString
+{
+    [self filterContentForSearchText:searchString scope:[[self.searchDisplayController.searchBar scopeButtonTitles] objectAtIndex:[self.searchDisplayController.searchBar selectedScopeButtonIndex]]];
+    
+    // Return YES to cause the search result table view to be reloaded.
+    return YES;
+}
+
+
+- (BOOL)searchDisplayController:(UISearchDisplayController *)controller shouldReloadTableForSearchScope:(NSInteger)searchOption
+{
+    //[self filterContentForSearchText:[self.searchDisplayController.searchBar text] scope:
+    //[[self.searchDisplayController.searchBar scopeButtonTitles] objectAtIndex:searchOption]];
+    
+    // Return YES to cause the search result table view to be reloaded.
+    return YES;
 }
 
 @end

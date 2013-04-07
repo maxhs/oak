@@ -12,14 +12,13 @@
 #import "ECSlidingViewController.h"
 #import "FDPeopleTableViewController.h"
 #import <MapKit/MapKit.h>
-#import "FDProfileButton.h"
 #import "Flurry.h"
 
 typedef enum { kDisplayTabPosts, kDisplayTabFollowing, kDisplayTabFollowers } kDisplayTab;
 
 @interface FDProfileViewController : UIViewController <UITableViewDelegate, UITableViewDataSource, UIScrollViewDelegate, UISearchBarDelegate, UISearchDisplayDelegate> 
 @property (weak, nonatomic) id delegate;
-@property (nonatomic, nonatomic)     IBOutlet FDProfileButton     *profileButton;
+@property (nonatomic, nonatomic)     IBOutlet UIButton     *profileButton;
 @property (nonatomic, nonatomic)     IBOutlet UILabel           *userNameLabel;
 @property (nonatomic,retain)         IBOutlet MKMapView *mapView;
 @property (nonatomic,retain)         IBOutlet UITableView       *postList;
@@ -37,7 +36,7 @@ typedef enum { kDisplayTabPosts, kDisplayTabFollowing, kDisplayTabFollowers } kD
 @property (nonatomic, retain) IBOutlet UIButton *followersButton;
 @property (nonatomic,strong) AFJSONRequestOperation *feedRequestOperation;
 @property (nonatomic,strong) AFJSONRequestOperation *detailsRequestOperation;
-@property                       NSInteger               currTab;
+@property                       NSInteger               currentTab;
 @property (nonatomic,retain)    NSMutableDictionary     *user;
 @property (strong, retain)              NSMutableArray          *posts;
 @property (strong, retain)              NSMutableArray          *filteredPosts;

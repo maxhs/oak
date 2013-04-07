@@ -59,8 +59,6 @@ static NSDictionary *placeholderImages;
 @property (weak, nonatomic) IBOutlet UIProgressView *progressView;
 @property (nonatomic, strong) FDPost *post;
 @property (nonatomic, strong) NSArray *comments;
-@property (strong, nonatomic) NSString *likerFacebookId;
-@property (strong, nonatomic) NSString *commenterFacebookId;
 @property (weak, nonatomic) IBOutlet UIImageView *likeNotificationImageView;
 @property (weak, nonatomic) IBOutlet UIView *likeNotificationContainer;
 @property (strong, nonatomic) UIImageView *loadingOverlay;
@@ -81,7 +79,7 @@ static NSDictionary *placeholderImages;
 
 @implementation FDPostViewController
 
-@synthesize likersScrollView, addComment, likerFacebookId, commenterFacebookId, captionRect, socialLabelRect, newTableHeaderView, whiteCaption, screenRect, screenWidth, screenHeight;
+@synthesize likersScrollView, addComment, captionRect, socialLabelRect, newTableHeaderView, whiteCaption, screenRect, screenWidth, screenHeight;
 @synthesize post = _post;
 @synthesize posterComment = _posterComment;
 @synthesize justLiked = _justLiked;
@@ -173,6 +171,14 @@ static NSDictionary *placeholderImages;
         [self.view bringSubviewToFront:self.recButton.imageView];
         [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"existingUserPost"];
     }*/
+    
+    if ([[[UIDevice currentDevice] systemVersion] floatValue] < 6) {
+        [self.postTitle setFont:[UIFont fontWithName:kFuturaMedium size:18]];
+        [self.socialLabel setFont:[UIFont fontWithName:kFuturaMedium size:15]];
+        [self.locationButton.titleLabel setFont:[UIFont fontWithName:kFuturaMedium size:15]];
+        [self.likeCountLabel setFont:[UIFont fontWithName:kFuturaMedium size:15]];
+        [self.whiteCaption setFont:[UIFont fontWithName:kFuturaMedium size:15]];
+    }
 }
 
 
@@ -198,7 +204,6 @@ static NSDictionary *placeholderImages;
        
     }];*/
     
-    [TestFlight passCheckpoint:@"Post Detail view"];
     if ([[NSUserDefaults standardUserDefaults] boolForKey:kDefaultsBlackView]){
         [self.navigationController setNavigationBarHidden:YES animated:YES];
     }
@@ -290,7 +295,7 @@ static NSDictionary *placeholderImages;
         }
     } else if ([segue.identifier isEqualToString:@"ShowProfile"]) {
         FDProfileViewController *profileVC = segue.destinationViewController;
-        [profileVC initWithUserId:self.post.user.facebookId];
+        [profileVC initWithUserId:self.post.user.userId];
     } else if ([segue.identifier isEqualToString:@"ShowProfileFromLikers"]) {
         FDProfileViewController *profileVC = segue.destinationViewController;
         UIButton *button = (UIButton *) sender;
@@ -380,10 +385,17 @@ static NSDictionary *placeholderImages;
     UIBarButtonItem *editButton;
     if ([self.post.user.facebookId isEqualToString:[[NSUserDefaults standardUserDefaults]objectForKey:@"FacebookID"]]){
         editButton = [[UIBarButtonItem alloc] initWithTitle:@"EDIT" style:UIBarButtonItemStyleBordered target:self action:@selector(updatePost)];
-        
-        
     }
-    [self.posterButton setImageWithURL:[Utilities profileImageURLForFacebookID:self.post.user.facebookId] forState:UIControlStateNormal];
+    if (self.post.user.facebookId && [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookAccessToken]){
+        [self.posterButton setImageWithURL:[Utilities profileImageURLForFacebookID:self.post.user.facebookId] forState:UIControlStateNormal];
+    } else {
+        [[FDAPIClient sharedClient] getProfilePic:self.post.user.userId success:^(NSURL *url) {
+            [self.posterButton setImageWithURL:url forState:UIControlStateNormal];
+        } failure:^(NSError *error) {
+            
+        }];
+    }
+
     self.posterButton.imageView.layer.cornerRadius = 25.0f;
     //clips to bounds kills performance
     //self.posterButton.clipsToBounds = YES;
@@ -690,20 +702,24 @@ static NSDictionary *placeholderImages;
     int index = 0;
 
     for (NSDictionary *viewer in viewers) {
-        if ([viewer objectForKey:@"facebook_id"] != [NSNull null]){
+        
+        if ([viewer objectForKey:@"id"] != [NSNull null]){
             UIImageView *face = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"light_smile"]];
             UIButton *viewerButton = [UIButton buttonWithType:UIButtonTypeCustom];
             [viewerButton setFrame:CGRectMake(((space+imageSize)*index),0,imageSize, imageSize)];
             
-            //passing liker facebook id as a string instead of NSNumber so that it can hold more data. crafty.
-            viewerButton.titleLabel.text = [viewer objectForKey:@"facebook_id"];
+            //passing liker facebook id as a string instead of NSNumber so that it can hold more data. tricksy.
+            viewerButton.titleLabel.text = [[viewer objectForKey:@"id"] stringValue];
             viewerButton.titleLabel.hidden = YES;
             
-            //[likerButton setTag: [[liker objectForKey:@"facebook_id"] integerValue]];
             [viewerButton addTarget:self action:@selector(profileTappedFromLikers:) forControlEvents:UIControlEventTouchUpInside];
-            [viewerButton setImageWithURL:[Utilities profileImageURLForFacebookID:[viewer objectForKey:@"facebook_id"]] forState:UIControlStateNormal];
+            if ([[viewer objectForKey:@"facebook_id"] length] && [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookAccessToken]){
+                [viewerButton setImageWithURL:[Utilities profileImageURLForFacebookID:[viewer objectForKey:@"facebook_id"]] forState:UIControlStateNormal];
+            } else {
+                [viewerButton setImageWithURL:[viewer objectForKey:@"avatar_url"] forState:UIControlStateNormal];
+            }
 
-            viewerButton.imageView.layer.cornerRadius = 5.0;
+            viewerButton.imageView.layer.cornerRadius = 17.0;
             [viewerButton.imageView setBackgroundColor:[UIColor clearColor]];
             [viewerButton.imageView.layer setBackgroundColor:[UIColor whiteColor].CGColor];
             viewerButton.imageView.layer.shouldRasterize = YES;
@@ -712,14 +728,13 @@ static NSDictionary *placeholderImages;
             
             [self.likersScrollView addSubview:viewerButton];
             for (NSDictionary *liker in likers) {
-                if ([[liker objectForKey:@"facebook_id"] isEqualToString:[viewer objectForKey:@"facebook_id"]]){
+                if ([[liker objectForKey:@"id"] isEqualToNumber:[viewer objectForKey:@"id"]]){
                     [self.likersScrollView addSubview:face];
                     break;
                 }
             }
-            
-            index++;
         }
+    index++;
     }
     [self.likersScrollView setContentSize:CGSizeMake(((space*(index+1))+(imageSize*(index+1))),40)];
     [self.view bringSubviewToFront:self.likersScrollView];
@@ -759,7 +774,7 @@ static NSDictionary *placeholderImages;
         [imageView setImageWithURL:[Utilities profileImageURLForCurrentUser]];
         [imageView setBackgroundColor:[UIColor clearColor]];
         [imageView.layer setBackgroundColor:[UIColor whiteColor].CGColor];
-        imageView.layer.cornerRadius = 3.0f;
+        imageView.layer.cornerRadius = 20.0f;
         imageView.clipsToBounds = YES;
         imageView.layer.shouldRasterize = YES;
         imageView.layer.rasterizationScale = [UIScreen mainScreen].scale;
@@ -768,6 +783,9 @@ static NSDictionary *placeholderImages;
         textView.layer.borderColor = [UIColor colorWithWhite:.5 alpha:.4].CGColor;
         textView.layer.cornerRadius = 3.0f;
         textView.layer.borderWidth = 0.5f;
+        if ([[[UIDevice currentDevice] systemVersion] floatValue] < 6) {
+            textView.font = [UIFont fontWithName:kFuturaMedium size:15];
+        }
         return cell;
     } else if (self.post.caption.length > 0 && indexPath.section == 1) {
         UIButton *commenterButton = [UIButton buttonWithType:UIButtonTypeCustom];
@@ -776,41 +794,70 @@ static NSDictionary *placeholderImages;
         [self.posterComment setEpochTime:self.post.epochTime];
         [cell configureForComment:self.posterComment];
 
-        commenterButton.titleLabel.text = self.posterComment.user.facebookId;
+        commenterButton.titleLabel.text = self.posterComment.user.userId;
         commenterButton.titleLabel.hidden = YES;
-        [commenterButton setImageWithURL:[Utilities profileImageURLForFacebookID:self.posterComment.user.facebookId] forState:UIControlStateNormal];
-        commenterButton.imageView.layer.cornerRadius = 3.0;
+        
+        //set user image
+        if ([[SDImageCache sharedImageCache] imageFromMemoryCacheForKey:self.posterComment.user.userImageKey]) {
+            [commenterButton setImage:[[SDImageCache sharedImageCache] imageFromMemoryCacheForKey:self.posterComment.user.userImageKey] forState:UIControlStateNormal];
+            
+        } else if (self.posterComment.user.facebookId.length && [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookAccessToken]) {
+            
+            [commenterButton setImageWithURL:[Utilities profileImageURLForFacebookID:self.posterComment.user.facebookId] forState:UIControlStateNormal];
+            [[SDImageCache sharedImageCache] storeImage:commenterButton.imageView.image forKey:self.posterComment.user.userImageKey];
+        } else {
+            [[FDAPIClient sharedClient] getProfilePic:self.posterComment.user.userId success:^(NSURL *url) {
+                [commenterButton setImageWithURL:url forState:UIControlStateNormal];
+            } failure:^(NSError *error) {
+                
+            }];
+            [[SDImageCache sharedImageCache] storeImage:commenterButton.imageView.image forKey:self.posterComment.user.userImageKey];
+        }
+        
+        if ([self.posterComment.user.userId isEqualToString:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]]){
+            [cell.editButton setHidden:NO];
+        } else [cell.editButton setHidden:YES];
+        
+        commenterButton.imageView.layer.cornerRadius = 20.0;
         [commenterButton.imageView setBackgroundColor:[UIColor clearColor]];
         [commenterButton.imageView.layer setBackgroundColor:[UIColor whiteColor].CGColor];
         commenterButton.imageView.layer.shouldRasterize = YES;
         commenterButton.imageView.layer.rasterizationScale = [UIScreen mainScreen].scale;
         
-        self.commenterFacebookId = self.posterComment.user.facebookId;
-        [commenterButton setFrame:CGRectMake(8,11,36,36)];
+        //self.commenterFacebookId = self.posterComment.user.facebookId;
+        [commenterButton setFrame:CGRectMake(8,11,40,40)];
         [commenterButton addTarget:self action:@selector(profileTappedFromComment:) forControlEvents:UIControlEventTouchUpInside];
         [cell addSubview:commenterButton];
         return cell;
     } else {
     
         UIButton *commenterButton = [UIButton buttonWithType:UIButtonTypeCustom];
-        [commenterButton setFrame:CGRectMake(8,11,36,36)];
+        [commenterButton setFrame:CGRectMake(8,11,40,40)];
         FDComment *comment = [self.comments objectAtIndex:indexPath.row];
         [cell configureForComment:comment];
     
-        commenterButton.titleLabel.text = comment.user.facebookId;
+        if ([comment.user.userId isEqualToString:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]]){
+            [cell.editButton setHidden:NO];
+        } else [cell.editButton setHidden:YES];
+        
+        commenterButton.titleLabel.text = comment.user.userId;
         commenterButton.titleLabel.hidden = YES;
-        [commenterButton setImageWithURL:[Utilities profileImageURLForFacebookID:comment.user.facebookId] forState:UIControlStateNormal];
-        commenterButton.imageView.layer.cornerRadius = 3.0;
+        
+        if (comment.user.facebookId.length && [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookAccessToken]) {
+            [commenterButton setImageWithURL:[Utilities profileImageURLForFacebookID:comment.user.facebookId] forState:UIControlStateNormal];
+        } else {
+            [[FDAPIClient sharedClient] getProfilePic:comment.user.userId success:^(NSURL *url) {
+                [commenterButton setImageWithURL:url forState:UIControlStateNormal];
+            } failure:^(NSError *error) {
+                
+            }];
+        }
+        commenterButton.imageView.layer.cornerRadius = 20.0;
         [commenterButton.imageView setBackgroundColor:[UIColor clearColor]];
         [commenterButton.imageView.layer setBackgroundColor:[UIColor whiteColor].CGColor];
         commenterButton.imageView.layer.shouldRasterize = YES;
         commenterButton.imageView.layer.rasterizationScale = [UIScreen mainScreen].scale;
-        self.commenterFacebookId = comment.user.facebookId;
-        
-        if ([comment.user.facebookId isEqualToString:[[NSUserDefaults standardUserDefaults] objectForKey:@"FacebookID"]]){
-            [cell.editButton setHidden:NO];
-            //[cell.editButton addTarget:self action:@selector(editComment:) forControlEvents:UIControlEventTouchUpInside];
-        }
+       // self.commenterFacebookId = comment.user.facebookId;
         
         [commenterButton addTarget:self action:@selector(profileTappedFromComment:) forControlEvents:UIControlEventTouchUpInside];
         [cell addSubview:commenterButton];
@@ -831,14 +878,15 @@ static NSDictionary *placeholderImages;
 }
 
 - (CGFloat)heightForPosterComment {
-    CGSize bodySize = [self.post.caption sizeWithFont:[UIFont fontWithName:kAvenirMedium size:16] constrainedToSize:CGSizeMake(207, 100000)];
+    CGSize bodySize;
+    if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 6) {
+        bodySize = [self.post.caption sizeWithFont:[UIFont fontWithName:kAvenirMedium size:16] constrainedToSize:CGSizeMake(207, 100000)];
+    } else {
+        bodySize = [self.post.caption sizeWithFont:[UIFont fontWithName:kFuturaMedium size:16] constrainedToSize:CGSizeMake(207, 100000)];
+    }
     return MAX(33 + bodySize.height + 5.f, 60.f);
 }
 
-- (void)editComment:(id)sender {
-    NSLog(@"should be editing this comment");
-    //[self.tableView setContentOffset:CGPointMake(0,(self.tableView.tableHeaderView.frame.size.height)+66) animated:YES];
-}
 
 #pragma mark - UITextViewDelegate Methods
 
@@ -878,7 +926,11 @@ static NSDictionary *placeholderImages;
     if ([textView.text isEqualToString:@""]) {
         textView.text = kPlaceholderAddCommentPrompt;
         textView.textColor = [UIColor lightGrayColor];
-        textView.font = [UIFont fontWithName:kAvenirMedium size:15];
+        if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 6) {
+            textView.font = [UIFont fontWithName:kAvenirMedium size:15];
+        } else {
+            textView.font = [UIFont fontWithName:kFuturaMedium size:15];
+        }
     }
 }
 - (void)willHideKeyboard {
@@ -932,7 +984,11 @@ static NSDictionary *placeholderImages;
         [self.holdLabel setText:@"Keeping this post"];
         [self.holdLabel setTextAlignment:NSTextAlignmentCenter];
         [self.holdLabel setNumberOfLines:2];
-        [self.holdLabel setFont:[UIFont fontWithName:kAvenirDemiBold size:20]];
+        if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 6) {
+            [self.holdLabel setFont:[UIFont fontWithName:kAvenirDemiBold size:20]];
+        } else {
+            [self.holdLabel setFont:[UIFont fontWithName:kFuturaExtraBold size:20]];
+        }
         [self.holdLabel setTextColor:[UIColor whiteColor]];
         [self.holdLabel setAlpha:0.0];
         [self.holdLabel setBackgroundColor:[UIColor clearColor]];

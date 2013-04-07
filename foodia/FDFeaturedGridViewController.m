@@ -46,8 +46,7 @@
 }
 
 
--(void) tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath
-{
+-(void) tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath {
     if([indexPath row] == ((NSIndexPath*)[[tableView indexPathsForVisibleRows] lastObject]).row && tableView == self.tableView){
         //end of loading
         [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
@@ -60,6 +59,7 @@
     [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
     [TestFlight passCheckpoint:@"Viewing Featured Grid View"];
     [Flurry logEvent:@"Viewing featured grid" timed:YES];
+    NSLog(@"refreshing featured posts");
     // if we already have some posts in the feed, get the feed since the last post
     if (self.posts.count) {
         self.feedRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getFeaturedPostsSincePost:[self.posts objectAtIndex:0] success:^(NSMutableArray *newPosts) {
@@ -111,5 +111,8 @@
     if (self.feedRequestOperation == nil && self.posts.count && self.canLoadAdditionalPosts) [self loadAdditionalPosts];
 }
 
+- (void)viewDidDisappear:(BOOL)animated {
+    self.feedRequestOperation = nil;
+}
 
 @end

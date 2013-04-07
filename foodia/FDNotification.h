@@ -17,6 +17,7 @@
 
 @property (nonatomic, retain) NSString * message;
 @property (nonatomic, retain) NSString * fromUserFbid;
+@property (nonatomic, retain) NSString * fromUserId;
 @property (nonatomic, retain) NSNumber * epochTime;
 @property (nonatomic, retain) NSNumber * read;
 @property (nonatomic, retain) NSString * notificationType;
@@ -27,6 +28,7 @@
 - (NSDate *)postedAt;
 - (NSString *)message;
 - (NSString *)fromUserFbid;
+- (NSString *)fromUserId;
 - (NSString *)notificationType;
 + (FDNotification *)userNotification;
 @end

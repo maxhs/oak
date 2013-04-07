@@ -42,7 +42,7 @@
     [super viewDidLoad];
     [Flurry logEvent:@"ViewingMenu" timed:YES];
     //[self refresh];
-    [self.slidingViewController setAnchorRightRevealAmount:264.0f];
+    [self.slidingViewController setAnchorRightRevealAmount:272.0f];
     self.slidingViewController.underLeftWidthLayout = ECFullWidth;
     self.tableView.separatorColor = [UIColor colorWithWhite:.1 alpha:.1];
     self.tableView.backgroundColor = [UIColor whiteColor];
@@ -53,28 +53,31 @@
     self.tableView.scrollEnabled = YES;
     [self shrink];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(shrink) name:@"ShrinkMenuView" object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(shrink) name:@"GrowMenuView" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(grow) name:@"GrowMenuView" object:nil];
+
 }
 
 - (void) grow {
+
     if (self.tableView.alpha != 1.0){
-        [UIView animateWithDuration:.2 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        [UIView animateWithDuration:.3 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
             //self.tableView.transform = CGAffineTransformMakeScale(0.90f, 0.90f);
+            //[self.slidingViewController.topViewController.view setAlpha:0.25];
             [self.tableView setAlpha:1.0];
         } completion:^(BOOL finished) {
-       
+            
         }];
     }
 }
 
 - (void) shrink {
-    NSLog(@"should be shrinking");
     if (self.tableView.alpha != 0.0) {
-        [UIView animateWithDuration:.2 delay:.05 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        [UIView animateWithDuration:.3 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+            //[self.slidingViewController.topViewController.view setAlpha:1.0];
             //self.tableView.transform = CGAffineTransformMakeScale(0.80f, 0.80f);
             [self.tableView setAlpha:0.0];
         } completion:^(BOOL finished) {
-            
+        
         }];
     }
 }
@@ -117,7 +120,7 @@
                     cell.textLabel.text = @"HOME";
                 break;
                 case 1:
-                    cell.textLabel.text = @"MY POSTS";
+                    cell.textLabel.text = @"MY PROFILE";
                     break;
                 case 2:
                     cell.textLabel.text = @"FRIENDS & INVITES";
@@ -131,6 +134,11 @@
                 default:
                 break;
         }
+        
+        if ([[[UIDevice currentDevice] systemVersion] floatValue] < 6) {
+            [cell.textLabel setFont:[UIFont fontWithName:kFuturaMedium size:20.0]];
+        }
+        
         return cell;
     } else {
         static NSString *CellIdentifier = @"NotificationCell";
@@ -140,8 +148,22 @@
         cell.selectedBackgroundView = cellbg;
         FDNotification *notification = [self.notifications objectAtIndex:indexPath.row];
         UIButton *profileButton = [UIButton buttonWithType:UIButtonTypeCustom];
-        [profileButton setFrame:CGRectMake(5,7,40,40)];
-        [profileButton setImageWithURL:[Utilities profileImageURLForFacebookID:notification.fromUserFbid]forState:UIControlStateNormal];
+        [profileButton setFrame:CGRectMake(5,4,40,40)];
+        
+        //set image
+        NSString *notificationUserId = notification.fromUserId;
+        if ([[SDImageCache sharedImageCache] imageFromMemoryCacheForKey:notificationUserId]) {
+            [profileButton setImage:[[SDImageCache sharedImageCache] imageFromMemoryCacheForKey:notificationUserId] forState:UIControlStateNormal];
+        } else if (notification.fromUserFbid.length && [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookAccessToken]) {
+            [profileButton setImageWithURL:[Utilities profileImageURLForFacebookID:notification.fromUserFbid]forState:UIControlStateNormal];
+            [[SDImageCache sharedImageCache] storeImage:profileButton.imageView.image forKey:notificationUserId];
+        } else {
+            [[FDAPIClient sharedClient] getProfilePic:notification.fromUserId success:^(NSURL *result) {
+                [profileButton setImageWithURL:result forState:UIControlStateNormal];
+            } failure:^(NSError *error) {}];
+            [[SDImageCache sharedImageCache] storeImage:profileButton.imageView.image forKey:notificationUserId];
+        }
+
         profileButton.imageView.layer.cornerRadius = 20.0;
         [profileButton.imageView setBackgroundColor:[UIColor clearColor]];
         [profileButton.imageView.layer setBackgroundColor:[UIColor clearColor].CGColor];
@@ -150,23 +172,27 @@
         profileButton.imageView.layer.rasterizationScale = [UIScreen mainScreen].scale;
         UILabel *messageLabel = [[UILabel alloc] initWithFrame:CGRectMake(50,4,180,40)];
         [messageLabel setTextColor:[UIColor darkGrayColor]];
-        if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 6) {
-            [messageLabel setFont:[UIFont fontWithName:@"AvenirNextCondensed-Medium" size:14]];
-        } else {
-            [messageLabel setFont:[UIFont fontWithName:@"Futura-CondensedMedium" size:16]];
-        }
+
         messageLabel.numberOfLines = 2;
         messageLabel.backgroundColor = [UIColor clearColor];
         [messageLabel setText:notification.message];
         messageLabel.highlightedTextColor = [UIColor whiteColor];
         
         // show the time stamp
-        UILabel *timeLabel = [[UILabel alloc] initWithFrame:CGRectMake(220,14,30,21)];
+        UILabel *timeLabel = [[UILabel alloc] initWithFrame:CGRectMake(222,14,36,21)];
         [timeLabel setTextColor:[UIColor lightGrayColor]];
         timeLabel.textAlignment = NSTextAlignmentRight;
-        [timeLabel setFont:[UIFont fontWithName:@"AvenirNextCondensed-Medium" size:14]];
         timeLabel.backgroundColor = [UIColor clearColor];
         timeLabel.highlightedTextColor = [UIColor whiteColor];
+        
+        if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 6) {
+            [messageLabel setFont:[UIFont fontWithName:kAvenirMedium size:14]];
+            [timeLabel setFont:[UIFont fontWithName:kAvenirMedium size:14]];
+        } else {
+            [messageLabel setFont:[UIFont fontWithName:kFuturaMedium size:16]];
+            [timeLabel setFont:[UIFont fontWithName:kFuturaMedium size:16]];
+        }
+        
         if([notification.postedAt timeIntervalSinceNow] > 0) {
             timeLabel.text = @"0s";
         } else {
@@ -174,7 +200,7 @@
         }
         [profileButton setBackgroundColor:[UIColor clearColor]];
         [profileButton addTarget:self action:@selector(showProfile:) forControlEvents:UIControlEventTouchUpInside];
-        profileButton.titleLabel.text = notification.fromUserFbid;
+        profileButton.titleLabel.text = notification.fromUserId;
         profileButton.titleLabel.hidden = YES;
         [cell addSubview:profileButton];
         [cell addSubview:messageLabel];
@@ -200,8 +226,10 @@
         if (notification.targetPostId != nil) {
             [self showPost:[NSString stringWithFormat:@"%@",notification.targetPostId]];
         } else if (notification.targetUserId != nil) {
+            NSLog(@"notificaiton.targetuserid: %@",notification.targetUserId);
             [self showProfile:[NSString stringWithFormat:@"%@", notification.targetUserId]];
         }
+            
     } else {
     switch (indexPath.row) {
         case 0:

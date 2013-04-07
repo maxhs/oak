@@ -28,7 +28,7 @@
 @property (nonatomic,strong) FDFeaturedGridViewController      *featuredGridViewController;
 @property (nonatomic,strong) FDPlacesViewController        *placesViewController;
 @property (nonatomic,strong) FDRecommendedTableViewController   *recommendedTableViewController;
-@property (nonatomic,strong) FDRecommendedTableViewController    *myFoodiaViewController;
+@property (nonatomic,strong) FDRecommendedTableViewController    *keepersViewController;
 
 @property (weak, nonatomic) IBOutlet UIBarButtonItem *sliderButtonItem;
 @property (weak, nonatomic) IBOutlet UIBarButtonItem *menuButtonItem;
@@ -36,7 +36,7 @@
 @property (weak, nonatomic) IBOutlet UILabel *feedLabel;
 @property (weak, nonatomic) IBOutlet UILabel *featuredLabel;
 @property (weak, nonatomic) IBOutlet UILabel *myPostsLabel;
-@property (weak, nonatomic) IBOutlet UILabel *myFoodiaLabel;
+@property (weak, nonatomic) IBOutlet UILabel *keepersLabel;
 @property (weak, nonatomic) IBOutlet UILabel *nearbyLabel;
 @property (weak, nonatomic) IBOutlet UILabel *recLabel;
 @property (nonatomic, weak) UIViewController *currentChildViewController;
@@ -57,14 +57,14 @@
 {
     [super viewDidLoad];
     [Flurry logEvent:@"Looking at Feed View" timed:YES];
-    
+
     [(FDMenuViewController*)self.slidingViewController.underLeftViewController shrink];
     
     self.feedTableViewController        = [[FDFeedTableViewController alloc]        initWithDelegate:self];
     self.featuredGridViewController    = [[FDFeaturedGridViewController alloc]    initWithDelegate:self];
     //self.placesViewController      = [[FDPlacesViewController alloc] initWithDelegate:self];
     self.recommendedTableViewController = [[FDRecommendedTableViewController alloc] initWithDelegate:self];
-    self.myFoodiaViewController          = [[FDRecommendedTableViewController alloc]  initWithDelegate:self];
+    self.keepersViewController          = [[FDRecommendedTableViewController alloc]  initWithDelegate:self];
     
     self.navigationItem.titleView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"blackLogo.png"]];
     
@@ -78,7 +78,10 @@
     _scrollView.transform = CGAffineTransformMakeTranslation(0, -134);
     self.clipViewBackground.transform = CGAffineTransformMakeTranslation(0, -134);
     clipView.transform = CGAffineTransformMakeTranslation(0, -134);
-    
+
+    self.clipViewBackground.layer.rasterizationScale = [UIScreen mainScreen].scale;
+    self.clipViewBackground.layer.shouldRasterize = YES;
+
     /*int screenWidth = self.view.bounds.size.width;
     int screenHeight = self.view.bounds.size.height;
     BOOL existingUser = [[NSUserDefaults standardUserDefaults] boolForKey:@"existingUser"];
@@ -120,7 +123,7 @@
     for(UIView *subView in self.searchBar.subviews) {
         if ([subView isKindOfClass:[UITextField class]]) {
             UITextField *searchField = (UITextField *)subView;
-            searchField.font = [UIFont fontWithName:@"AvenirNextCondensed-Medium" size:14];
+            searchField.font = [UIFont fontWithName:kAvenirMedium size:14];
         }
     }
     
@@ -150,21 +153,26 @@
 	_scrollView.pagingEnabled = YES;
 	_scrollView.showsHorizontalScrollIndicator = NO;
     _scrollView.delegate = self;
-    [_scrollView setContentSize:CGSizeMake(352,88)];
-    if (![[NSUserDefaults standardUserDefaults] boolForKey:kJustPosted] && [[NSUserDefaults standardUserDefaults] boolForKey:@"JustLaunched"]){
+    [_scrollView setContentSize:CGSizeMake(352,78)];
+    //if ([[NSUserDefaults standardUserDefaults] boolForKey:@"JustLaunched"]){
         // show the featured feed initially
-        [[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"JustLaunched"];
+        //[[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"JustLaunched"];
         [self showFeatured];
-        [self hideLabelsExcept:self.featuredLabel];
-    } else {
-        [self showFeed];
-        [self hideLabelsExcept:self.feedLabel];
-        [_scrollView setContentOffset:CGPointMake(88,0)];
+        //[self hideLabelsExcept:self.featuredLabel];
+    //} else {
+        //[self showFeed];
+        //[self hideLabelsExcept:self.feedLabel];
+        //[_scrollView setContentOffset:CGPointMake(88,0)];
+    //}
+    //[[NSUserDefaults standardUserDefaults] setBool:NO forKey:kJustPosted];
+    
+    if ([[[UIDevice currentDevice] systemVersion] floatValue] < 6) {
+        [self.featuredLabel setFont:[UIFont fontWithName:kFuturaMedium size:15]];
+        [self.recLabel setFont:[UIFont fontWithName:kFuturaMedium size:15]];
+        [self.feedLabel setFont:[UIFont fontWithName:kFuturaMedium size:15]];
+        [self.keepersLabel setFont:[UIFont fontWithName:kFuturaMedium size:15]];
     }
-    [[NSUserDefaults standardUserDefaults] setBool:NO forKey:kJustPosted];
 }
-
-
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
     CGFloat pageWidth = scrollView.frame.size.width;
@@ -193,9 +201,9 @@
             [self hideLabelsExcept:self.recLabel];
             break;
         case 3:
-            [self showMyFoodia];
+            [self showKeepers];
             [self.addPostButton setFrame:CGRectMake(130,self.view.frame.size.height,55,55)];
-            [self hideLabelsExcept:self.myFoodiaLabel];
+            [self hideLabelsExcept:self.keepersLabel];
             break;
         default:
             break;
@@ -232,8 +240,8 @@
 
 - (void)revealSlider {
     
-    [UIView animateWithDuration:0.235 delay:0.0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-        [self.feedContainerView setFrame:CGRectMake(0,88,320,self.view.bounds.size.height)];
+    [UIView animateWithDuration:0.3f delay:0.0 options:UIViewAnimationOptionTransitionCurlDown animations:^{
+        [self.feedContainerView setFrame:CGRectMake(0,78,320,self.view.bounds.size.height)];
         CGAffineTransform rotate = CGAffineTransformMakeRotation(1.4*M_PI/180);
         CGAffineTransform translation = CGAffineTransformMakeTranslation(0, 8);
         
@@ -243,34 +251,20 @@
         clipView.transform = CGAffineTransformConcat(rotate, translation);
         [self.navigationController setNavigationBarHidden:NO animated:NO];
     } completion:^(BOOL finished) {
-        [UIView animateWithDuration:0.175 delay:0.0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+        [UIView animateWithDuration:0.15 delay:0.0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
             self.feedContainerView.transform = CGAffineTransformIdentity;
             _scrollView.transform = CGAffineTransformMakeRotation(-0.8*M_PI/180);
             self.clipViewBackground.transform = CGAffineTransformMakeRotation(-0.8*M_PI/180);
             clipView.transform = CGAffineTransformMakeRotation(-0.8*M_PI/180);
             [self showAllLabels];
         }  completion:^(BOOL finished) {
-            [UIView animateWithDuration:.1 animations:^{
+            [UIView animateWithDuration:.125 animations:^{
                 _scrollView.transform = CGAffineTransformIdentity;
                 self.clipViewBackground.transform = CGAffineTransformIdentity;
                 clipView.transform = CGAffineTransformIdentity;
             }];
         }];
     }];
-    /*[UIView animateWithDuration:UINavigationControllerHideShowBarDuration
-                          delay:0
-                        options:UIViewAnimationOptionCurveEaseInOut
-                     animations:^(void) {
-            
-            [self.feedContainerView setFrame:CGRectMake(0,88,320,self.view.bounds.size.height)];
-            [clipView setFrame:CGRectMake(0,0,320,88)];
-            [self.clipViewBackground setFrame:CGRectMake(0,0,320,88)];
-            [_scrollView setFrame:CGRectMake(116,0,88,88)];
-            [self.searchBar setFrame:CGRectMake(0,-44,320,44)];
-            [self showAllLabels];
-        }completion:^(BOOL finished){
-            [self.searchBar setHidden:YES];
-        }];*/
 }
 
 - (void)hideSlider {
@@ -284,18 +278,6 @@
             } completion:^(BOOL finished) {
                 [self hideLabels];
             }];
-    /*[UIView animateWithDuration:UINavigationControllerHideShowBarDuration
-                          delay:0
-                        options:UIViewAnimationOptionCurveEaseInOut
-                     animations:^(void) {
-        [self.feedContainerView setFrame:CGRectMake(0,0,320,self.view.bounds.size.height)];
-        [clipView setFrame:CGRectMake(0,-134,320,88)];
-        [self.clipViewBackground setFrame:CGRectMake(0,-134,320,88)];
-        [_scrollView setFrame:CGRectMake(116,-134,88,88)];
-        [self hideLabels];
-    }completion:^(BOOL finished){
-
-    }];*/
 }
 
 - (void) hideLabels{
@@ -313,19 +295,20 @@
             [self hideLabelsExcept:self.recLabel];
             break;
         case 3:
-            [self hideLabelsExcept:self.myFoodiaLabel];
+            [self hideLabelsExcept:self.keepersLabel];
             break;
         default:
             break;
     }
 }
 - (void) showAllLabels {
-    [UIView animateWithDuration:.25f animations:^{
+    [UIView animateWithDuration:.4f delay:.1f options:UIViewAnimationOptionCurveEaseInOut animations:^{
         self.feedLabel.alpha = 1.0;
         self.featuredLabel.alpha = 1.0;
-        //self.myPostsLabel.alpha = 1.0;
-        self.nearbyLabel.alpha = 1.0;
+        self.keepersLabel.alpha = 1.0;
         self.recLabel.alpha = 1.0;
+    }completion:^(BOOL finished) {
+        
     }];
     
 }
@@ -401,7 +384,7 @@
     //[self.searchButtonItem setImage:[UIImage imageNamed:@"emptyBarButton"]];
     //[self.searchButtonItem setEnabled:NO];
     //self.title = @"RECOMMENDED";
-    [self.recommendedTableViewController setShouldShowHeld:NO];
+    [self.recommendedTableViewController setShouldShowKeepers:NO];
     [self showPostViewController:self.recommendedTableViewController];
 }
 
@@ -412,11 +395,11 @@
     [self showPostViewController:self.placesViewController];
 }
 
-- (void)showMyFoodia {
+- (void)showKeepers {
     //[self.searchButtonItem setImage:[UIImage imageNamed:@"magnifier"]];
     //[self.searchButtonItem setEnabled:YES];
-    [self.myFoodiaViewController setShouldShowHeld:YES];
-    [self showPostViewController:self.myFoodiaViewController];
+    [self.keepersViewController setShouldShowKeepers:YES];
+    [self showPostViewController:self.keepersViewController];
 }
 
 - (void)showPostViewController:(UIViewController *)toViewController {
@@ -471,7 +454,6 @@
 }
                                                                  
 - (IBAction)revealMenu:(UIBarButtonItem *)sender {
-    NSLog(@"reveal menu tapped");
     [self.slidingViewController anchorTopViewTo:ECRight];
     int badgeCount = 0;
     // Resets the badge count when the view is opened
@@ -553,4 +535,5 @@
     [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
     [self performSegueWithIdentifier:@"ShowPost" sender:post];
 }
+
 @end

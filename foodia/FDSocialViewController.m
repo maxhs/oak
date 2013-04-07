@@ -40,12 +40,15 @@
 {
     [super viewDidLoad];
     [Flurry logEvent:@"ViewingFriends" timed:YES];
-    [TestFlight passCheckpoint:@"Passed Social View checkpoint"];
     self.delegate = self;
     UILabel *navTitle = [[UILabel alloc] init];
     navTitle.frame = CGRectMake(0,0,200,44);
     navTitle.text = @"FRIENDS & INVITES";
-    navTitle.font = [UIFont fontWithName:kAvenirDemiBold size:21];
+    if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 6) {
+        navTitle.font = [UIFont fontWithName:kAvenirDemiBold size:21];
+    } else {
+        navTitle.font = [UIFont fontWithName:kFuturaMedium size:21];
+    }
     navTitle.backgroundColor = [UIColor clearColor];
     navTitle.textColor = [UIColor blackColor];
     navTitle.textAlignment = NSTextAlignmentCenter;
@@ -141,7 +144,7 @@
         }
         
         if (recipient) {
-            [postParams addEntriesFromDictionary:@{@"to":recipient,@"link":@"http://www.foodia.com",@"caption":@"Use foodia!"}];
+            [postParams addEntriesFromDictionary:@{@"to":recipient,@"link":@"http://www.foodia.com",@"caption":@"Inspired by food."}];
             [self.facebook dialog:@"feed" andParams:postParams andDelegate:self];
         }
     //}

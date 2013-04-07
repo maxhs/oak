@@ -11,7 +11,7 @@
 #import "FDAPIClient.h"
 #import "Facebook.h"
 
-@interface FDAppDelegate : NSObject <UIApplicationDelegate, UIAlertViewDelegate, FBSessionDelegate, FBDialogDelegate, FBLoginViewDelegate> /*{
+@interface FDAppDelegate : NSObject <UIApplicationDelegate, UIAlertViewDelegate, FBSessionDelegate, FBDialogDelegate, FBLoginViewDelegate, FBRequestDelegate> /*{
     NSManagedObjectModel *managedObjectModel;
     NSManagedObjectContext *managedObjectContext;
     NSPersistentStoreCoordinator *persistentStoreCoordinator;

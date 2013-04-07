@@ -18,6 +18,8 @@
 #import "Utilities.h"
 #import "FBRequest.h"
 #import <MessageUI/MessageUI.h>
+#import <Accounts/Accounts.h>
+#import "Constants.h"
 #define kFlurryAPIKey @"W5U7NXYMMQ8RJQR7WI9A"
 
 @interface FDAppDelegate ()
@@ -135,18 +137,48 @@ void uncaughtExceptionHandler(NSException *exception) {
     NSLog(@"session was invalidated");
 }
 
+-(void)fbResync
+{
+    ACAccountStore *accountStore;
+    ACAccountType *accountTypeFB;
+    if ((accountStore = [[ACAccountStore alloc] init]) && (accountTypeFB = [accountStore accountTypeWithAccountTypeIdentifier:ACAccountTypeIdentifierFacebook] ) ){
+        
+        NSArray *fbAccounts = [accountStore accountsWithAccountType:accountTypeFB];
+        NSLog(@"fbAccounts: %@",fbAccounts);
+        id account;
+        if (fbAccounts && [fbAccounts count] > 0 && (account = [fbAccounts objectAtIndex:0])){
+            
+            [accountStore renewCredentialsForAccount:account completion:^(ACAccountCredentialRenewResult renewResult, NSError *error) {
+                //we don't actually need to inspect renewResult or error.
+                if (error){
+                    
+                }
+            }];
+        }
+    }
+}
+
 - (void)sessionStateChanged:(FBSession *)session
                       state:(FBSessionState) state
                       error:(NSError *)error
-                       user:(NSDictionary<FBGraphUser>*)user
 {
+
     switch (state) {
         case FBSessionStateOpen:
-            if ([session accessToken] != nil)[self.window.rootViewController performSegueWithIdentifier:@"ShowFeed" sender:self];
+            if ([session accessToken] != nil){
+                [FBSession setActiveSession:session];
+                [[FDAPIClient sharedClient] connectUser:nil email:nil password:nil signup:NO fbid:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookId] success:^(id result) {
+                    [self.window.rootViewController performSegueWithIdentifier:@"ShowFeed" sender:self];
+                } failure:^(NSError *error) {
+                    NSLog(@"failure establishing user session from app delegate fb method: %@",error.description);
+                }];
+                
+            }
             break;
         case FBSessionStateClosed:
-        case FBSessionStateClosedLoginFailed: 
+        case FBSessionStateClosedLoginFailed:
             [FBSession.activeSession closeAndClearTokenInformation];
+            [self fbResync];
             break;
         default:
             break;
@@ -159,15 +191,16 @@ void uncaughtExceptionHandler(NSException *exception) {
                                   cancelButtonTitle:@"Okay"
                                   otherButtonTitles:nil];
         [alertView show];
-        NSLog(@"Error: %@",error.localizedDescription);
+        //NSLog(@"Error: %@",error.localizedDescription);
     } 
     
 }
 
 -(BOOL)openSessionWithAllowLoginUI:(BOOL)allowLoginUI {
-    return [FBSession openActiveSessionWithReadPermissions:[NSArray arrayWithObjects:@"email", nil] allowLoginUI:allowLoginUI completionHandler:
+    return [FBSession openActiveSessionWithReadPermissions:[NSArray arrayWithObjects:@"email", @"user_location", nil] allowLoginUI:allowLoginUI completionHandler:
      ^(FBSession *session,
        FBSessionState state, NSError *error) {
+         FBSession.activeSession = session;
          FBRequest *request = [[FBRequest alloc] initWithSession:session graphPath:@"me"];
          [request startWithCompletionHandler:
           ^(FBRequestConnection *connection,
@@ -178,10 +211,13 @@ void uncaughtExceptionHandler(NSException *exception) {
                   [[NSUserDefaults standardUserDefaults] setObject:session.accessToken forKey:kUserDefaultsFacebookAccessToken];
                   [[NSUserDefaults standardUserDefaults] setObject:user.name forKey:kUserDefaultsUserName];
                   [Utilities cacheUserProfileImage];
-                  [self sessionStateChanged:session state:state error:error user:user];
-              } 
-              
+                  [self sessionStateChanged:session state:state error:error];
+              } else {
+                  //NSLog(@"error from facebook: %@", error.description);
+              }
+          
           }];
+         
      }];
 }
 
@@ -224,6 +260,8 @@ void uncaughtExceptionHandler(NSException *exception) {
             imgOverlay.alpha = 1;
         }];
         [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"Loading"];
+        //always remove loading indicator after 10.0 seconds. 
+        [self performSelector:@selector(hideLoadingOverlay) withObject:nil afterDelay:10.0];
     }
 }
 
@@ -253,18 +291,24 @@ void uncaughtExceptionHandler(NSException *exception) {
 
 - (void)showFacebookWallPost
 {
-    wallPost = [[UILabel alloc] initWithFrame:CGRectMake(0,self.window.bounds.size.height-22,self.window.bounds.size.width,22)];
-    wallPost.text = @"Invites will be sent to your friend's Facebook wall";
-    wallPost.font = [UIFont fontWithName:kAvenirMedium size:14];
-    wallPost.backgroundColor = [UIColor whiteColor];
-    wallPost.textColor = [UIColor darkGrayColor];
-    wallPost.textAlignment = NSTextAlignmentCenter;
-    [wallPost setAlpha:0];
-    [self.window addSubview:wallPost];
-    [UIView beginAnimations:nil context:nil];
-    [UIView setAnimationDuration:0.4];
-    wallPost.alpha = 1;
-    [UIView commitAnimations];
+    if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookAccessToken]){
+        wallPost = [[UILabel alloc] initWithFrame:CGRectMake(0,self.window.bounds.size.height-22,self.window.bounds.size.width,22)];
+        wallPost.text = @"Invites will be sent to your friend's Facebook wall";
+        if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 6) {
+            wallPost.font = [UIFont fontWithName:kAvenirMedium size:14];
+        } else {
+            wallPost.font = [UIFont fontWithName:kFuturaMedium size:14];
+        }
+        wallPost.backgroundColor = [UIColor whiteColor];
+        wallPost.textColor = [UIColor darkGrayColor];
+        wallPost.textAlignment = NSTextAlignmentCenter;
+        [wallPost setAlpha:0];
+        [self.window addSubview:wallPost];
+        [UIView beginAnimations:nil context:nil];
+        [UIView setAnimationDuration:0.4];
+        wallPost.alpha = 1;
+        [UIView commitAnimations];
+    }
 }
 
 - (void)removeFacebookWallPost
@@ -323,12 +367,14 @@ void uncaughtExceptionHandler(NSException *exception) {
     [[UIBarButtonItem appearance] setBackButtonTitlePositionAdjustment:UIOffsetMake(0, -2.0f) forBarMetrics:UIBarMetricsDefault];
     [[UIBarButtonItem appearance] setTintColor:[UIColor whiteColor]];
     if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 6) {
-        [[UIBarButtonItem appearance] setTitleTextAttributes:@{UITextAttributeFont : [UIFont fontWithName:kAvenirMedium size:15],
+        [[UIBarButtonItem appearance] setTitleTextAttributes:@{
+                                        UITextAttributeFont : [UIFont fontWithName:kAvenirMedium size:15],
                              UITextAttributeTextShadowColor : [UIColor clearColor],
                                    UITextAttributeTextColor : [UIColor blackColor],
          } forState:UIControlStateNormal];
     } else {
         [[UIBarButtonItem appearance] setTitleTextAttributes:@{
+                                        //UITextAttributeFont : [UIFont fontWithName:kFuturaMedium size:15],
                                    UITextAttributeTextColor : [UIColor blackColor],
          } forState:UIControlStateNormal];
     }

@@ -11,5 +11,4 @@
 @interface FDSlidingViewController : ECSlidingViewController
 @property (nonatomic, strong) UIDocumentInteractionController *documentInteractionController;
 -(void)showInstagram:(UIDocumentInteractionController *)ic;
--(void)showProfile;
 @end

@@ -76,7 +76,7 @@
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     FDUserCell *cell = (FDUserCell *)[super tableView:tableView cellForRowAtIndexPath:indexPath];
-    cell.button.hidden = YES;
+    cell.actionButton.hidden = YES;
     if(self.searchDisplayController.searchBar.text.length == 0) {
         FDUser *friend = [self.people objectAtIndex:indexPath.row];
         if ([self.recommendees containsObject:friend]) {
@@ -151,7 +151,7 @@
         if (self.post.foodiaObject != nil) {
             [postParams setObject:self.post.foodiaObject forKey:@"name"];
         } else {
-            [postParams setObject:@"Download FOODIA!" forKey:@"name"];
+            [postParams setObject:@"Inspired by food." forKey:@"name"];
         }
 
         if (self.post.identifier) {
@@ -164,7 +164,7 @@
             NSString *detailString = [self.post.feedImageUrlString stringByReplacingOccurrencesOfString:@"thumb" withString:@"original"];
             [postParams setObject:detailString forKey:@"picture"];
         } else {
-            [postParams setObject:@"http://foodia.com/images/FOODIA_red_512x512_bg.png" forKey:@"picture"];
+            [postParams setObject:@"http://foodia.com/images/logo.png" forKey:@"picture"];
         }
         
         if (self.recommendees != nil) {

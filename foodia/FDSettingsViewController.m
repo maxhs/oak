@@ -31,7 +31,7 @@
     UILabel *navTitle = [[UILabel alloc] init];
     navTitle.frame = CGRectMake(0,0,190,40);
     navTitle.text = @"SETTINGS";
-    navTitle.font = [UIFont fontWithName:@"AvenirNextCondensed-Medium" size:24];
+    navTitle.font = [UIFont fontWithName:kAvenirMedium size:24];
     navTitle.backgroundColor = [UIColor clearColor];
     navTitle.textColor = [UIColor whiteColor];
     navTitle.textAlignment = NSTextAlignmentCenter;

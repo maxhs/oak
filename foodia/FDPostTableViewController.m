@@ -48,6 +48,7 @@
 @synthesize lastContentOffsetY = _lastContentOffsetY;
 @synthesize previousContentDelta;
 @synthesize justLiked = _justLiked;
+@synthesize swipedCells;
 
 - (id)initWithDelegate:(id)delegate {
     if (self = [super initWithStyle:UITableViewStylePlain]) {
@@ -64,7 +65,10 @@
     isRefreshing_ = NO;
     self.tableView.rowHeight = [FDPostCell cellHeight];
     self.canLoadAdditionalPosts = YES;
+    self.swipedCells = [NSMutableArray array];
     
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(swipedCells:) name:@"CellOpened" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(swipedCells:) name:@"CellClosed" object:nil];
     // set up the pull-to-refresh header
     if (refreshHeaderView_ == nil) {
         
@@ -83,6 +87,15 @@
         self.tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
     }
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(refresh) name:@"RefreshFeed" object:nil];
+}
+
+- (void)swipedCells:(NSNotification*)notification {
+    NSString *identifier = [notification.userInfo objectForKey:@"identifier"];
+    if ([self.swipedCells indexOfObject:identifier] == NSNotFound){
+        [self.swipedCells addObject:identifier];
+    } else {
+        [self.swipedCells removeObject:identifier];
+    }
 }
 
 -(void)getNotificationCount{
@@ -107,10 +120,6 @@
     [self getNotificationCount];
 }
 
-- (void)viewWillDisappear:(BOOL)animated {
-    [super viewWillDisappear:animated];
-    [self.feedRequestOperation cancel];
-}
 /*- (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
     
@@ -121,7 +130,7 @@
 }
 
 - (void)saveCache {
-    
+ 
 }
 
 - (void)loadFromCache {
@@ -231,9 +240,10 @@
         }
         FDPost *post = [self.posts objectAtIndex:indexPath.row];
         [cell configureForPost:post];
+        
         [cell.likeButton addTarget:self action:@selector(likeButtonTapped:) forControlEvents:UIControlEventTouchUpInside];
         cell.likeButton.tag = indexPath.row;
-        cell.posterButton.titleLabel.text = cell.userId;
+        cell.posterButton.titleLabel.text = post.user.userId;
         [cell.posterButton addTarget:self action:@selector(showProfile:) forControlEvents:UIControlEventTouchUpInside];
         self.tableView.separatorStyle = UITableViewCellSeparatorStyleSingleLine;
         cell.detailPhotoButton.tag = indexPath.row;
@@ -248,49 +258,32 @@
             cell.locationButton.tag = indexPath.row;
         }
         
-        UIButton *recButton = [UIButton buttonWithType:UIButtonTypeCustom];
-        [recButton setFrame:CGRectMake(276,52,60,34)];
-        [recButton addTarget:self action:@selector(recommend:) forControlEvents:UIControlEventTouchUpInside];
-        [recButton setTitle:@"Rec" forState:UIControlStateNormal];
-        [recButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
-        recButton.layer.borderColor = [UIColor colorWithWhite:.1 alpha:.1].CGColor;
-        recButton.layer.borderWidth = 1.0f;
-        recButton.backgroundColor = [UIColor whiteColor];
-        recButton.layer.cornerRadius = 17.0f;
-        recButton.layer.shouldRasterize = YES;
-        recButton.layer.rasterizationScale = [UIScreen mainScreen].scale;
-        [recButton.titleLabel setFont:[UIFont fontWithName:@"AvenirNextCondensed-Medium" size:15]];
-        [recButton.titleLabel setTextColor:[UIColor lightGrayColor]];
-        recButton.tag = indexPath.row;
-        [cell.scrollView addSubview:recButton];
-
-        UIButton *commentButton = [UIButton buttonWithType:UIButtonTypeCustom];
-        [commentButton setFrame:CGRectMake(382,52,118,34)];
-        commentButton.tag = indexPath.row;
-        [commentButton addTarget:self action:@selector(didSelectRow:) forControlEvents:UIControlEventTouchUpInside];
-        [commentButton setTitle:@"Add a comment..." forState:UIControlStateNormal];
-        [commentButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
-        commentButton.layer.borderColor = [UIColor colorWithWhite:.1 alpha:.1].CGColor;
-        commentButton.layer.borderWidth = 1.0f;
-        commentButton.backgroundColor = [UIColor whiteColor];
-        commentButton.layer.cornerRadius = 17.0f;
-        commentButton.layer.shouldRasterize = YES;
-        commentButton.layer.rasterizationScale = [UIScreen mainScreen].scale;
-        [commentButton.titleLabel setFont:[UIFont fontWithName:@"AvenirNextCondensed-Medium" size:15]];
-        [commentButton.titleLabel setTextColor:[UIColor lightGrayColor]];
-        
-        [cell.scrollView addSubview:commentButton];
+        [cell.recButton addTarget:self action:@selector(recommend:) forControlEvents:UIControlEventTouchUpInside];
+        cell.recButton.tag = indexPath.row;
     
+        cell.commentButton.tag = indexPath.row;
+        [cell.commentButton addTarget:self action:@selector(didSelectRow:) forControlEvents:UIControlEventTouchUpInside];
+    
+        //swipe cell accordingly
+        if ([self.swipedCells indexOfObject:post.identifier] != NSNotFound){
+            [cell.scrollView setContentOffset:CGPointMake(271,0)];
+        } else [cell.scrollView setContentOffset:CGPointZero];
+        
+        if (cell.scrollView.contentOffset.x > 270) {
+            [cell.slideCellButton setHidden:NO];
+        } else {
+            [cell.slideCellButton setHidden:YES];
+        }
+        
         return cell;
         
     } else {
         static NSString *FeedLoadingCellIdentifier = @"FeedLoadingCellIdentifier";
         UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:FeedLoadingCellIdentifier];
         if (cell == nil) {
-            NSArray *nib = [[NSBundle mainBundle] loadNibNamed:@"FeedLoadingCell" owner:self options:nil];
-            cell = (FDPostCell *) [nib objectAtIndex:0];
+            cell = [[[NSBundle mainBundle] loadNibNamed:@"FeedLoadingCell" owner:self options:nil] lastObject];
         }
-        
+        if (self.posts.count < 20) [cell setHidden:YES];
         return cell;
         /*NSLog(@"end cell section");
             static NSString *FeedEndCellIdenfitier = @"FeedEndCellIdenfitier";
@@ -314,9 +307,11 @@
 - (void)tableView:(UITableView *)tableView didEndDisplayingCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath {
     if ([cell isKindOfClass:[FDPostCell class]]){
         FDPostCell *thisCell = (FDPostCell*)cell;
-        [thisCell.scrollView setContentOffset:CGPointMake(0,0) animated:NO];
-        [UIView animateWithDuration:.2 animations:^{
+        //[thisCell.scrollView setContentOffset:CGPointMake(0,0) animated:NO];
+        [UIView animateWithDuration:.25 animations:^{
             [thisCell.photoBackground setAlpha:0.0];
+            [thisCell.photoImageView setAlpha:0.0];
+            [thisCell.posterButton setAlpha:0.0];
         }];
     }
 }
@@ -431,31 +426,39 @@
     int index = 0;
     
     for (NSDictionary *viewer in viewers) {
-        if ([viewer objectForKey:@"facebook_id"] != [NSNull null]){
+        if ([viewer objectForKey:@"id"] != [NSNull null]){
             UIImageView *face = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"light_smile"]];
-            //UIImageView *likerView = [[UIImageView alloc] initWithFrame:CGRectMake(((space+imageSize)*index),0,imageSize, imageSize)];
             UIButton *viewerButton = [UIButton buttonWithType:UIButtonTypeCustom];
             [viewerButton setFrame:CGRectMake(((space+imageSize)*index),0,imageSize, imageSize)];
             [cell.likersScrollView addSubview:viewerButton];
             //passing liker facebook id as a string instead of NSNumber so that it can hold more data. crafty.
-            viewerButton.titleLabel.text = [viewer objectForKey:@"facebook_id"];
+            viewerButton.titleLabel.text = [[viewer objectForKey:@"id"] stringValue];
             viewerButton.titleLabel.hidden = YES;
             
             [viewerButton addTarget:self action:@selector(profileTappedFromLikers:) forControlEvents:UIControlEventTouchUpInside];
-            [viewerButton setImageWithURL:[Utilities profileImageURLForFacebookID:[viewer objectForKey:@"facebook_id"]] forState:UIControlStateNormal];
-            viewerButton.imageView.layer.cornerRadius = 5.0;
+            NSString *viewerName = [viewer objectForKey:@"name"];
+            if ([[SDImageCache sharedImageCache] imageFromMemoryCacheForKey:viewerName]){
+                NSLog(@"loading cached image for viewer");
+                [viewerButton setImage:[[SDImageCache sharedImageCache] imageFromMemoryCacheForKey:viewerName] forState:UIControlStateNormal];
+            } else if ([viewer objectForKey:@"facebook_id"] != [NSNull null] && [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookAccessToken]){
+                [viewerButton setImageWithURL:[Utilities profileImageURLForFacebookID:[viewer objectForKey:@"facebook_id"]] forState:UIControlStateNormal];
+                [[SDImageCache sharedImageCache] storeImage:viewerButton.imageView.image forKey:viewerName];
+            } else {
+                [viewerButton setImageWithURL:[viewer objectForKey:@"avatar_url"] forState:UIControlStateNormal];
+                [[SDImageCache sharedImageCache] storeImage:viewerButton.imageView.image forKey:viewerName];
+            }
+            
+            viewerButton.imageView.layer.cornerRadius = 17.0;
             //rasterize to improve performance
-
             [viewerButton.imageView setBackgroundColor:[UIColor clearColor]];
             [viewerButton.imageView.layer setBackgroundColor:[UIColor whiteColor].CGColor];
             viewerButton.imageView.layer.shouldRasterize = YES;
             viewerButton.imageView.layer.rasterizationScale = [UIScreen mainScreen].scale;
 
             face.frame = CGRectMake((((space+imageSize)*index)+18),18,20,20);
-            //[viewerButton setFrame:likerView.frame];
-            //[cell.likersScrollView addSubview:likerView];
+
             for (NSDictionary *liker in likers) {
-                if ([[liker objectForKey:@"facebook_id"] isEqualToString:[viewer objectForKey:@"facebook_id"]]){
+                if ([[liker objectForKey:@"id"] isEqualToNumber:[viewer objectForKey:@"id"]]){
                     [cell.likersScrollView addSubview:face];
                     break;
                 }

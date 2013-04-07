@@ -70,7 +70,7 @@
     for(UIView *subView in self.locationSearchBar.subviews) {
         if ([subView isKindOfClass:[UITextField class]]) {
             UITextField *searchField = (UITextField *)subView;
-            searchField.font = [UIFont fontWithName:@"AvenirNextCondensed-Medium" size:14];
+            searchField.font = [UIFont fontWithName:kAvenirMedium size:14];
         }
     }
     

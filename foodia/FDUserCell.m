@@ -15,7 +15,8 @@
 #import "UIButton+WebCache.h"
 
 @implementation FDUserCell
-@synthesize facebookId, button, currentButton, imageFrame;
+@synthesize facebookId, actionButton;
+@synthesize userId = _userId;
 
 - (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier
 {
@@ -34,89 +35,128 @@
     // Configure the view for the selected state
 }
 
-- (void)buttonPressed
+- (void)buttonPressed:(id)sender
 {
-    if([currentButton isEqualToString:@"Invite"]) {
-        [self inviteUser:self.facebookId];
-    } else if([currentButton isEqualToString:@"Follow"]) {
+    UIButton *button = (UIButton*)sender;
+    NSLog(@"button pressed for this user: %i",button.tag);
+    if ([button.titleLabel.text isEqualToString:@"Follow"]) {
         [self setUnfollowButton];
-        (void)[[FDAPIClient sharedClient] followUser:self.facebookId];
-    } else if([currentButton isEqualToString:@"Unfollow"]) {
+        [[FDAPIClient sharedClient] followUser:[NSString stringWithFormat:@"%i",button.tag]];
+    } else if([button.titleLabel.text isEqualToString:@"Following"]) {
         [self setFollowButton];
-        (void)[[FDAPIClient sharedClient] unfollowUser:self.facebookId];
+        [[FDAPIClient sharedClient] unfollowUser:[NSString stringWithFormat:@"%i",button.tag]];
     }
-    
 }
  
 - (void)setInviteButton
 {
-    [button setHidden:false];
-    [button setTitle:@"Invite" forState:UIControlStateNormal];
-    [button setBackgroundColor:kColorLightBlack];
-    [button setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-    [button.titleLabel setFont:[UIFont fontWithName:@"AvenirNextCondensed-DemiBold" size:15]];
-    currentButton = @"Invite";
-    button.layer.shouldRasterize = YES;
-    button.layer.rasterizationScale = [UIScreen mainScreen].scale;
+    [self.actionButton setTitle:@"Invite" forState:UIControlStateNormal];
+    [self.actionButton setBackgroundColor:kColorLightBlack];
+    [self.actionButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    self.actionButton.layer.shouldRasterize = YES;
+    self.actionButton.layer.rasterizationScale = [UIScreen mainScreen].scale;
     
-    button.userInteractionEnabled = YES;
+    self.actionButton.userInteractionEnabled = YES;
 }
 
 - (void)setInvitedButton
 {
-    [button setHidden:false];
-    [button setTitle:@"Invited" forState:UIControlStateNormal];
-    [button setEnabled:NO];
-    [button setBackgroundColor:[UIColor clearColor]];
-    [button setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
-    [button.titleLabel setFont:[UIFont fontWithName:@"AvenirNextCondensed-Medium" size:15]];
-    currentButton = @"Invited";
-    button.layer.shouldRasterize = YES;
-    button.layer.rasterizationScale = [UIScreen mainScreen].scale;
-    button.userInteractionEnabled = NO;
+    [self.actionButton setTitle:@"Invited" forState:UIControlStateNormal];
+    [self.actionButton setEnabled:NO];
+    [self.actionButton setBackgroundColor:[UIColor clearColor]];
+    [self.actionButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    self.actionButton.layer.shouldRasterize = YES;
+    self.actionButton.layer.rasterizationScale = [UIScreen mainScreen].scale;
+    self.actionButton.userInteractionEnabled = NO;
 }
 
 - (void)setFollowButton
 {
-    [button setHidden:false];
-    [button setTitle:@"Follow" forState:UIControlStateNormal];
-    [button setBackgroundColor:[UIColor whiteColor]];
-    [button.layer setBorderColor:kColorLightBlack.CGColor];
-    [button.layer setBorderWidth:1.0];
-    [button setTitleColor:kColorLightBlack forState:UIControlStateNormal];
-    [button.titleLabel setFont:[UIFont fontWithName:@"AvenirNextCondensed-DemiBold" size:15]];
-    currentButton = @"Follow";
-    button.layer.shouldRasterize = YES;
-    button.layer.rasterizationScale = [UIScreen mainScreen].scale;
+    [self.actionButton setTitle:@"Follow" forState:UIControlStateNormal];
+    [self.actionButton setBackgroundColor:[UIColor whiteColor]];
+    [self.actionButton.layer setBorderColor:kColorLightBlack.CGColor];
+    [self.actionButton.layer setBorderWidth:1.0];
+    [self.actionButton setTitleColor:kColorLightBlack forState:UIControlStateNormal];
+    self.actionButton.layer.shouldRasterize = YES;
+    self.actionButton.layer.rasterizationScale = [UIScreen mainScreen].scale;
 }
 
 - (void)setUnfollowButton
 {
-    [button setHidden:false];
-    [button setTitle:@"Following" forState:UIControlStateNormal];
-    [button setBackgroundColor:[UIColor whiteColor]];
-    [button setTitleColor:[UIColor darkGrayColor] forState:UIControlStateNormal];
-    [button.titleLabel setFont:[UIFont fontWithName:@"AvenirNextCondensed-Medium" size:15]];
-    currentButton = @"Unfollow";
-    button.layer.shouldRasterize = YES;
-    button.layer.rasterizationScale = [UIScreen mainScreen].scale;
+    [self.actionButton setTitle:@"Following" forState:UIControlStateNormal];
+    [self.actionButton setBackgroundColor:[UIColor whiteColor]];
+    [self.actionButton.layer setBorderColor:[UIColor clearColor].CGColor];
+    [self.actionButton setTitleColor:[UIColor darkGrayColor] forState:UIControlStateNormal];
+    self.actionButton.layer.shouldRasterize = YES;
+    self.actionButton.layer.rasterizationScale = [UIScreen mainScreen].scale;
 }
 
-- (void)setFacebookId:(NSString *)newFacebookId
+- (void)configureForUser:(FDUser *)user
 {
-    facebookId = newFacebookId;
-    [self.profileButton setImageWithURL:[Utilities profileImageURLForFacebookID:newFacebookId] forState:UIControlStateNormal];
+    self.actionButton.layer.cornerRadius = 17.0;
+    self.actionButton.layer.shouldRasterize = YES;
+    self.actionButton.layer.rasterizationScale = [UIScreen mainScreen].scale;
+    if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 6) {
+        [self.actionButton.titleLabel setFont:[UIFont fontWithName:kAvenirDemiBold size:15]];
+    } else {
+        [self.actionButton.titleLabel setFont:[UIFont fontWithName:kFuturaMedium size:15]];
+    }
+    if (user.fbid){
+        [self.profileButton setImageWithURL:[Utilities profileImageURLForFacebookID:user.fbid] forState:UIControlStateNormal completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType) {
+            if (image) {
+                [self.profileButton.imageView setImage:image];
+                [UIView animateWithDuration:.25 animations:^{
+                    [self.profileButton setAlpha:1.0];
+                }];
+            }
+        }];
+        self.profileButton.titleLabel.text = [NSString stringWithFormat:@"%@",user.fbid];
+        self.profileButton.titleLabel.hidden = YES;
+        
+    } else {
+        if (user.facebookId.length){
+            [self.profileButton setImageWithURL:[Utilities profileImageURLForFacebookID:user.facebookId] forState:UIControlStateNormal completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType) {
+                if (image) {
+                    [self.profileButton.imageView setImage:image];
+                    [UIView animateWithDuration:.25 animations:^{
+                        [self.profileButton setAlpha:1.0];
+                    }];
+                }
+            }];
+        } else {
+            
+            [[FDAPIClient sharedClient] getProfilePic:user.userId success:^(NSURL *url) {
+                [self.profileButton setImageWithURL:url forState:UIControlStateNormal];
+                NSLog(@"should be setting avatar url for user: %@",url);
+            } failure:^(NSError *error) {
+                
+            }];
+            self.profileButton.titleLabel.hidden = YES;
+            [UIView animateWithDuration:.25 animations:^{
+                [self.profileButton setAlpha:1.0];
+            }];
+        }
+    }
+    [self.nameLabel setText:user.name];
     self.profileButton.imageView.layer.cornerRadius = 20.0;
     [self.profileButton.imageView setBackgroundColor:[UIColor clearColor]];
     [self.profileButton.imageView.layer setBackgroundColor:[UIColor whiteColor].CGColor];
     self.profileButton.imageView.layer.shouldRasterize = YES;
     self.profileButton.imageView.layer.rasterizationScale = [UIScreen mainScreen].scale;
-    imageFrame = self.profileButton.frame;
-    button.tag = [facebookId integerValue];
-    [button addTarget:self action:@selector(buttonPressed) forControlEvents:UIControlEventTouchUpInside];
+    if (user.fbid){
+        self.facebookId = user.fbid;
+        [self.actionButton addTarget:self action:@selector(inviteUser) forControlEvents:UIControlEventTouchUpInside];
+        [self setInviteButton];
+    } else {
+        [self.actionButton setTag:[user.userId integerValue]];
+            [self.actionButton addTarget:self action:@selector(buttonPressed:) forControlEvents:UIControlEventTouchUpInside];
+    }
+    if ([[[UIDevice currentDevice] systemVersion] floatValue] < 6) {
+        [self.nameLabel setFont:[UIFont fontWithName:kFuturaMedium size:16]];
+    }
 }
 
--(void)inviteUser:(NSString *)who {
+-(void)inviteUser {
     [self setInvitedButton];
     if ([FBSession.activeSession.permissions
          indexOfObject:@"publish_actions"] == NSNotFound) {
@@ -126,8 +166,7 @@
                 // If permissions granted, publish the story
                 if ([FBSession.activeSession.permissions
                      indexOfObject:@"publish_actions"] != NSNotFound) {
-                    NSDictionary *inviteRecipient = [NSDictionary dictionaryWithObject:who forKey:@"fbid"];
-                    //[[NSUserDefaults standardUserDefaults] setObject:session.accessToken forKey:@"FacebookAccessToken"];
+                    NSDictionary *inviteRecipient = [NSDictionary dictionaryWithObject:self.facebookId forKey:@"fbid"];
                     [[NSNotificationCenter defaultCenter]
                      postNotificationName:@"SendInvite"
                      object:inviteRecipient];
@@ -140,7 +179,7 @@
     } else if ([FBSession.activeSession.permissions
                 indexOfObject:@"publish_actions"] != NSNotFound) {
         // If permissions present, publish the story
-        NSDictionary *inviteRecipient = [NSDictionary dictionaryWithObject:who forKey:@"fbid"];
+        NSDictionary *inviteRecipient = [NSDictionary dictionaryWithObject:self.facebookId forKey:@"fbid"];
         [[NSNotificationCenter defaultCenter]
          postNotificationName:@"SendInvite"
          object:inviteRecipient];

@@ -1,5 +1,5 @@
 //Constants!
-
+#import <AvailabilityInternal.h>
 #define kUserDefaultsId @"kDefaultsKeyUserId"
 #define kUserDefaultsFacebookId @"FacebookID"
 #define kUserDefaultsFacebookAccessToken @"FacebookAccessToken"
@@ -19,8 +19,13 @@
 #define kDefaultsEnlargePhoto @"kDefaultsEnlargePhoto"
 #define kDefaultsBlackView @"kDefaultsBlackView"
 
-#define kAvenirMedium @"AvenirNextCondensed-Medium"
+#define kAvenirMedium @"AvenirNextCondensed-Medium"    
 #define kAvenirDemiBold @"AvenirNextCondensed-DemiBold"
+
+#define kFuturaMedium @"Futura-CondensedMedium"
+#define kFuturaExtraBold @"Futura-CondensedExtraBold"
+
+
 #define kColorLightBlack [UIColor colorWithWhite:.18 alpha:1.0]
 #define kColorBlue [UIColor colorWithRed:102.f/255.f Green:153.f/255.f Blue:204.f/255.f Alpha:1.f]
 #define kColorOutlineGray [UIColor colorwithRed:211.f/255.f Green:211.f/255.f Blue:211.f/255.f Alpha:1.f]

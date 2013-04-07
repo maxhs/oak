@@ -8,20 +8,27 @@
 
 #import "FDPeopleTableViewController.h"
 #import "FDAPIClient.h"
-//#import "FDCache.h"
+#import "FDCache.h"
 #import "Utilities.h"
 #import "FDUser.h"
 #import "FDProfileViewController.h"
 #import "Facebook.h"
 
 @interface FDPeopleTableViewController ()
-
+@property (nonatomic, strong) NSArray *follows;
+@property (nonatomic, strong) NSArray *followers;
+@property (nonatomic, strong) AFJSONRequestOperation *followRequestOperation;
+@property (nonatomic, strong) AFJSONRequestOperation *peopleRequestOperation;
 @end
 
 @implementation FDPeopleTableViewController
 
 @synthesize stillRunning;
 @synthesize delegate = delegate_;
+@synthesize followers = _followers;
+@synthesize follows = _follows;
+@synthesize followRequestOperation;
+@synthesize peopleRequestOperation;
 
 - (id)initWithDelegate:(id)delegate {
     if (self = [super initWithStyle:UITableViewStylePlain]) {
@@ -30,10 +37,31 @@
     return self;
 }
 
+- (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+    [self getFollowers];
+    [self getFollows];
+}
+
+- (void)getFollowers {
+    self.followRequestOperation = [[FDAPIClient sharedClient] getFollowers:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] success:^(id result) {
+        self.followers = result;
+    } failure:^(NSError *error) {
+        
+    }];
+}
+
+- (void)getFollows {
+    self.followRequestOperation = [[FDAPIClient sharedClient] getFollowing:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] success:^(id result) {
+        self.follows = result;
+    } failure:^(NSError *error) {
+        
+    }];
+}
+
 - (void)viewDidAppear:(BOOL)animated {
     self.stillRunning = true;
     [super viewDidAppear:animated];
-    [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
 
     // get the cached people list
     //self.people = [FDCache getCachedPeople];
@@ -44,7 +72,11 @@
     for(UIView *subView in self.searchDisplayController.searchBar.subviews) {
         if ([subView isKindOfClass:[UITextField class]]) {
             UITextField *searchField = (UITextField *)subView;
-            searchField.font = [UIFont fontWithName:@"AvenirNextCondensed-Medium" size:15];
+            if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 6) {
+                searchField.font = [UIFont fontWithName:kAvenirMedium size:15];
+            } else {
+                searchField.font = [UIFont fontWithName:kFuturaMedium size:15];
+            }
         }
     }
     //replace ugly background
@@ -57,12 +89,12 @@
     }
     // if the list is stale, update it
     //if ([FDCache isPeopleCacheStale] || self.people == nil) {
-        
-        [[FDAPIClient sharedClient] getPeopleListSuccess:^(id result) {
+        [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
+        self.peopleRequestOperation = [[FDAPIClient sharedClient] getPeopleListSuccess:^(id result) {
             if(self.stillRunning) {
                 self.people = result;
                 self.filteredPeople = [self.people mutableCopy];
-                //[FDCache cachePeople:result];
+                [FDCache cachePeople:result];
                 [self.tableView reloadData];
                 [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
             }
@@ -70,14 +102,15 @@
             [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
             NSLog(@"failed to get people! %@", error.description);
         }];
-    /*} else {
-        [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
-    }*/
-    
+    //} else {
+    //    [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
+    //}
 }
 
 -(void)viewWillDisappear:(BOOL)animated {
     self.stillRunning = false;
+    [self.peopleRequestOperation cancel];
+    [self.followRequestOperation cancel];
     [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
 }
 
@@ -89,7 +122,13 @@
     if ([segue.identifier isEqualToString:@"ViewProfile"]) {
         UIButton *button = sender;
         FDProfileViewController *vc = segue.destinationViewController;
-        [vc initWithUserId:button.titleLabel.text];
+        if (button.titleLabel.hidden){
+            //user doesn't have a FOODIA account, so load info from Facbeook if applicable
+            [vc initWithUserId:button.titleLabel.text];
+        } else {
+            //this means the user has a FOODIA account
+            [vc initWithUserId:[NSString stringWithFormat:@"%i",button.tag]];
+        }
     }
 }
 
@@ -114,47 +153,32 @@
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    //self.people = [FDCache getCachedPeople];
     
     static NSString *CellIdentifier = @"UserCell";
     FDUserCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
     if (cell == nil) {
         cell = [[[NSBundle mainBundle] loadNibNamed:@"FDUserCell" owner:nil options:nil] lastObject];
     }
-    cell.button.layer.cornerRadius = 17.0;
-    cell.button.layer.shouldRasterize = YES;
-    cell.button.layer.rasterizationScale = [UIScreen mainScreen].scale;
-    [cell.button setTitleColor:[UIColor darkGrayColor] forState:UIControlStateNormal];
+    
     FDUser *person;
     
     if (tableView == self.searchDisplayController.searchResultsTableView) person = [self.filteredPeople objectAtIndex:indexPath.row];
     else person = [self.people objectAtIndex:indexPath.row];
     
-    if([person.active isEqualToNumber:[NSNumber numberWithInt:1]]) {
-        if([person.following isEqualToNumber:[NSNumber numberWithInt:1]]) [cell setUnfollowButton];
-        else [cell setFollowButton];
-    } else {
-        //temporarily removing the "invited" conditional while I work out what's going on server-side
-        /*if([person.invited isEqualToNumber:[NSNumber numberWithInt:1]]) {
-            [cell setInvitedButton];
-        } else {*/
-            [cell setInviteButton];
-            [cell.button setTag:indexPath.row];
+    if (person.fbid) [cell setInviteButton];
+    else {
+        if ([self.follows indexOfObject:person.userId] == NSNotFound) {
+            [cell setUnfollowButton];
+        } else {
+            [cell setFollowButton];
+        }
     }
     
-    UIButton *profileButton = [UIButton buttonWithType:UIButtonTypeCustom];
-    [profileButton setFrame:CGRectMake(9,7,30,30)];
-    [profileButton setBackgroundColor:[UIColor clearColor]];
-    [profileButton addTarget:self action:@selector(showProfile:) forControlEvents:UIControlEventTouchUpInside];
-    profileButton.titleLabel.text = person.facebookId;
-    profileButton.titleLabel.hidden = YES;
-    [cell addSubview:profileButton];
-    cell.nameLabel.text = person.name;
-    [cell setFacebookId:person.facebookId];
+    [cell configureForUser:person];
     
-    return cell;
-    
+    return cell;    
 }
+
 /*-(void)setUnfollowed:(id) sender {
     FDUser *newPerson;
     if([self.searchDisplayController.searchBar.text length] != 0) {

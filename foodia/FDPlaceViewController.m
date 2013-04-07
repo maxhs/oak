@@ -27,6 +27,7 @@
 #import "FDProfileViewController.h"
 #import "FDWebViewController.h"
 #import "Flurry.h"
+#import "UIButton+WebCache.h"
 
 @interface FDPlaceViewController () <CLLocationManagerDelegate, MKMapViewDelegate, MFMailComposeViewControllerDelegate, MFMessageComposeViewControllerDelegate, UIActionSheetDelegate, UIAlertViewDelegate, UITextViewDelegate>
 @property (strong, nonatomic) FDVenue *place;
@@ -60,10 +61,7 @@
     self.locationManager.desiredAccuracy = kCLLocationAccuracyHundredMeters;
     self.locationManager.delegate = self;
     [self.locationManager startUpdatingLocation];
-    [TestFlight passCheckpoint:@"Looking at a Place View"];
-    self.directionsButton.layer.cornerRadius = 17.0f;
-    self.directionsButton.layer.borderColor = [UIColor lightGrayColor].CGColor;
-    self.directionsButton.layer.borderWidth = .5f;
+
     self.reservationsLink.layer.cornerRadius = 17.0f;
     self.reservationsLink.layer.borderColor = [UIColor lightGrayColor].CGColor;
     self.reservationsLink.layer.borderWidth = .5f;
@@ -73,6 +71,16 @@
     //self.hoursTextView.delegate = self;
     [self.postsContainerTableView setDelegate:self];
     [self.postsContainerTableView setDataSource:self];
+    if ([[[UIDevice currentDevice] systemVersion] floatValue] < 6) {
+        [self.placeLabel setFont:[UIFont fontWithName:kFuturaMedium size:20]];
+        [self.hoursTextView setFont:[UIFont fontWithName:kFuturaMedium size:15]];
+        [self.cityStateCountry setFont:[UIFont fontWithName:kFuturaMedium size:15]];
+        [self.categoryLabel setFont:[UIFont fontWithName:kFuturaMedium size:15]];
+        [self.directionsButton.titleLabel setFont:[UIFont fontWithName:kFuturaMedium size:15]];
+        [self.foodiaPosts setFont:[UIFont fontWithName:kFuturaMedium size:15]];
+        [self.totalCheckinsLabel setFont:[UIFont fontWithName:kFuturaMedium size:15]];
+        [self.streetAddress setFont:[UIFont fontWithName:kFuturaMedium size:15]];
+    } 
 }
 
 - (void) viewWillAppear:(BOOL)animated {
@@ -93,7 +101,7 @@
                 }
             }
             [self.hoursTextView setText:hoursString];
-            [self.hoursTextView setFrame:CGRectMake(-4,-8,160,self.hoursTextView.contentSize.height-20)];
+            [self.hoursTextView setFrame:CGRectMake(-4,-8,160,self.hoursTextView.contentSize.height)];
         } else {
             [self.hoursTextView setText:@"(Hours unavailable)"];
             [self.hoursTextView setTextColor:[UIColor lightGrayColor]];
@@ -132,7 +140,7 @@
         self.categoryLabel.text = [NSString stringWithFormat: @"%@",[[self.place.categories valueForKey:@"name"] componentsJoinedByString:@", " ]];
         [self.categoryLabel setFrame:CGRectMake(4,self.hoursTextView.contentSize.height-20,150,50)];
     }
-    if (self.place.reservationsUrl) [self.reservationsLink setHidden:NO];
+    //if (self.place.reservationsUrl) [self.reservationsLink setHidden:NO];
     //if (self.place.menuUrl)[self.menuLink setHidden:NO];
     if (self.place.url) {
         UIBarButtonItem *websiteButton = [[UIBarButtonItem alloc] initWithTitle:@"WEBSITE" style:UIBarButtonItemStyleBordered target:self action:@selector(viewWebsite)];
@@ -244,36 +252,11 @@
         cell.detailPhotoButton.tag = [post.identifier integerValue];
         [cell.detailPhotoButton addTarget:self action:@selector(didSelectRow:) forControlEvents:UIControlEventTouchUpInside];
         
-        UIButton *recButton = [UIButton buttonWithType:UIButtonTypeCustom];
-        [recButton setFrame:CGRectMake(276,52,60,34)];
-        [recButton addTarget:self action:@selector(recommend:) forControlEvents:UIControlEventTouchUpInside];
-        [recButton setTitle:@"Rec" forState:UIControlStateNormal];
-        recButton.layer.borderColor = [UIColor colorWithWhite:.1 alpha:.1].CGColor;
-        recButton.layer.borderWidth = 1.0f;
-        recButton.backgroundColor = [UIColor whiteColor];
-        recButton.layer.cornerRadius = 17.0f;
-        recButton.layer.shouldRasterize = YES;
-        recButton.layer.rasterizationScale = [UIScreen mainScreen].scale;
-        [recButton.titleLabel setFont:[UIFont fontWithName:@"AvenirNextCondensed-Medium" size:15]];
-        [recButton.titleLabel setTextColor:[UIColor lightGrayColor]];
-        recButton.tag = indexPath.row;
-        [cell.scrollView addSubview:recButton];
-        
-        UIButton *commentButton = [UIButton buttonWithType:UIButtonTypeCustom];
-        [commentButton setFrame:CGRectMake(382,52,118,34)];
-        commentButton.tag = [post.identifier integerValue];
-        [commentButton addTarget:self action:@selector(didSelectRow:) forControlEvents:UIControlEventTouchUpInside];
-        [commentButton setTitle:@"Add a comment..." forState:UIControlStateNormal];
-        [commentButton setTitle:@"Nice!" forState:UIControlStateSelected];
-        commentButton.layer.borderColor = [UIColor colorWithWhite:.1 alpha:.1].CGColor;
-        commentButton.layer.borderWidth = 1.0f;
-        commentButton.backgroundColor = [UIColor whiteColor];
-        commentButton.layer.cornerRadius = 17.0f;
-        commentButton.layer.shouldRasterize = YES;
-        commentButton.layer.rasterizationScale = [UIScreen mainScreen].scale;
-        [commentButton.titleLabel setFont:[UIFont fontWithName:@"AvenirNextCondensed-Medium" size:15]];
-        [commentButton.titleLabel setTextColor:[UIColor lightGrayColor]];
-        [cell.scrollView addSubview:commentButton];
+        [cell.recButton addTarget:self action:@selector(recommend:) forControlEvents:UIControlEventTouchUpInside];
+        cell.recButton.tag = indexPath.row;
+
+        cell.commentButton.tag = [post.identifier integerValue];
+        [cell.commentButton addTarget:self action:@selector(didSelectRow:) forControlEvents:UIControlEventTouchUpInside];
         
         //disable locationButton
         if (post.locationName.length){
@@ -318,7 +301,6 @@
 }
 
 - (void)recommend:(id)sender {
-    NSLog(@"should be recommending");
     UIButton *button = (UIButton *)sender;
     FDPost *post = [self.posts objectAtIndex:button.tag];
     FDCustomSheet *actionSheet = [[FDCustomSheet alloc] initWithTitle:nil delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:@"Recommend on FOODIA", @"Recommend via Facebook",@"Send a Text", @"Send an Email", nil];
@@ -366,7 +348,6 @@
             [self.navigationController pushViewController:vc animated:YES];
         }
     } else if(buttonIndex == 1) {
-        NSLog(@"should be texting");
         MFMessageComposeViewController *viewController = [[MFMessageComposeViewController alloc] init];
         if ([MFMessageComposeViewController canSendText]){
             NSString *textBody = [NSString stringWithFormat:@"I just recommended %@ to you from FOODIA!\n Download the app now: itms-apps://itunes.com/apps/foodia",actionSheet.foodiaObject];
@@ -375,7 +356,6 @@
             [self presentViewController:viewController animated:YES completion:nil];
         }
     } else if(buttonIndex == 2) {
-        NSLog(@"should be emailing");
         if ([MFMailComposeViewController canSendMail]) {
             MFMailComposeViewController* controller = [[MFMailComposeViewController alloc] init];
             controller.mailComposeDelegate = self;
@@ -434,31 +414,37 @@
     int index = 0;
     
     for (NSDictionary *viewer in viewers) {
-        if ([viewer objectForKey:@"facebook_id"] != [NSNull null]){
+        if ([viewer objectForKey:@"id"] != [NSNull null]){
             UIImageView *face = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"light_smile"]];
-            UIImageView *likerView = [[UIImageView alloc] initWithFrame:CGRectMake(((cell.likersScrollView.frame.origin.x)+((space+imageSize)*index)),(cell.likersScrollView.frame.origin.y), imageSize, imageSize)];
-            UIButton *likerButton = [UIButton buttonWithType:UIButtonTypeCustom];
+           
+            UIButton *viewerButton = [UIButton buttonWithType:UIButtonTypeCustom];
+            [viewerButton setFrame:CGRectMake(((space+imageSize)*index),0,imageSize, imageSize)];
             
             //passing liker facebook id as a string instead of NSNumber so that it can hold more data. crafty.
-            likerButton.titleLabel.text = [viewer objectForKey:@"facebook_id"];
-            likerButton.titleLabel.hidden = YES;
-            [likerButton addTarget:self action:@selector(profileTappedFromLikers:) forControlEvents:UIControlEventTouchUpInside];
-            [likerView setImageWithURL:[Utilities profileImageURLForFacebookID:[viewer objectForKey:@"facebook_id"]]];
-            likerView.userInteractionEnabled = YES;
-            likerView.clipsToBounds = YES;
-            likerView.layer.cornerRadius = 5.0;
-            likerView.frame = CGRectMake(((space+imageSize)*index),0,imageSize, imageSize);
+            viewerButton.titleLabel.text = [[viewer objectForKey:@"id"] stringValue];
+            viewerButton.titleLabel.hidden = YES;
+            [viewerButton addTarget:self action:@selector(profileTappedFromLikers:) forControlEvents:UIControlEventTouchUpInside];
+            if ([[viewer objectForKey:@"facebook_id"] length] && [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookAccessToken]){
+                [viewerButton setImageWithURL:[Utilities profileImageURLForFacebookID:[viewer objectForKey:@"facebook_id"]] forState:UIControlStateNormal];
+            } else {
+                [viewerButton setImageWithURL:[viewer objectForKey:@"avatar_url"] forState:UIControlStateNormal];
+            }
+            viewerButton.imageView.layer.cornerRadius = 17.0;
+            [viewerButton.imageView setBackgroundColor:[UIColor clearColor]];
+            [viewerButton.imageView.layer setBackgroundColor:[UIColor whiteColor].CGColor];
+            viewerButton.imageView.layer.shouldRasterize = YES;
+            viewerButton.imageView.layer.rasterizationScale = [UIScreen mainScreen].scale;
+            
             face.frame = CGRectMake((((space+imageSize)*index)+22),18,20,20);
-            [likerButton setFrame:likerView.frame];
-            face.clipsToBounds = NO;
-            [cell.likersScrollView addSubview:likerView];
+                        [cell.likersScrollView addSubview:viewerButton];
+            [cell.likersScrollView addSubview:viewerButton];
             for (NSDictionary *liker in likers) {
-                if ([[liker objectForKey:@"facebook_id"] isEqualToString:[viewer objectForKey:@"facebook_id"]]){
+                if ([[liker objectForKey:@"id"] isEqualToNumber:[viewer objectForKey:@"id"]]){
                     [cell.likersScrollView addSubview:face];
                     break;
                 }
             }
-            [cell.likersScrollView addSubview:likerButton];
+
             index++;
         }
     }

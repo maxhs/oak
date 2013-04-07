@@ -26,18 +26,29 @@ typedef void(^RequestSuccess)(id result);
 // connect to the API. Those objects can be used to cancel the request. Results can be
 // handled via blocks
 
-- (AFJSONRequestOperation *)connectUser:(NSString*)email
+- (AFJSONRequestOperation *)connectUser:(NSString*)name
+                                  email:(NSString*)email
                                 password:(NSString*)password
                                  signup:(BOOL) signup
+                                   fbid:(NSString*)facebookId
                                  success:(RequestSuccess)success
                                  failure:(RequestFailure)failure;
+
+- (AFJSONRequestOperation *)forgotPassword:(NSString*)email
+                                   success:(RequestSuccess)success
+                                   failure:(RequestFailure)failure;
 
 - (AFJSONRequestOperation *)updateProfileDetails:(NSNumber *)userId
                                             name:(NSString *)name
                                         location:(NSString *)location
                                        userPhoto:(UIImage *)userImage
+                                        password:(NSString*)password
                                          success:(RequestSuccess)success
                                          failure:(RequestFailure)failure;
+
+- (AFJSONRequestOperation *)getProfilePic:(NSString *)userId
+                                  success:(RequestSuccess)success
+                                  failure:(RequestFailure)failure;
 
 - (AFHTTPRequestOperation *)unfollowUser:(NSString *)userId;
 
@@ -96,6 +107,14 @@ typedef void(^RequestSuccess)(id result);
                                       success:(RequestSuccess)success
                                       failure:(RequestFailure)failure;
 
+- (AFJSONRequestOperation *)getFollowers:(NSString *)uid
+                                 success:(RequestSuccess)success
+                                 failure:(RequestFailure)failure;
+
+- (AFJSONRequestOperation *)getFollowing:(NSString *)uid
+                                 success:(RequestSuccess)success
+                                 failure:(RequestFailure)failure;
+
 // get the feed since a post
 - (AFHTTPRequestOperation *)getFeedPostsSincePost:(FDPost *)afterPost
                                           success:(RequestSuccess)success
@@ -137,10 +156,16 @@ typedef void(^RequestSuccess)(id result);
                                                       success:(RequestSuccess)success
                                                       failure:(RequestFailure)failure;
 
-- (AFJSONRequestOperation *)getSearchResultsForUser:(NSString *)userId
-                                              query:(NSString *)query
-                                            success:(RequestSuccess)success
-                                            failure:(RequestFailure)failure;
+- (AFJSONRequestOperation *)getVenuesForUser:(NSString *)userId
+                                     success:(RequestSuccess)success
+                                     failure:(RequestFailure)failure;
+
+- (AFJSONRequestOperation *)getUserPosts:(NSString *)userId
+                                forQuery:(NSString *)query
+                               withVenue:(NSString *)venue
+                        nearCoordinate:(CLLocation *)location
+                                 success:(RequestSuccess)success
+                                 failure:(RequestFailure)failure;
 
 - (AFJSONRequestOperation *)submitPost:(FDPost *)post
                                success:(RequestSuccess)success

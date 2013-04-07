@@ -37,7 +37,7 @@
 
 - (void)configureForComment:(FDComment *)comment {
     self.cellComment = comment;
-    //CGSize bodySize = [comment.body sizeWithFont:[UIFont fontWithName:@"AvenirNextCondensed-Medium" size:16] constrainedToSize:CGSizeMake(207, 100000)];
+    //CGSize bodySize = [comment.body sizeWithFont:[UIFont fontWithName:kAvenirMedium size:16] constrainedToSize:CGSizeMake(207, 100000)];
     self.nameLabel.text = comment.user.name;
     self.bodyLabel.text = [NSString stringWithFormat:@"\"%@\"", comment.body];
     CGRect frame = self.bodyLabel.frame;
@@ -53,6 +53,11 @@
         self.editButton.layer.borderWidth = 1.0f;
     } else {
         [self.editButton setHidden:YES];
+    }
+    if ([[[UIDevice currentDevice] systemVersion] floatValue] < 6) {
+        [self.bodyLabel setFont:[UIFont fontWithName:kFuturaMedium size:15.0]];
+        [self.timeLabel setFont:[UIFont fontWithName:kFuturaMedium size:14.0]];
+        [self.nameLabel setFont:[UIFont fontWithName:kFuturaMedium size:15.0]];
     }
 }
 

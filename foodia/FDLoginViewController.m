@@ -14,7 +14,7 @@
 #import "FDAPIClient.h"
 #import "FDPost.h"
 #import "FDPreviewPostView.h"
-#import "FDEmailConnectViewController.h"
+#import "FDEditProfileViewController.h"
 #import "FDUser.h"
 
 static NSArray *tagLines;
@@ -26,25 +26,30 @@ static NSArray *tagLines;
 @property (weak, nonatomic) IBOutlet UIScrollView *previewScrollView;
 @property (nonatomic, retain) NSArray *previewPosts;
 @property (nonatomic, retain) NSTimer *previewTimer;
+@property (weak, nonatomic) IBOutlet UIImageView *nameBackground;
+@property (weak, nonatomic) IBOutlet UITextField *nameTextField;
 @property (weak, nonatomic) IBOutlet UITextField *emailTextField;
 @property (weak, nonatomic) IBOutlet UITextField *passwordTextField;
 @property (weak, nonatomic) IBOutlet UIView *emailContainerView;
 @property (weak, nonatomic) IBOutlet UIImageView *logoImageView;
 @property (weak, nonatomic) IBOutlet UIButton *signupEmailButton;
 @property (weak, nonatomic) IBOutlet UIButton *loginEmailButton;
+@property (weak, nonatomic) IBOutlet UIButton *forgotPasswordButton;
 @property (weak, nonatomic) IBOutlet UIButton *cancelEmailButton;
-
+@property BOOL emailLoginStarted;
 @end
 
 @implementation FDLoginViewController
 
+@synthesize emailLoginStarted = _emailLoginStarted;
+
 + (void)initialize {
     if (self == [FDLoginViewController class]) {
         tagLines = @[
-        @"Inspired by food",
-        @"Remember the great moments",
+        @"Capture and share your great food moments",
         @"Discover new food, curated by folks you trust",
         @"Recommend great food to your friends",
+        @"Find inspiration through food",
         @"Spend less time with your phone…",
         @"…and more time with your food."];
     }
@@ -67,18 +72,42 @@ static NSArray *tagLines;
     //[self.emailButton setBackgroundColor:[UIColor whiteColor]];
     self.emailButton.layer.shadowColor = [UIColor blackColor].CGColor;
     self.emailButton.layer.shadowOffset = CGSizeMake(0,0);
-    self.emailButton.layer.shadowOpacity = .4;
-    self.emailButton.layer.shadowRadius = 1.0;
+    self.emailButton.layer.shadowOpacity = .2;
+    self.emailButton.layer.shadowRadius = 2.0;
     
+    if ([[[UIDevice currentDevice] systemVersion] floatValue] < 6) {
+        [self.emailButton.titleLabel setFont:[UIFont fontWithName:kFuturaMedium size:15.0]];
+        [self.signupEmailButton.titleLabel setFont:[UIFont fontWithName:kFuturaMedium size:17.0]];
+        [self.loginEmailButton.titleLabel setFont:[UIFont fontWithName:kFuturaMedium size:17.0]];
+        [self.nameTextField setFont:[UIFont fontWithName:kFuturaMedium size:15.0]];
+        [self.emailTextField setFont:[UIFont fontWithName:kFuturaMedium size:15.0]];
+        [self.passwordTextField setFont:[UIFont fontWithName:kFuturaMedium size:15.0]];
+        [self.forgotPasswordButton.titleLabel setFont:[UIFont fontWithName:kFuturaMedium size:15.0]];
+    }
+
+    [self.signupEmailButton setBackgroundColor:[UIColor whiteColor]];
+    //self.signupEmailButton.clipsToBounds = YES;
+    //self.signupEmailButton.layer.cornerRadius = 7.0;
+    self.signupEmailButton.layer.shadowColor = [UIColor blackColor].CGColor;
+    self.signupEmailButton.layer.shadowOffset = CGSizeMake(0,0);
+    self.signupEmailButton.layer.shadowOpacity = .2;
+    self.signupEmailButton.layer.shadowRadius = 3.0;
+    
+    [self.loginEmailButton setBackgroundColor:[UIColor whiteColor]];
+    //self.loginEmailButton.layer.cornerRadius = 7.0;
+    //self.loginEmailButton.clipsToBounds = YES;
+    self.loginEmailButton.layer.shadowColor = [UIColor blackColor].CGColor;
+    self.loginEmailButton.layer.shadowOffset = CGSizeMake(0,0);
+    self.loginEmailButton.layer.shadowOpacity = .2;
+    self.loginEmailButton.layer.shadowRadius = 3.0;
     [self.passwordTextField setSecureTextEntry:YES];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
-    
     self.loginButton.showsTouchWhenHighlighted = YES;
-    [self.loginEmailButton addTarget:self action:@selector(connectWithEmail) forControlEvents:UIControlEventTouchUpInside];
-    [self.signupEmailButton addTarget:self action:@selector(signupWithEmail) forControlEvents:UIControlEventTouchUpInside];
+    [self.signupEmailButton addTarget:self action:@selector(showSignup) forControlEvents:UIControlEventTouchUpInside];
+    [self.loginEmailButton addTarget:self action:@selector(showLogin) forControlEvents:UIControlEventTouchUpInside];
     if (self.previewPosts.count == 0) [self loadPreviewPosts];
     [UIView animateWithDuration:0.5f animations:^{
         self.loginButton.alpha = 1.f;
@@ -88,17 +117,19 @@ static NSArray *tagLines;
 }
 
 - (void)viewDidAppear:(BOOL)animated {
+    NSLog(@"user id? %@", [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]);
     [super viewDidAppear:YES];
     if (FBSession.activeSession.state == FBSessionStateOpen) {
         [self performSegueWithIdentifier:@"ShowFeed" sender:self];
     } else if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookId] && [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookAccessToken]) {
         [(FDAppDelegate *)[UIApplication sharedApplication].delegate openSessionWithAllowLoginUI:NO];
-    } else if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]) {
-        NSLog(@"logging in with NON-fb id");
+    } else if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] && [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsAuthenticationToken] && [[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsAvatarUrl] length]) {
         [self performSegueWithIdentifier:@"ShowFeed" sender:self];
     } else {
+        NSLog(@"No user is logged in.");
         [UIView animateWithDuration:0.5f animations:^{
             self.loginButton.alpha = 1.f;
+            self.emailButton.alpha = 1.f;
         }];
         [FBSession.activeSession close]; // so we close our session and start over
     }
@@ -106,66 +137,183 @@ static NSArray *tagLines;
 
 - (IBAction)showEmailConnect {
     [UIView animateWithDuration:.4 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-        [self.emailContainerView setFrame:CGRectMake(0, 0, 320, 200)];
+        [self.signupEmailButton setAlpha:1.0];
+        [self.loginEmailButton setAlpha:1.0];
         [self.logoImageView setAlpha:0.0];
-        [self.previewScrollView setAlpha:0.25];
-        if ([UIScreen mainScreen].bounds.size.height == 568){
-            self.previewScrollView.transform = CGAffineTransformMakeTranslation(0, 30);
-            self.pageControl.transform = CGAffineTransformMakeTranslation(0,20);
-        } else {
-            self.previewScrollView.transform = CGAffineTransformMakeTranslation(0, 20);
-            self.pageControl.transform = CGAffineTransformMakeTranslation(0,10);
-        }
+        [self.previewScrollView setAlpha:0.2];
+        [self.pageControl setAlpha:0.2];
+        [self.cancelEmailButton setAlpha:1.0];
+        [self.loginButton setAlpha:0.2];
      
     } completion:^(BOOL finished) {
-       
+        self.emailLoginStarted = YES;
+        //ensure user has no legacy info
+        self.signupEmailButton.transform = CGAffineTransformIdentity;
+        self.loginEmailButton.transform = CGAffineTransformIdentity;
+        [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"JustLaunched"];
+        [FBSession.activeSession closeAndClearTokenInformation];
+        [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
+        [NSUserDefaults resetStandardUserDefaults];
+        [NSUserDefaults standardUserDefaults];
+        NSString *domainName = [[NSBundle mainBundle] bundleIdentifier];
+        [[NSUserDefaults standardUserDefaults] removePersistentDomainForName:domainName];
+        
+        [self.emailButton removeTarget:self action:@selector(showEmailConnect) forControlEvents:UIControlEventTouchUpInside];
     }];
 }
 
 - (IBAction)cancelEmailConnect {
-    [UIView animateWithDuration:.4 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+    [UIView animateWithDuration:.3 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
         [self.emailContainerView setFrame:CGRectMake(0, -200, 320, 200)];
         [self.logoImageView setAlpha:1.0];
+        [self.signupEmailButton setAlpha:0.0];
+        self.signupEmailButton.transform = CGAffineTransformIdentity;
+        [self.loginEmailButton setAlpha:0.0];
+        self.loginEmailButton.transform = CGAffineTransformIdentity;
         [self.view endEditing:YES];
         [self.previewScrollView setAlpha:1.0];
+        [self.pageControl setAlpha:1.0];
         self.previewScrollView.transform = CGAffineTransformIdentity;
         self.pageControl.transform = CGAffineTransformIdentity;
+        [self.cancelEmailButton setAlpha:0.0];
+        [self.loginButton setAlpha:1.0];
+        [self.forgotPasswordButton setAlpha:0.0];
     } completion:^(BOOL finished) {
-        
+        self.emailLoginStarted = NO;
+        [self.signupEmailButton removeTarget:self action:@selector(signupWithEmail) forControlEvents:UIControlEventTouchUpInside];
+        [self.loginEmailButton removeTarget:self action:@selector(connectWithEmail) forControlEvents:UIControlEventTouchUpInside];
+        [self.signupEmailButton addTarget:self action:@selector(showSignup) forControlEvents:UIControlEventTouchUpInside];
+        [self.loginEmailButton addTarget:self action:@selector(showLogin) forControlEvents:UIControlEventTouchUpInside];
+        [self.emailButton addTarget:self action:@selector(showEmailConnect) forControlEvents:UIControlEventTouchUpInside];
+        [self.nameTextField setHidden:NO];
+        [self.nameBackground setHidden:NO];
     }];
-    
 }
 
-- (void) signupWithEmail {
-    [[FDAPIClient sharedClient] connectUser:self.emailTextField.text password:self.passwordTextField.text signup:YES success:^(FDUser *user) {
-        NSLog(@"new user email: %@",user.email);
+
+- (void)showSignup {
+    [self.forgotPasswordButton setHidden:YES];
+    [UIView animateWithDuration:.4 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        [self.emailContainerView setFrame:CGRectMake(0, 0, 320, 200)];
+        [self.loginEmailButton setAlpha:0.0];
+        if ([UIScreen mainScreen].bounds.size.height == 568) {
+            self.signupEmailButton.transform = CGAffineTransformMakeTranslation(60, 94);
+        } else {
+            self.signupEmailButton.transform = CGAffineTransformMakeTranslation(60, 90);
+        }
+        if ([UIScreen mainScreen].bounds.size.height == 568){
+            self.previewScrollView.transform = CGAffineTransformMakeTranslation(0, 40);
+            self.pageControl.transform = CGAffineTransformMakeTranslation(0,40);
+        } else {
+            self.previewScrollView.transform = CGAffineTransformMakeTranslation(0, 45);
+            self.pageControl.transform = CGAffineTransformMakeTranslation(0,45);
+        }
+     
+    } completion:^(BOOL finished) {
+        [self.signupEmailButton addTarget:self action:@selector(signupWithEmail) forControlEvents:UIControlEventTouchUpInside];
+    }];
+}
+
+- (void)showLogin {
+    [self.forgotPasswordButton setHidden:NO];
+    [self.nameTextField setHidden:YES];
+    [self.nameBackground setHidden:YES];
+    [UIView animateWithDuration:.4 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        [self.emailContainerView setFrame:CGRectMake(0, -30, 320, 200)];
+        [self.signupEmailButton setAlpha:0.0];
+        if ([UIScreen mainScreen].bounds.size.height == 568) {
+            self.loginEmailButton.transform = CGAffineTransformMakeTranslation(-60, 92);
+        } else {
+            self.loginEmailButton.transform = CGAffineTransformMakeTranslation(-60, 88);
+            self.forgotPasswordButton.transform = CGAffineTransformMakeTranslation(0, 20);
+        }
+        if ([UIScreen mainScreen].bounds.size.height == 568){
+            self.previewScrollView.transform = CGAffineTransformMakeTranslation(0, 40);
+            self.pageControl.transform = CGAffineTransformMakeTranslation(0,40);
+        } else {
+            self.previewScrollView.transform = CGAffineTransformMakeTranslation(0, 45);
+            self.pageControl.transform = CGAffineTransformMakeTranslation(0,45);
+        }
+        [self.forgotPasswordButton setAlpha:1.0];
+    } completion:^(BOOL finished) {
+        [self.loginEmailButton addTarget:self action:@selector(connectWithEmail) forControlEvents:UIControlEventTouchUpInside];
+    }];
+}
+
+- (IBAction)forgotPassword {
+    UIAlertView *forgotPassword = [[UIAlertView alloc] initWithTitle:@"Forgot Password" message:@"Please enter your email address:" delegate:self cancelButtonTitle:@"Submit" otherButtonTitles:nil];
+    forgotPassword.alertViewStyle = UIAlertViewStylePlainTextInput;
+    [forgotPassword show];
+}
+
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
+    if ([[alertView buttonTitleAtIndex:buttonIndex] isEqualToString:@"Okay"]) {
+        [alertView dismissWithClickedButtonIndex:buttonIndex animated:YES];
+    } else {
+        [[FDAPIClient sharedClient] forgotPassword:[[alertView textFieldAtIndex:buttonIndex] text] success:^(id result) {
+            [[[UIAlertView alloc]  initWithTitle:@"Phew!" message:@"We successfully reset your password. Please check your email for the new one." delegate:self cancelButtonTitle:@"Okay" otherButtonTitles: nil] show];
+        } failure:^(NSError *error) {
+            [[[UIAlertView alloc]  initWithTitle:@"Huh?" message:@"Sorry, but we couldn't find an account for that email address." delegate:self cancelButtonTitle:@"Okay" otherButtonTitles: nil] show];
+            NSLog(@"failure! %@",error.description);
+        }];
+    }
+}
+
+- (void)signupWithEmail {
+    [(FDAppDelegate*)[UIApplication sharedApplication].delegate showLoadingOverlay];
+    [self.view endEditing:YES];
+    [[FDAPIClient sharedClient] connectUser:self.nameTextField.text email:self.emailTextField.text password:self.passwordTextField.text signup:YES fbid:nil success:^(FDUser *user) {
+        [(FDAppDelegate*)[UIApplication sharedApplication].delegate hideLoadingOverlay];
+        NSLog(@"new user password: %@",user.password);
         NSLog(@"new user id: %@",user.userId);
+        [[NSUserDefaults standardUserDefaults] setObject:user.name forKey:kUserDefaultsUserName];
         [[NSUserDefaults standardUserDefaults] setObject:user.email forKey:kUserDefaultsEmail];
         [[NSUserDefaults standardUserDefaults] setObject:user.userId forKey:kUserDefaultsId];
-        FDEmailConnectViewController *vc;
+        [[NSUserDefaults standardUserDefaults] setObject:user.password forKey:kUserDefaultsPassword];
+        FDEditProfileViewController *vc;
         if (([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone && [UIScreen mainScreen].bounds.size.height == 568.0)){
             UIStoryboard *storyboard5 = [UIStoryboard storyboardWithName:@"iPhone5" bundle:nil];
-            vc = [storyboard5 instantiateViewControllerWithIdentifier:@"EmailConnect"];
+            vc = [storyboard5 instantiateViewControllerWithIdentifier:@"EditProfile"];
         } else {
             UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"iPhone" bundle:nil];
-            vc = [storyboard instantiateViewControllerWithIdentifier:@"EmailConnect"];
+            vc = [storyboard instantiateViewControllerWithIdentifier:@"EditProfile"];
         }
         [vc setUser:user];
         [self presentViewController:vc animated:YES completion:nil];
     } failure:^(NSError *error) {
-        [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while attempting to sign you up." delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+        [(FDAppDelegate*)[UIApplication sharedApplication].delegate hideLoadingOverlay];
+        [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"But it looks like there's already an existing account for that email address. Try logging in instead." delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     }];
 }
 
 - (void) connectWithEmail {
-    [[FDAPIClient sharedClient] connectUser:self.emailTextField.text password:self.passwordTextField.text signup:NO success:^(FDUser *user) {
+    [(FDAppDelegate*)[UIApplication sharedApplication].delegate showLoadingOverlay];
+    [self.view endEditing:YES];
+    [[FDAPIClient sharedClient] connectUser:nil email:self.emailTextField.text password:self.passwordTextField.text signup:NO fbid:nil success:^(FDUser *user) {
+            [(FDAppDelegate*)[UIApplication sharedApplication].delegate hideLoadingOverlay];
         NSLog(@"connect with email result from login vc: %@",user.email);
-        [[NSUserDefaults standardUserDefaults] setObject:user.authenticationToken forKey:kUserDefaultsAuthenticationToken];
-        [[NSUserDefaults standardUserDefaults] setObject:user.avatarUrl forKey:kUserDefaultsAvatarUrl];
-        [[NSUserDefaults standardUserDefaults] setObject:user.email forKey:kUserDefaultsEmail];
-        [self performSegueWithIdentifier:@"ShowFeed" sender:self];
+
+        if (user.avatarUrl.length) {
+            [[NSUserDefaults standardUserDefaults] setObject:user.avatarUrl forKey:kUserDefaultsAvatarUrl];
+            [[NSUserDefaults standardUserDefaults] setObject:user.authenticationToken forKey:kUserDefaultsAuthenticationToken];
+            [[NSUserDefaults standardUserDefaults] setObject:user.email forKey:kUserDefaultsEmail];
+            [self performSegueWithIdentifier:@"ShowFeed" sender:self];
+        } else {
+            FDEditProfileViewController *vc;
+            if (([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone && [UIScreen mainScreen].bounds.size.height == 568.0)){
+                UIStoryboard *storyboard5 = [UIStoryboard storyboardWithName:@"iPhone5" bundle:nil];
+                vc = [storyboard5 instantiateViewControllerWithIdentifier:@"EditProfile"];
+            } else {
+                UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"iPhone" bundle:nil];
+                vc = [storyboard instantiateViewControllerWithIdentifier:@"EditProfile"];
+            }
+            [vc setUser:user];
+            [self presentViewController:vc animated:YES completion:nil];
+        }
+        
     } failure:^(NSError *error) {
-        [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Those login details didn't work. Please try again." delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+        [(FDAppDelegate*)[UIApplication sharedApplication].delegate hideLoadingOverlay];
+        [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Those credentials didn't do the trick. Please try again." delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     }];
 }
 
@@ -229,24 +377,35 @@ static NSArray *tagLines;
     for (FDPost *post in self.previewPosts) {
         NSUInteger index = [self.previewPosts indexOfObject:post];
         FDPreviewPostView *view = [[[NSBundle mainBundle] loadNibNamed:@"FDPreviewPostView" owner:self options:nil] lastObject];
-        
+        if ([[[UIDevice currentDevice] systemVersion] floatValue] < 6) {
+            [view.taglineLabel setFont:[UIFont fontWithName:kFuturaMedium size:17.0]];
+            [view.timeLabel setFont:[UIFont fontWithName:kFuturaMedium size:14.0]];
+            [view.locationLabel setFont:[UIFont fontWithName:kFuturaMedium size:14.0]];
+        }
         CGRect frame = CGRectMake(index * view.frame.size.width, 0, view.frame.size.width, view.frame.size.height);
         view.frame = frame;
         viewSize = frame.size;
         FDPost *post = [self.previewPosts objectAtIndex:index];
-        [view.photoView setImageWithURL:post.feedImageURL];
-        CGPathRef path = [UIBezierPath bezierPathWithRect:view.photoView.bounds].CGPath;
-        [view.photoView.layer setShadowPath:path];
-        view.photoView.layer.shouldRasterize = YES;
-        // Don't forget the rasterization scale
-        // I spent days trying to figure out why retina display assets weren't working as expected
-        view.photoView.layer.rasterizationScale = [UIScreen mainScreen].scale;
-        view.photoView.layer.shadowColor = [UIColor darkGrayColor].CGColor;
-        view.photoView.layer.shadowOffset = CGSizeMake(0, 1);
-        view.photoView.layer.shadowOpacity = 1;
-        view.photoView.layer.shadowRadius = 5.0;
-        view.photoView.clipsToBounds = NO;
-
+        [view.photoView setImageWithURLRequest:[NSURLRequest requestWithURL:post.feedImageURL] placeholderImage:nil success:^(NSURLRequest *request, NSHTTPURLResponse *response, UIImage *image) {
+            [UIView animateWithDuration:.75f delay:0.0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+                [view.photoView setImage:image];
+                CGPathRef path = [UIBezierPath bezierPathWithRect:view.photoView.bounds].CGPath;
+                [view.photoView.layer setShadowPath:path];
+                view.photoView.layer.shouldRasterize = YES;
+                // Don't forget the rasterization scale
+                // I spent days trying to figure out why retina display assets weren't working as expected
+                view.photoView.layer.rasterizationScale = [UIScreen mainScreen].scale;
+                view.photoView.layer.shadowColor = [UIColor darkGrayColor].CGColor;
+                view.photoView.layer.shadowOffset = CGSizeMake(0, 1);
+                view.photoView.layer.shadowOpacity = 1;
+                view.photoView.layer.shadowRadius = 5.0;
+                view.photoView.clipsToBounds = NO;
+            }completion:^(BOOL finished) {
+                
+            }];
+        } failure:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error) {
+            
+        }];
         [view.taglineLabel setText:[tagLines objectAtIndex:index]];
         [view.timeLabel setText:[Utilities timeIntervalSinceStartDate:post.postedAt]];
         if (post.locationName.length)
@@ -285,11 +444,19 @@ static NSArray *tagLines;
             _previewScrollView.alpha = 0.f;
         } completion:^(BOOL finished) {
             _previewScrollView.contentOffset = CGPointZero;
-            [UIView animateWithDuration:0.75 animations:^{
-                _previewScrollView.alpha = 1.0;
-            } completion:^(BOOL finished) {
-                [self startPreviewTimer];
-            }];
+            if (self.emailLoginStarted){
+                [UIView animateWithDuration:0.75 animations:^{
+                    _previewScrollView.alpha = .2;
+                } completion:^(BOOL finished) {
+                    [self startPreviewTimer];
+                }];
+            } else {
+                [UIView animateWithDuration:0.75 animations:^{
+                    _previewScrollView.alpha = 1.0;
+                } completion:^(BOOL finished) {
+                    [self startPreviewTimer];
+                }];
+            }
         }];
     } else {
         CGFloat newOffsetX = (currentIndex + 1) * _previewScrollView.frame.size.width;
@@ -311,10 +478,12 @@ static NSArray *tagLines;
 }
 
 - (void)loginFailed {
-    [UIView animateWithDuration:0.5f animations:^{
-        [self.loginButton setAlpha:1.0f];
-        [self.emailButton setAlpha:1.0f];
-    }];
+    if (!self.emailLoginStarted){
+        [UIView animateWithDuration:0.5f animations:^{
+            [self.loginButton setAlpha:1.0f];
+            [self.emailButton setAlpha:1.0f];
+        }];
+    }
 }
 
 @end

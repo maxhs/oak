@@ -16,8 +16,8 @@
 		<string>FOODIA-app-icon@2x.png</string>
 		<string>FOODIA app icon_58.png</string>
 		<string>FOODIA app icon_29.png</string>
-		<string>FOODIA-app-icon_114.png</string>
-		<string>FOODIA-app-icon_57.png</string>
+		<string>experiment@2x.png</string>
+		<string>experiment.png</string>
 	</array>
 	<key>CFBundleIcons</key>
 	<dict>
@@ -29,8 +29,8 @@
 				<string>FOODIA-app-icon@2x.png</string>
 				<string>FOODIA app icon_58.png</string>
 				<string>FOODIA app icon_29.png</string>
-				<string>FOODIA-app-icon_114.png</string>
-				<string>FOODIA-app-icon_57.png</string>
+				<string>experiment@2x.png</string>
+				<string>experiment.png</string>
 			</array>
 			<key>UIPrerenderedIcon</key>
 			<true/>

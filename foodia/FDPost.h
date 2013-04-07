@@ -52,7 +52,7 @@
 + (void)setUserPost:(FDPost *)post;
 + (void)resetUserPost;
 - (NSDate *)recommendedAt;
--(Boolean) isLikedByUser;
+- (BOOL) isLikedByUser;
 - (NSDate *)postedAt;
 - (NSURL *)feedImageURL;
 - (NSURL *)detailImageURL;

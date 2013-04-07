@@ -400,8 +400,8 @@ NSString *const ECSlidingViewTopDidReset          = @"ECSlidingViewTopDidReset";
 - (void)resetTopView
 
 {
-    [[NSNotificationCenter defaultCenter] postNotificationName:@"ShrinkMenuView" object:nil];
-  [self resetTopViewWithAnimations:nil onComplete:nil];
+    //[[NSNotificationCenter defaultCenter] postNotificationName:@"ShrinkMenuView" object:nil];
+    [self resetTopViewWithAnimations:nil onComplete:nil];
 }
 
 - (void)resetTopViewWithAnimations:(void(^)())animations onComplete:(void(^)())complete
@@ -453,6 +453,11 @@ NSString *const ECSlidingViewTopDidReset          = @"ECSlidingViewTopDidReset";
 
 - (void)updateTopViewHorizontalCenter:(CGFloat)newHorizontalCenter
 {
+    if (newHorizontalCenter > 220.f) {
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"GrowMenuView" object:nil];
+    } else {
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"ShrinkMenuView" object:nil];
+    }
   CGPoint center = self.topView.center;
   center.x = newHorizontalCenter;
   self.topView.layer.position = center;

@@ -14,7 +14,10 @@
 #import "Utilities.h"
 #import "FDPlaceViewController.h"
 #import "Flurry.h"
+#import "FDUser.h"
+#import "UIButton+WebCache.h"
 #import "FDCache.h"
+#import <iAd/ADBannerView.h>
 
 #define METERS_TO_FEET  3.2808399
 #define METERS_TO_MILES 0.000621371192
@@ -22,7 +25,7 @@
 #define FEET_CUTOFF     3281
 #define FEET_IN_MILES   5280
 
-@interface FDRecommendedTableViewController () <CLLocationManagerDelegate, UITableViewDataSource, UITableViewDelegate>
+@interface FDRecommendedTableViewController () <CLLocationManagerDelegate, UITableViewDataSource, UITableViewDelegate, ADBannerViewDelegate>
 @property BOOL editMode;
 @property (strong, nonatomic) UIView *editContainerView;
 @property (strong, nonatomic) UIButton *sortByDistanceButton;
@@ -33,23 +36,29 @@
 @property (weak, nonatomic) AFJSONRequestOperation *holdRequestOperation;
 @property BOOL showingDistance;
 @property BOOL showingRank;
+
+@property (nonatomic, retain) ADBannerView *adBannerView;
+@property (nonatomic) BOOL adBannerViewIsVisible;
 @end
 
 @implementation FDRecommendedTableViewController
 
 @synthesize holdRequestOperation;
-@synthesize shouldShowHeld = _shouldShowHeld;
+@synthesize shouldShowKeepers = _shouldShowKeepers;
 @synthesize editMode = _editMode;
 @synthesize editContainerView;
 @synthesize locationManager;
 @synthesize currentLocation = _currentLocation;
 @synthesize showingDistance = _showingDistance;
 @synthesize showingRank = _showingRank;
+@synthesize adBannerView = _adBannerView;
+@synthesize adBannerViewIsVisible = _adBannerViewIsVisible;
 
 - (void)viewDidLoad {
     [super viewDidLoad];
     [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
     [Flurry logPageView];
+    
     //[self.selfSortButton setBackgroundColor:kColorLightBlack];
     //[self.selfSortButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     self.locationManager = [[CLLocationManager alloc] init];
@@ -66,7 +75,8 @@
     [self.sortByDistanceButton addTarget:self action:@selector(sortByDistance:) forControlEvents:UIControlEventTouchUpInside];
     [self.editContainerView addSubview:self.sortByDistanceButton];
     [self.sortByDistanceButton setTitle:@"DISTANCE" forState:UIControlStateNormal];
-    [self.sortByDistanceButton.titleLabel setFont:[UIFont fontWithName:kAvenirMedium size:15]];
+    
+
     [self.sortByDistanceButton.titleLabel setTextColor:[UIColor darkGrayColor]];
     self.sortByDistanceButton.layer.cornerRadius = 17.0;
     self.sortByDistanceButton.clipsToBounds = YES;
@@ -76,7 +86,7 @@
     [self.selfSortButton addTarget:self action:@selector(selfSort:) forControlEvents:UIControlEventTouchUpInside];
     [self.editContainerView addSubview:self.selfSortButton];
     [self.selfSortButton setTitle:@"MY RANK" forState:UIControlStateNormal];
-    [self.selfSortButton.titleLabel setFont:[UIFont fontWithName:kAvenirMedium size:15]];
+
     [self.selfSortButton.titleLabel setTextColor:[UIColor darkGrayColor]];
     self.selfSortButton.layer.cornerRadius = 17.0;
     self.selfSortButton.clipsToBounds = YES;
@@ -85,18 +95,26 @@
     [self.sortByPopularityButton addTarget:self action:@selector(sortByPopularity:) forControlEvents:UIControlEventTouchUpInside];
     [self.sortByPopularityButton setTitle:@"POPULAR" forState:UIControlStateNormal];
     [self.sortByPopularityButton setFrame:CGRectMake(10, 7, 88, 34)];
-    [self.sortByPopularityButton.titleLabel setFont:[UIFont fontWithName:kAvenirMedium size:15]];
+
     [self.sortByPopularityButton.titleLabel setTextColor:[UIColor darkGrayColor]];
     self.sortByPopularityButton.layer.cornerRadius = 17.0;
     self.sortByPopularityButton.clipsToBounds = YES;
     [self.editContainerView addSubview:self.sortByPopularityButton];
-    if (_shouldShowHeld){
+    if (_shouldShowKeepers){
         self.tableView.tableHeaderView = self.editContainerView; 
     }
     self.tableView.dataSource = self;
     self.tableView.delegate = self;
 
-    
+    if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 6) {
+        [self.sortByPopularityButton.titleLabel setFont:[UIFont fontWithName:kAvenirMedium size:16]];
+        [self.selfSortButton.titleLabel setFont:[UIFont fontWithName:kAvenirMedium size:16]];
+        [self.sortByDistanceButton.titleLabel setFont:[UIFont fontWithName:kAvenirMedium size:16]];
+    } else {
+        [self.sortByPopularityButton.titleLabel setFont:[UIFont fontWithName:kFuturaMedium size:16]];
+        [self.selfSortButton.titleLabel setFont:[UIFont fontWithName:kFuturaMedium size:16]];
+        [self.sortByDistanceButton.titleLabel setFont:[UIFont fontWithName:kFuturaMedium size:16]];
+    }
 
     /*[[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(updatePostNotification:)
@@ -123,12 +141,13 @@
 }
 
 - (void) viewWillAppear:(BOOL)animated {
-    //[super viewWillAppear:animated];
+    [super viewWillAppear:animated];
     [self.tableView setEditing:NO animated:YES];
     self.showingDistance = NO;
     [UIView animateWithDuration:.25 animations:^{
         [self.editContainerView setAlpha:1.0];
     }];
+    if (!self.shouldShowKeepers) [self createAdBannerView];
 }
 
 - (void) locationManager:(CLLocationManager *)manager didFailWithError:(NSError *)error {
@@ -184,12 +203,22 @@
 {
     if (self.posts.count == 0) {
         UITableViewCell *cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"EmptyCell"];
-        [cell.textLabel setFont:[UIFont fontWithName:kAvenirMedium size:16]];
+        if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 6) {
+            [cell.textLabel setFont:[UIFont fontWithName:kAvenirMedium size:16]];
+        } else {
+            [cell.textLabel setFont:[UIFont fontWithName:kFuturaMedium size:16]];
+        }
+
         [cell.textLabel setTextColor:[UIColor lightGrayColor]];
         [cell.textLabel setTextAlignment:NSTextAlignmentCenter];
         cell.textLabel.numberOfLines = 0;
         cell.selectionStyle = UITableViewCellSelectionStyleNone;
-        [cell.textLabel setText:@"Tap and hold any post photo to add it to this list."];
+        if (self.shouldShowKeepers){
+            [cell.textLabel setText:@"Tap and hold any post photo to KEEP it on this list."];
+        } else {
+            [cell.textLabel setText:@"Follow and be followed.\nSmile at posts and make RECOMMENDATIONS.\n\nSoon enough, they'll be made for you."];
+        }
+        
         return cell;
     } else {
         static NSString *PostCellIdentifier = @"PostCell";
@@ -197,9 +226,9 @@
         if (cell == nil) {
             cell = [[[NSBundle mainBundle] loadNibNamed:@"FDPostCell" owner:self options:nil] lastObject];
         }
-        
+        FDPost *post;
         if (self.showingRank ==  YES) {
-            FDPost *post = [self.posts objectAtIndex:indexPath.row];
+            post = [self.posts objectAtIndex:indexPath.row];
             [self.slidingViewController.panGesture setEnabled:NO];
             [cell.cellMotionButton setHidden:YES];
             [cell configureForPost:post];
@@ -207,7 +236,7 @@
             UIImageView *editingAccessory = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"menuBarButtonImage"]];
             cell.accessoryView = editingAccessory;
         } else {
-            FDPost *post = [self.posts objectAtIndex:indexPath.row];
+            post = [self.posts objectAtIndex:indexPath.row];
             
             [cell.cellMotionButton setHidden:NO];
             [self.slidingViewController.panGesture setEnabled:YES];
@@ -215,7 +244,7 @@
             
             [cell.likeButton addTarget:self action:@selector(likeButtonTapped:) forControlEvents:UIControlEventTouchUpInside];
             cell.likeButton.tag = indexPath.row;
-            cell.posterButton.titleLabel.text = cell.userId;
+            cell.posterButton.titleLabel.text = post.user.userId;
             [cell.posterButton addTarget:self action:@selector(showProfile:) forControlEvents:UIControlEventTouchUpInside];
             self.tableView.separatorStyle = UITableViewCellSeparatorStyleSingleLine;
             
@@ -223,47 +252,24 @@
             [cell bringSubviewToFront:cell.likersScrollView];
             
             //capture recommend touch event
-            UIButton *recButton = [UIButton buttonWithType:UIButtonTypeCustom];
-            [recButton setFrame:CGRectMake(276,52,60,34)];
-            if (self.shouldShowHeld){
-                [recButton addTarget:self action:@selector(removeHeldPost:) forControlEvents:UIControlEventTouchUpInside];
-                [recButton setTag:[post.identifier integerValue]];
-                [recButton setTitle:@"Remove" forState:UIControlStateNormal];
+            if (self.shouldShowKeepers){
+                [cell.recButton addTarget:self action:@selector(removeHeldPost:) forControlEvents:UIControlEventTouchUpInside];
+                [cell.recButton setTag:[post.identifier integerValue]];
+                [cell.recButton setTitle:@"Remove" forState:UIControlStateNormal];
                 [cell.recCountLabel setHidden:YES];
             } else {
-                [recButton addTarget:self action:@selector(recommend:) forControlEvents:UIControlEventTouchUpInside];
-                [recButton setTitle:@"Rec" forState:UIControlStateNormal];
-                [recButton setTag:indexPath.row];
+                [cell.recButton addTarget:self action:@selector(recommend:) forControlEvents:UIControlEventTouchUpInside];
+                [cell.recButton setTitle:@"Rec" forState:UIControlStateNormal];
+                [cell.recButton setTag:indexPath.row];
             }
-            
-            [recButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
-            recButton.layer.borderColor = [UIColor colorWithWhite:.1 alpha:.1].CGColor;
-            recButton.layer.borderWidth = 1.0f;
-            recButton.backgroundColor = [UIColor whiteColor];
-            recButton.layer.cornerRadius = 17.0f;
-            [recButton.titleLabel setFont:[UIFont fontWithName:kAvenirMedium size:15]];
-            [recButton.titleLabel setTextColor:[UIColor lightGrayColor]];
-            [cell.scrollView addSubview:recButton];
             
             //capture post detail view touch event
             cell.detailPhotoButton.tag = indexPath.row;
             [cell.detailPhotoButton addTarget:self action:@selector(didSelectRow:) forControlEvents:UIControlEventTouchUpInside];
             
             //capture add comment touch event, send user to post detail view
-            UIButton *commentButton = [UIButton buttonWithType:UIButtonTypeCustom];
-            [commentButton setFrame:CGRectMake(382,52,118,34)];
-            commentButton.tag = indexPath.row;;
-            [commentButton addTarget:self action:@selector(didSelectRow:) forControlEvents:UIControlEventTouchUpInside];
-            [commentButton setTitle:@"Add a comment..." forState:UIControlStateNormal];
-            [commentButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
-            commentButton.layer.borderColor = [UIColor colorWithWhite:.1 alpha:.1].CGColor;
-            commentButton.layer.borderWidth = 1.0f;
-            commentButton.backgroundColor = [UIColor whiteColor];
-            commentButton.layer.cornerRadius = 17.0f;
-            [commentButton.titleLabel setFont:[UIFont fontWithName:kAvenirMedium size:15]];
-            [commentButton.titleLabel setTextColor:[UIColor lightGrayColor]];
-            
-            [cell.scrollView addSubview:commentButton];
+            cell.commentButton.tag = indexPath.row;;
+            [cell.commentButton addTarget:self action:@selector(didSelectRow:) forControlEvents:UIControlEventTouchUpInside];
             
             [cell configureForPost:post];
             
@@ -275,7 +281,11 @@
         
         [cell.locationButton addTarget:self action:@selector(showPlace:) forControlEvents:UIControlEventTouchUpInside];
         cell.locationButton.tag = indexPath.row;
-        if (cell.scrollView.contentOffset.x != 0) [cell.scrollView setContentOffset:CGPointMake(0,0) animated:NO];
+        
+        //swipe cell accordingly
+        if ([self.swipedCells indexOfObject:post.identifier] != NSNotFound){
+            [cell.scrollView setContentOffset:CGPointMake(271,0)];
+        } else [cell.scrollView setContentOffset:CGPointZero];
     
         return cell;
     }
@@ -410,7 +420,7 @@
         [self loadFromCache];
     } else {
 
-        if (self.shouldShowHeld) {
+        if (self.shouldShowKeepers) {
             [Flurry logEvent:@"Loading initial held onto" timed:YES];
             self.holdRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getHeldPosts:^(NSMutableArray *posts) {
                 if (posts.count == 0){
@@ -565,32 +575,36 @@
     int index = 0;
     
     for (NSDictionary *viewer in viewers) {
-        if ([viewer objectForKey:@"facebook_id"] != [NSNull null]) {
+        if ([viewer objectForKey:@"id"] != [NSNull null]) {
             UIImageView *face = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"light_smile"]];
-            UIImageView *likerView = [[UIImageView alloc] initWithFrame:CGRectMake(((cell.likersScrollView.frame.origin.x)+((space+imageSize)*index)),(cell.likersScrollView.frame.origin.y), imageSize, imageSize)];
+
             UIButton *viewerButton = [UIButton buttonWithType:UIButtonTypeCustom];
+            [viewerButton setFrame:CGRectMake(((space+imageSize)*index),0,imageSize, imageSize)];
             
             //passing liker facebook id as a string instead of NSNumber so that it can hold more data. crafty.
-            viewerButton.titleLabel.text = [viewer objectForKey:@"facebook_id"];
+            viewerButton.titleLabel.text = [[viewer objectForKey:@"id"] stringValue];
             viewerButton.titleLabel.hidden = YES;
 
             [viewerButton addTarget:self action:@selector(profileTappedFromLikers:) forControlEvents:UIControlEventTouchUpInside];
-            [likerView setImageWithURL:[Utilities profileImageURLForFacebookID:[viewer objectForKey:@"facebook_id"]]];
-            likerView.userInteractionEnabled = YES;
-            likerView.clipsToBounds = YES;
-            likerView.layer.cornerRadius = 5.0;
-            likerView.frame = CGRectMake(((space+imageSize)*index),0,imageSize, imageSize);
+            if ([[viewer objectForKey:@"facebook_id"] length] && [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookAccessToken]){
+                [viewerButton setImageWithURL:[Utilities profileImageURLForFacebookID:[viewer objectForKey:@"facebook_id"]] forState:UIControlStateNormal];
+            } else {
+                [viewerButton setImageWithURL:[viewer objectForKey:@"avatar_url"] forState:UIControlStateNormal];
+            }
+            [viewerButton.imageView setBackgroundColor:[UIColor clearColor]];
+            [viewerButton.imageView.layer setBackgroundColor:[UIColor whiteColor].CGColor];
+            viewerButton.imageView.layer.cornerRadius = 17.0;
+            viewerButton.imageView.layer.rasterizationScale = [UIScreen mainScreen].scale;
+            viewerButton.imageView.layer.shouldRasterize = YES;
             face.frame = CGRectMake((((space+imageSize)*index)+18),18,20,20);
-            [viewerButton setFrame:likerView.frame];
-            face.clipsToBounds = NO;
-            [cell.likersScrollView addSubview:likerView];
+            [cell.likersScrollView addSubview:viewerButton];
             for (NSDictionary *liker in likers) {
-                if ([[liker objectForKey:@"facebook_id"] isEqualToString:[viewer objectForKey:@"facebook_id"]]){
+                if ([[liker objectForKey:@"id"] isEqualToNumber:[viewer objectForKey:@"id"]]){
                     [cell.likersScrollView addSubview:face];
                     break;
                 }
             }
-            [cell.likersScrollView addSubview:viewerButton];
+            
             index++;
     }
     }
@@ -615,7 +629,7 @@
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-    if (self.posts.count == 0 && self.shouldShowHeld) return 1;
+    if (self.posts.count == 0) return 1;
     else return self.posts.count;
 }
 
@@ -646,5 +660,28 @@
  }*/
 
 
+- (void)createAdBannerView {
+    self.adBannerView = [[ADBannerView alloc] initWithFrame:CGRectMake(0,self.view.frame.size.height-50,320,50)];
+    [self.adBannerView setDelegate:self];
+    self.tableView.tableFooterView = self.adBannerView;
+}
+
+#pragma mark ADBannerViewDelegate
+
+- (void)bannerViewDidLoadAd:(ADBannerView *)banner {
+    if (!_adBannerViewIsVisible) {
+        _adBannerViewIsVisible = YES;
+        //[self fixupAdView:[UIDevice currentDevice].orientation];
+    }
+}
+
+- (void)bannerView:(ADBannerView *)banner didFailToReceiveAdWithError:(NSError *)error
+{
+    if (_adBannerViewIsVisible)
+    {
+        _adBannerViewIsVisible = NO;
+        //[self fixupAdView:[UIDevice currentDevice].orientation];
+    }
+}
 
 @end

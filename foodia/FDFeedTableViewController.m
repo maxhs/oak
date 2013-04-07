@@ -94,8 +94,7 @@
             
         // otherwise, get the intial feed
         } else {*/
-    if (self.posts.count > 20) [self loadAdditionalPosts];
-    else {
+    if (self.posts.count < 21) {
         self.feedRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getInitialFeedPostsSuccess:^(NSArray *posts) {
                 /*for(int i=0;i<[posts count];i++) {
                     [FDCache cachePost:[posts objectAtIndex:i]];
@@ -108,8 +107,10 @@
                 [self reloadData];
                 NSLog(@"error: %@",error.description);
             }];
-        }
-    //}
+    } else {
+        self.feedRequestOperation = nil;
+        [self reloadData];
+    }
 }
 
 //- (void)viewDidAppear:(BOOL)animated {

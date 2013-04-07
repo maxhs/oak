@@ -29,6 +29,7 @@
 #import "TWAPIManager.h"
 #import "TWSignedRequest.h"
 #import "FDFeedNavigationViewController.h"
+#import "UIButton+WebCache.h"
 
 
 #define BLUE_TEXT_COLOR [UIColor colorWithRed:102.0/255.0 green:153.0/255.0 blue:204.0/255.0 alpha:1.0]
@@ -36,7 +37,6 @@ NSString *const kPlaceholderAddPostCommentPrompt = @"I'M THINKING...";
 
 @interface FDNewPostViewController () <UITextViewDelegate, UIActionSheetDelegate, UIImagePickerControllerDelegate, CLLocationManagerDelegate, UINavigationControllerDelegate, UIAlertViewDelegate, UIWebViewDelegate>
 @property (weak, nonatomic) IBOutlet UITextView *captionTextView;
-@property (weak, nonatomic) IBOutlet UIButton *posterButton;
 @property (weak, nonatomic) IBOutlet UIButton *takePhotoButton;
 @property (weak, nonatomic) IBOutlet UIImageView *photoBoxView;
 @property (weak, nonatomic) IBOutlet UIButton *friendsButton;
@@ -44,19 +44,11 @@ NSString *const kPlaceholderAddPostCommentPrompt = @"I'M THINKING...";
 @property (weak, nonatomic) IBOutlet UIButton *foodiaObjectButton;
 @property (weak, nonatomic) IBOutlet UIButton *locationButton;
 @property (nonatomic, strong) CLLocationManager *locationManager;
-@property (weak, nonatomic) IBOutlet UIActivityIndicatorView *noLocationActivityIndicatorView;
-@property (weak, nonatomic) IBOutlet UIView *locationContainerView;
-@property (weak, nonatomic) IBOutlet UIImageView *confirmLocationImageView;
 @property (weak, nonatomic) IBOutlet UILabel *locationLabel;
-@property (weak, nonatomic) IBOutlet MKMapView *mapView;
-@property (weak, nonatomic) IBOutlet UILabel *categoryLabel;
+@property (weak, nonatomic) IBOutlet UILabel *addPhotoLabel;
 @property (weak, nonatomic) IBOutlet UILabel *foodiaObjectLabel;
-@property (weak, nonatomic) IBOutlet UIImageView *categoryImageView;
-@property (weak, nonatomic) IBOutlet UIView *foodiaObjectContainer;
-@property (weak, nonatomic) IBOutlet UIView *friendsContainerView;
 @property (weak, nonatomic) IBOutlet UIButton *deleteButton;
 @property (weak,nonatomic) NSString *postReturnURL;
-@property (weak, nonatomic) IBOutlet UILabel *friendsLabel;
 @property (nonatomic, readwrite, retain) UIWebView *webView;
 @property (strong, atomic) ALAssetsLibrary *library;
 @property UIImageOrientation *imageOrientationWhenAddedToScreen;
@@ -73,14 +65,12 @@ NSString *const kPlaceholderAddPostCommentPrompt = @"I'M THINKING...";
 @end
 
 @implementation FDNewPostViewController
-@synthesize confirmLocationImageView = _confirmLocationImageView;
+
 @synthesize documentInteractionController = _documentInteractionController;
 @synthesize locationLabel = _locationLabel;
-@synthesize mapView = _mapView;
-@synthesize categoryLabel = _categoryLabel;
+
 @synthesize foodiaObjectLabel = _foodiaObjectLabel;
-@synthesize categoryImageView = _categoryImageView;
-@synthesize foodiaObjectContainer = _foodiaObjectContainer;
+
 @synthesize foursquareButton, instagramButton, twitterButton;
 @synthesize postReturnURL;
 @synthesize webView = _webView;
@@ -122,32 +112,43 @@ static NSDictionary *categoryImages = nil;
     } else {
         self.isEditing = NO;
         self.navigationItem.backBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"POST" style:UIBarButtonItemStyleBordered target:nil action:nil];
-
+        if ([[[UIDevice currentDevice] systemVersion] floatValue] < 6) {
+            [self.navigationItem.backBarButtonItem setTitleTextAttributes:@{UITextAttributeFont:[UIFont fontWithName:kFuturaMedium size:16], UITextAttributeTextColor:[UIColor blackColor]} forState:UIControlStateNormal];
+        }
     }
+    
     self.photoButton.imageView.contentMode = UIViewContentModeScaleAspectFill;
     self.photoButton.imageView.clipsToBounds = YES;
     [self updateCrossPostButtons];
-    self.posterImageView.layer.cornerRadius = 20.0f;
+    self.posterImageView.layer.cornerRadius = 22.0f;
     self.posterImageView.clipsToBounds = YES;
     self.posterImageView.layer.borderColor = [UIColor lightGrayColor].CGColor;
     self.posterImageView.layer.borderWidth = .5f;
     [self.posterImageView setImageWithURL:[Utilities profileImageURLForCurrentUser]];
+
     self.locationManager = [CLLocationManager new];
     self.locationManager.desiredAccuracy = kCLLocationAccuracyHundredMeters;
     self.locationManager.delegate = self;
     
-    self.friendsButton.layer.cornerRadius = 17.0;
-    self.friendsButton.layer.borderColor = [UIColor lightGrayColor].CGColor;
-    self.friendsButton.layer.borderWidth = 0.5;
+    if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookAccessToken]) {
+        self.recButton.layer.cornerRadius = 17.0;
+        self.recButton.layer.borderColor = [UIColor lightGrayColor].CGColor;
+        self.recButton.layer.borderWidth = 0.5;
+        self.friendsButton.layer.cornerRadius = 17.0;
+        self.friendsButton.layer.borderColor = [UIColor lightGrayColor].CGColor;
+        self.friendsButton.layer.borderWidth = 0.5;
+    } else {
+        [self.friendsButton setHidden:YES];
+        [self.recButton setHidden:YES];
+    }
+
     self.locationButton.layer.cornerRadius = 17.0;
     self.locationButton.layer.borderColor = [UIColor lightGrayColor].CGColor;
     self.locationButton.layer.borderWidth = 0.5;
     self.foodiaObjectButton.layer.cornerRadius = 17.0;
     self.foodiaObjectButton.layer.borderColor = [UIColor lightGrayColor].CGColor;
     self.foodiaObjectButton.layer.borderWidth = 0.5;
-    self.recButton.layer.cornerRadius = 17.0;
-    self.recButton.layer.borderColor = [UIColor lightGrayColor].CGColor;
-    self.recButton.layer.borderWidth = 0.5;
+
     //always toggle foursquare sharing off to start
     [[NSUserDefaults standardUserDefaults] setBool:NO
                                             forKey:kDefaultsFoursquareActive];
@@ -155,27 +156,36 @@ static NSDictionary *categoryImages = nil;
     self.library = [[ALAssetsLibrary alloc]init];
     _accountStore = [[ACAccountStore alloc] init];
     _apiManager = [[TWAPIManager alloc] init];
+    
+    if ([[[UIDevice currentDevice] systemVersion] floatValue] < 6) {
+        [self.locationButton.titleLabel setFont:[UIFont fontWithName:kFuturaMedium size:16]];
+        [self.friendsButton.titleLabel setFont:[UIFont fontWithName:kFuturaMedium size:16]];
+        [self.foodiaObjectButton.titleLabel setFont:[UIFont fontWithName:kFuturaMedium size:16]];
+        [self.recButton.titleLabel setFont:[UIFont fontWithName:kFuturaMedium size:16]];
+        [self.captionTextView setFont:[UIFont fontWithName:kFuturaMedium size:16]];
+        [self.addPhotoLabel setFont:[UIFont fontWithName:kFuturaMedium size:16]];
+        [self.locationLabel setFont:[UIFont fontWithName:kFuturaMedium size:16]];
+        [self.foodiaObjectLabel setFont:[UIFont fontWithName:kFuturaMedium size:16]];
+        [self.navigationItem.rightBarButtonItem setTitleTextAttributes:@{UITextAttributeFont:[UIFont fontWithName:kFuturaMedium size:16], UITextAttributeTextColor:[UIColor blackColor]} forState:UIControlStateNormal];
+        [self.navigationController.navigationItem.backBarButtonItem setTitleTextAttributes:@{UITextAttributeFont:[UIFont fontWithName:kFuturaMedium size:16], UITextAttributeTextColor:[UIColor blackColor]} forState:UIControlStateNormal];
+    }
 }
 
 - (void)viewWillAppear:(BOOL)animated {
-    NSLog(@"view will appear");
     [super viewWillAppear:animated];
     if (FDPost.userPost.locationName) {
         [self venueChosen];
-        [self.mapView removeAnnotations:self.mapView.annotations];
+        /*[self.mapView removeAnnotations:self.mapView.annotations];
         [self.mapView addAnnotation:FDPost.userPost];
-        [self.mapView setRegion:MKCoordinateRegionMake(FDPost.userPost.coordinate, MKCoordinateSpanMake(0.002, 0.002))];
+        [self.mapView setRegion:MKCoordinateRegionMake(FDPost.userPost.coordinate, MKCoordinateSpanMake(0.002, 0.002))];*/
     } else if (FDPost.userPost.location == nil) {
         [self.locationManager startUpdatingLocation];
-        [self findingLocation];
-    } else {
-        [self locationFound];
-    }
+    } 
     [self.navigationController setNavigationBarHidden:NO animated:YES];
     [self showPostInfo];
 }
 
-- (void)findingLocation {
+/*- (void)findingLocation {
     self.confirmLocationImageView.hidden = YES;
     [self.noLocationActivityIndicatorView startAnimating];
 }
@@ -190,9 +200,9 @@ static NSDictionary *categoryImages = nil;
     self.locationContainerView.hidden = YES;
     [self.noLocationActivityIndicatorView stopAnimating];
 }
-
+*/
 - (void)venueChosen {
-    self.locationContainerView.hidden = NO;
+    //self.locationContainerView.hidden = NO;
     self.locationLabel.text = [FDPost.userPost.locationName uppercaseString];
 }
 
@@ -221,19 +231,19 @@ static NSDictionary *categoryImages = nil;
 #pragma mark - CLLocationManagerDelegate Methods
 
 - (void)locationManager:(CLLocationManager *)manager didFailWithError:(NSError *)error {
-    [self locationFailed];
+    //[self locationFailed];
 }
 
 - (void)locationManager:(CLLocationManager *)manager didUpdateLocations:(NSArray *)locations {
     CLLocation *location = [locations lastObject];
-        [self locationFound];
+        //[self locationFound];
         FDPost.userPost.location = location;
         [[FDFoursquareAPIClient sharedClient] getVenuesNearLocation:location success:NULL failure:NULL];
         [manager stopUpdatingLocation];
 
 }
 - (void)locationManager:(CLLocationManager *)manager didUpdateToLocation:(CLLocation *)newLocation fromLocation:(CLLocation *)oldLocation {
-        [self locationFound];
+        //[self locationFound];
         FDPost.userPost.location = newLocation;
         [[FDFoursquareAPIClient sharedClient] getVenuesNearLocation:newLocation success:NULL failure:NULL];
         [manager stopUpdatingLocation];
@@ -277,7 +287,7 @@ static NSDictionary *categoryImages = nil;
 
     //self.photoButton.hidden = !self.post.photoImage;
     [self.foodiaObjectButton setTitle:[NSString stringWithFormat:@"I'M %@", self.post.category.uppercaseString] forState:UIControlStateNormal];
-    self.categoryImageView.image = [FDNewPostViewController imageForCategory:self.post.category];
+    //self.categoryImageView.image = [FDNewPostViewController imageForCategory:self.post.category];
     
     //location section
     if (FDPost.userPost.locationName.length > 0){
@@ -307,21 +317,30 @@ static NSDictionary *categoryImages = nil;
         
 
         for (FDUser *friend in [FDPost.userPost.withFriends allObjects]) {
-            UIImageView *friendView = [[UIImageView alloc] initWithFrame:CGRectMake(((self.friendsScrollView.frame.origin.x)+((space+imageSize)*index)),(self.friendsScrollView.frame.origin.y), imageSize, imageSize)];
             UIButton *friendButton = [UIButton buttonWithType:UIButtonTypeCustom];
-            friendButton.titleLabel.text = friend.facebookId;
-            //friendButton.titleLabel.text = [friend objectForKey:@"facebookId"];
-            friendButton.titleLabel.hidden = YES;
+            [friendButton setFrame:CGRectMake(((space+imageSize)*index),0,imageSize, imageSize)];
+
             [friendButton addTarget:self action:@selector(profileTappedFromNewPost:) forControlEvents:UIControlEventTouchUpInside];
-            //[friendView setImageWithURL:[Utilities profileImageURLForFacebookID:[friend objectForKey:@"facebookId"]]];
-            [friendView setImageWithURL:[Utilities profileImageURLForFacebookID:friend.facebookId]];
-            friendView.userInteractionEnabled = YES;
-            friendView.clipsToBounds = YES;
-            friendView.layer.cornerRadius = 5.0;
-            friendView.frame = CGRectMake(((space+imageSize)*index),0,imageSize, imageSize);
+
+            if (friend.facebookId.length){
+                [friendButton setImageWithURL:[Utilities profileImageURLForFacebookID:friend.facebookId] forState:UIControlStateNormal];
+                friendButton.titleLabel.text = friend.facebookId;
+            } else {
+                [[FDAPIClient sharedClient] getProfilePic:friend.userId success:^(NSURL *url) {
+                    [friendButton setImageWithURL:url forState:UIControlStateNormal];
+                } failure:^(NSError *error) {
+                    
+                }];
+                friendButton.titleLabel.text = friend.userId;
+            }
+            friendButton.titleLabel.hidden = YES;
             
-            [friendButton setFrame:friendView.frame];
-            [self.friendsScrollView addSubview:friendView];
+            friendButton.imageView.layer.cornerRadius = 17.0;
+            [friendButton.imageView setBackgroundColor:[UIColor clearColor]];
+            [friendButton.imageView.layer setBackgroundColor:[UIColor whiteColor].CGColor];
+            friendButton.imageView.layer.rasterizationScale = [UIScreen mainScreen].scale;
+            friendButton.imageView.layer.shouldRasterize = YES;
+            
             [self.friendsScrollView addSubview:friendButton];
             index++;
         }
@@ -338,20 +357,31 @@ static NSDictionary *categoryImages = nil;
         self.recScrollView.showsHorizontalScrollIndicator=NO;
         
         for (FDUser *recipient in [FDPost.userPost.recommendedTo allObjects]) {
-            UIImageView *recommendee = [[UIImageView alloc] initWithFrame:CGRectMake(((self.recScrollView.frame.origin.x)+((space+imageSize)*index2)),(self.recScrollView.frame.origin.y), imageSize, imageSize)];
             UIButton *recommendeeButton = [UIButton buttonWithType:UIButtonTypeCustom];
-            recommendeeButton.titleLabel.hidden = YES;
+            [recommendeeButton setFrame:CGRectMake(((space+imageSize)*index2),0,imageSize, imageSize)];
+
             [recommendeeButton addTarget:self action:@selector(profileTappedFromNewPost:) forControlEvents:UIControlEventTouchUpInside];
-            recommendeeButton.titleLabel.text = recipient.facebookId;
-            [recommendee setImageWithURL:[Utilities profileImageURLForFacebookID:recipient.facebookId]];
+
             
-            recommendee.userInteractionEnabled = YES;
-            recommendee.clipsToBounds = YES;
-            recommendee.layer.cornerRadius = 5.0;
-            recommendee.frame = CGRectMake(((space+imageSize)*index2),0,imageSize, imageSize);
+            if (recipient.facebookId.length) {
+                [recommendeeButton setImageWithURL:[Utilities profileImageURLForFacebookID:recipient.facebookId] forState:UIControlStateNormal];
+                recommendeeButton.titleLabel.text = recipient.facebookId;
+            } else {
+                [[FDAPIClient sharedClient] getProfilePic:recipient.userId success:^(NSURL *url) {
+                    [recommendeeButton setImageWithURL:url forState:UIControlStateNormal];
+                } failure:^(NSError *error) {
+                    
+                }];
+                recommendeeButton.titleLabel.text = recipient.userId;
+            }
+            recommendeeButton.titleLabel.hidden = YES;
             
-            [recommendeeButton setFrame:recommendee.frame];
-            [self.recScrollView addSubview:recommendee];
+            recommendeeButton.imageView.layer.cornerRadius = 17.0;
+            [recommendeeButton.imageView setBackgroundColor:[UIColor clearColor]];
+            [recommendeeButton.imageView.layer setBackgroundColor:[UIColor whiteColor].CGColor];
+            recommendeeButton.imageView.layer.rasterizationScale = [UIScreen mainScreen].scale;
+            recommendeeButton.imageView.layer.shouldRasterize = YES;
+
             [self.recScrollView addSubview:recommendeeButton];
             index2++;
         }
@@ -462,7 +492,14 @@ static NSDictionary *categoryImages = nil;
     if ([textView.text isEqualToString:@""]) {
         textView.text = kPlaceholderAddPostCommentPrompt;
         textView.textColor = [UIColor lightGrayColor];
-        textView.font = [UIFont fontWithName:@"AvenirNextCondensed-Medium" size:16];
+        if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 6) {
+            textView.font = [UIFont fontWithName:kAvenirMedium size:16];
+        } else {
+            textView.font = [UIFont fontWithName:kFuturaMedium size:16];
+        }
+        
+    } else {
+        FDPost.userPost.caption = textView.text;
     }
 }
 
@@ -829,14 +866,15 @@ clickedButtonAtIndex:(NSInteger)buttonIndex
             //success posting image. now remove loading, notify the feed view to refres, then pop the views.
             [((FDAppDelegate *)[UIApplication sharedApplication].delegate) hideLoadingOverlay];
             [[NSNotificationCenter defaultCenter] postNotificationName:@"RefreshFeed" object:nil];
-            [self.navigationController dismissViewControllerAnimated:YES completion:nil];
+            
         } failure:^(NSError *error) {
              self.postButtonItem.enabled = YES;
              self.navigationItem.leftBarButtonItem.enabled = YES;
             [((FDAppDelegate *)[UIApplication sharedApplication].delegate) hideLoadingOverlay];
-            [[[UIAlertView alloc] initWithTitle:@"Something went wrong..." message:@"Sorry, but we couldn't send this post." delegate:nil cancelButtonTitle:@"Try Again" otherButtonTitles:nil] show];
+            [[[UIAlertView alloc] initWithTitle:@"Uh-oh" message:@"We couldn't send your post just yet, but we'll try again real soon!" delegate:self cancelButtonTitle:@"Okey Dokey" otherButtonTitles:nil] show];
             NSLog(@"post submission failed! %@", error.description);
         }];
+        [self.navigationController dismissViewControllerAnimated:YES completion:nil];
     } else {
         [[FDAPIClient sharedClient] editPost:FDPost.userPost success:^(id result) {
             //success editing post. now go back to the original feedview instead
@@ -997,7 +1035,9 @@ clickedButtonAtIndex:(NSInteger)buttonIndex
     } else if ([[alertView buttonTitleAtIndex:buttonIndex] isEqualToString:@"You're welcome"]) {
         NSLog(@"clicked you're welcome");
         [self.navigationController dismissViewControllerAnimated:YES completion:nil];
-    }   self.navigationItem.rightBarButtonItem.enabled = YES;
+    } else if ([[alertView buttonTitleAtIndex:buttonIndex] isEqualToString:@"Okey Dokey"]) {
+        [self.navigationController dismissViewControllerAnimated:YES completion:nil];
+    } else self.navigationItem.rightBarButtonItem.enabled = YES;
 }
 
 /*- (NSString *)twitterStatusString {
@@ -1027,6 +1067,7 @@ clickedButtonAtIndex:(NSInteger)buttonIndex
 
 - (void)foursquareWebview
 {
+    [Flurry logEvent:@"Authenticating Foursquare" timed:YES];
     self.webView = [[UIWebView alloc] initWithFrame:self.view.bounds];
     self.webView.delegate = self;
     NSString *authenticateURLString = [NSString stringWithFormat:@"https://foursquare.com/oauth2/authenticate?client_id=%@&response_type=token&redirect_uri=%@", @"X5ARXOQ3UMJYP12LTK5QW3SDPLZKW0L35MJNKWCPUIC4HAFR", @"http://foodia.com/images/FOODIA_red_512x512_bg.png"];
@@ -1038,7 +1079,9 @@ clickedButtonAtIndex:(NSInteger)buttonIndex
         UIBarButtonItem *cancel = [[UIBarButtonItem alloc]initWithBarButtonSystemItem:UIBarButtonSystemItemCancel target:self action:@selector(cancelWebview:)];
         [self.navigationItem setLeftBarButtonItem:cancel animated:YES];
         [self.navigationItem.leftBarButtonItem setTitle:@"CANCEL"];
-        [TestFlight passCheckpoint:@"Authenticating Foursquare!"];
+        if ([[[UIDevice currentDevice] systemVersion] floatValue] < 6) {
+            [self.navigationItem.leftBarButtonItem setTitleTextAttributes:@{UITextAttributeFont:[UIFont fontWithName:kFuturaMedium size:16], UITextAttributeTextColor:[UIColor blackColor]} forState:UIControlStateNormal];
+        }
         [self.view addSubview:self.webView];
         [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
     }

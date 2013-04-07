@@ -201,10 +201,10 @@ static FDPost *userPost;
         
     }
 }
--(Boolean) isLikedByUser {
+- (BOOL) isLikedByUser {
     if(self.likers.count != 0) {
         for (id object in [self.likers objectEnumerator]) {
-            if([[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookId] isEqualToString:[object objectForKey:@"facebook_id"]]) {
+            if([[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookId] isEqualToString:[object objectForKey:@"facebook_id"]] || [[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] isEqualToString:[[object objectForKey:@"id"] stringValue]]) {
                 return true;
             }
         }

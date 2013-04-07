@@ -56,14 +56,30 @@ static NSDictionary *placeholderImages;
     [self.slideCellButton setHidden:YES];
     self.postId = self.post.identifier;
     self.userId = self.post.user.facebookId;
-    // set up the poster button
-    [self.posterButton setImageWithURL:[Utilities profileImageURLForFacebookID:self.post.user.facebookId] forState:UIControlStateNormal];
+    
+    // set up the user image
+    if ([[SDImageCache sharedImageCache] imageFromMemoryCacheForKey:self.post.user.userImageKey]) {
+        NSLog(@"getting cached user profile image for post");
+        [self.posterButton setImage:[[SDImageCache sharedImageCache] imageFromMemoryCacheForKey:self.post.user.userImageKey] forState:UIControlStateNormal];
+    } else if (self.post.user.facebookId && [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookAccessToken]){
+        [self.posterButton setImageWithURL:[Utilities profileImageURLForFacebookID:self.post.user.facebookId] forState:UIControlStateNormal];
+        [[SDImageCache sharedImageCache] storeImage:self.posterButton.imageView.image forKey:self.post.user.userImageKey];
+    } else {
+        [[FDAPIClient sharedClient] getProfilePic:self.post.user.userId success:^(NSURL *url) {
+            [self.posterButton setImageWithURL:url forState:UIControlStateNormal];
+            [UIView animateWithDuration:.25 animations:^{
+                [self.posterButton setAlpha:1.0];
+            }];
+        } failure:^(NSError *error) {}];
+        [[SDImageCache sharedImageCache] storeImage:self.posterButton.imageView.image forKey:self.post.user.userImageKey];
+    }
+    
     self.posterButton.imageView.layer.cornerRadius = 22.0f;
-    //self.posterButton.clipsToBounds = YES;
     [self.posterButton.imageView setBackgroundColor:[UIColor clearColor]];
     [self.posterButton.imageView.layer setBackgroundColor:[UIColor whiteColor].CGColor];
     self.posterButton.imageView.layer.shouldRasterize = YES;
     self.posterButton.imageView.layer.rasterizationScale = [UIScreen mainScreen].scale;
+    
     // show the time stamp
     if([post.postedAt timeIntervalSinceNow] > 0) {
         self.timeLabel.text = @"0s";
@@ -87,7 +103,6 @@ static NSDictionary *placeholderImages;
                     [self.posterButton setAlpha:1.0];
                     [self.photoBackground setAlpha:1.0];
                 }];
-                self.photoImageView.clipsToBounds = NO;
             } else {
                 NSLog(@"error drawing feed photo: %@",error.description);
             }
@@ -99,12 +114,6 @@ static NSDictionary *placeholderImages;
     self.recCountLabel.text = [NSString stringWithFormat:@"%d", [self.post.recommendedTo count]];
     self.commentCountLabel.text = [NSString stringWithFormat:@"%i", self.post.comments.count];
     
-    self.locationButton.layer.borderColor = [UIColor colorWithWhite:.1 alpha:.1].CGColor;
-    self.locationButton.layer.borderWidth = 1.0f;
-    self.locationButton.backgroundColor = [UIColor whiteColor];
-    self.locationButton.layer.cornerRadius = 17.0f;
-    self.locationButton.layer.shouldRasterize = YES;
-    self.locationButton.layer.rasterizationScale = [UIScreen mainScreen].scale;
     if ([self.post.locationName isEqualToString:@""]){
         [self.locationButton setHidden:YES];
     } else {
@@ -114,29 +123,46 @@ static NSDictionary *placeholderImages;
     UIImage *likeButtonImage;
     if ([post isLikedByUser]) {
         likeButtonImage = [UIImage imageNamed:@"light_smile"];
-        [self.likeButton setBackgroundColor:kColorLightBlack];
-        self.likeButton.layer.borderColor = kColorLightBlack.CGColor;
+        [self.likeButton setBackgroundImage:[UIImage imageNamed:@"likeBubbleSelected"] forState:UIControlStateNormal];
     } else {
         likeButtonImage = [UIImage imageNamed:@"dark_smile"];
-        [self.likeButton setBackgroundColor:[UIColor whiteColor]];
-        self.likeButton.layer.borderColor = [UIColor colorWithWhite:.1 alpha:.1].CGColor;
+        [self.likeButton setBackgroundImage:[UIImage imageNamed:@"recBubble"] forState:UIControlStateNormal];
     }
-    
-    [self.likeButton setImage:likeButtonImage forState:UIControlStateNormal];
-    self.likeButton.layer.borderWidth = 1.0f;
-    
-    self.likeButton.layer.cornerRadius = 17.0f;
     self.likeButton.layer.shouldRasterize = YES;
     self.likeButton.layer.rasterizationScale = [UIScreen mainScreen].scale;
     
     // show the social string for the post
     self.socialLabel.text = self.post.socialString;
+    
+    [self bringSubviewToFront:self.detailPhotoButton];
 }
 
 // here we configure the cell to display a given post
 - (void)configureForPost:(FDPost *)thePost {
     self.post = thePost;
+    if ([[[UIDevice currentDevice] systemVersion] floatValue] < 6) {
+        [self.socialLabel setFont:[UIFont fontWithName:kFuturaMedium size:15]];
+        [self.locationButton.titleLabel setFont:[UIFont fontWithName:kFuturaMedium size:15]];
+        [self.timeLabel setFont:[UIFont fontWithName:kFuturaMedium size:14]];
+        [self.likeCountLabel setFont:[UIFont fontWithName:kFuturaMedium size:15]];
+        [self.recCountLabel setFont:[UIFont fontWithName:kFuturaMedium size:15]];
+        [self.recButton.titleLabel setFont:[UIFont fontWithName:kFuturaMedium size:15]];
+        [self.commentButton.titleLabel setFont:[UIFont fontWithName:kFuturaMedium size:15]];
+        [self.commentCountLabel setFont:[UIFont fontWithName:kFuturaMedium size:15]];
+    }
+    
     [self showPost];
+}
+
+- (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView {
+    NSDictionary *userInfo = [NSDictionary dictionaryWithObject:self.post.identifier forKey:@"identifier"];
+    if (scrollView.contentOffset.x > 270) {
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"CellOpened" object:nil userInfo:userInfo];
+        [self.slideCellButton setHidden:NO];
+    } else {
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"CellClosed" object:nil userInfo:userInfo];
+        [self.slideCellButton setHidden:YES];
+    }
 }
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
@@ -148,12 +174,14 @@ static NSDictionary *placeholderImages;
 }
 
 - (IBAction)slideCell {
-    
+    NSDictionary *userInfo = [NSDictionary dictionaryWithObject:self.post.identifier forKey:@"identifier"];
     if (self.scrollView.contentOffset.x < 270 ){
         [self.scrollView setContentOffset:CGPointMake(271,0) animated:YES];
         [self.slideCellButton setHidden:NO];
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"CellOpened" object:nil userInfo:userInfo];
     } else {
         [self.scrollView setContentOffset:CGPointMake(0,0) animated:YES];
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"CellClosed" object:nil userInfo:userInfo];
         [self.slideCellButton setHidden:YES];
     }
 }

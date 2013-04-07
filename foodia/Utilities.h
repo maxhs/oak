@@ -11,9 +11,8 @@
 
 + (NSString *)accessToken;
 + (NSString *)userId;
++ (NSString *)avatarUrl;
 + (NSURL *)profileImageURLForFacebookID:(NSString *)fbid;
-+ (NSString *)profileImagePathForUserId:(NSString *)uid;
-+ (NSURL *)profileImageURLForUser:(NSString *)uid;
 + (NSURL *)profileImageURLForCurrentUser;
 + (NSString*)timeIntervalSinceStartDate:(NSDate*)date;
 + (void)alertWithTitle:(NSString *)title message:(NSString *)message;
