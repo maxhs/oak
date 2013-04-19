@@ -10,7 +10,6 @@
 #import "FDCache.h"
 #import "Post.h"
 #import "FDPostViewController.h"
-#import "ECSlidingViewController.h"
 #import "Utilities.h"
 #import "FDAPIClient.h"
 #import "Facebook.h"
@@ -32,7 +31,6 @@
                                                  name:@"UpdatePostNotification"
                                                object:nil];*/
 }
-
 
 /*-(void)loadFromCacheReal {
     self.isLoading = true;
@@ -70,7 +68,6 @@
             [Utilities deleteCachedImage:[p feedImageURL]];
             [p MR_deleteEntity];
         }
-         
         // if we already have some posts in the feed, get the feed since the last post
         if (self.posts.count > 0) {
             self.feedRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getFeedPostsSincePost:[self.posts objectAtIndex:0] success:^(NSMutableArray *posts) {
@@ -89,38 +86,31 @@
             } failure:^(NSError *error) {
                 self.feedRequestOperation = nil;
                 [self reloadData];
-
             }];
-            
-        // otherwise, get the intial feed
         } else {*/
-    if (self.posts.count < 21) {
-        self.feedRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getInitialFeedPostsSuccess:^(NSArray *posts) {
-                /*for(int i=0;i<[posts count];i++) {
-                    [FDCache cachePost:[posts objectAtIndex:i]];
-                }*/
-                self.posts = [NSMutableArray arrayWithArray:posts];
-                [self reloadData];
-                self.feedRequestOperation = nil;
-            } failure:^(NSError *error) {
-                self.feedRequestOperation = nil;
-                [self reloadData];
-                NSLog(@"error: %@",error.description);
-            }];
-    } else {
-        self.feedRequestOperation = nil;
-        [self reloadData];
-    }
+    
+    self.feedRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getInitialFeedPostsSuccess:^(NSArray *posts) {
+            /*for(int i=0;i<[posts count];i++) {
+                [FDCache cachePost:[posts objectAtIndex:i]];
+            }*/
+            self.posts = [NSMutableArray arrayWithArray:posts];
+            [self reloadData];
+            self.feedRequestOperation = nil;
+        } failure:^(NSError *error) {
+            [self reloadData];
+            self.feedRequestOperation = nil;
+            NSLog(@"error: %@",error.description);
+        }];
 }
 
-//- (void)viewDidAppear:(BOOL)animated {
+//leave this overriden!!
+- (void)viewWillAppear:(BOOL)animated {
     //if([self.posts count] != 0) [self refresh];
     //else [self loadFromCache];
-    
     //[super.tableView reloadData];
-//}
+}
 
--(void) tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath
+-(void)tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath
 {
     if([indexPath row] == ((NSIndexPath*)[[tableView indexPathsForVisibleRows] lastObject]).row && tableView == self.tableView){
         //end of loading
@@ -129,7 +119,6 @@
 }
 
 - (void)loadAdditionalPosts {
-    NSLog(@"should be loading addtional posts");
         self.feedRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getFeedBeforePost:self.posts.lastObject success:^(NSMutableArray *posts) {
             if (posts.count == 0) {
                 self.canLoadAdditionalPosts = NO;

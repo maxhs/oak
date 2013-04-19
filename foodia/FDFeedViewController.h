@@ -7,7 +7,9 @@
 //
 
 #import "FDClipView.h"
-@interface FDFeedViewController : UIViewController {
+#import "GAITrackedViewController.h"
+
+@interface FDFeedViewController : GAITrackedViewController {
 	IBOutlet UIScrollView	*_scrollView;
     IBOutlet UIView *clipView;
 }
@@ -17,6 +19,7 @@
 @property (strong, nonatomic) UISearchBar *searchBar;
 @property (nonatomic, assign) int lastContentOffsetX;
 @property (nonatomic, assign) int lastContentOffsetY;
+@property BOOL goToComment;
 
 - (void)hideSlider;
 - (IBAction)rightBarButtonAction;

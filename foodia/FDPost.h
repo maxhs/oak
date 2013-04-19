@@ -29,6 +29,7 @@
 @property (nonatomic, retain) NSNumber * recCount;
 @property (nonatomic, retain) NSNumber * likeCount;
 @property (nonatomic, retain) NSNumber * viewCount;
+@property (nonatomic, retain) NSNumber * commentCount;
 @property (nonatomic, retain) NSString * locationName;
 @property (nonatomic, retain) NSString * locationHours;
 @property (nonatomic, retain) NSString * address;

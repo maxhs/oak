@@ -50,7 +50,6 @@
         NSString *URLString = [NSString stringWithFormat:@"https://graph.facebook.com/%@/picture?width=120&height=120&access_token=%@", [self userId], [self accessToken]];
         return [NSURL URLWithString:URLString];
     } else {
-        NSLog(@"avatar url: %@",[self avatarUrl]);
         return [NSURL URLWithString:[self avatarUrl]];
     }
 }

@@ -14,7 +14,7 @@
 
 
 @synthesize name,active,invited,following,facebookId;
-@synthesize identifier, location, occupation, userImageKey;
+@synthesize identifier, location, occupation;
 //=========================================================== 
 //  Keyed Archiving
 //
@@ -32,7 +32,6 @@
     [encoder encodeObject:self.facebookId forKey:@"facebookId"];
     [encoder encodeObject:self.userId forKey:@"userId"];
     [encoder encodeObject:self.avatarUrl forKey:@"avatarUrl"];
-    [encoder encodeObject:self.userImage forKey:@"userImage"];
     [encoder encodeObject:self.authenticationToken forKey:@"authenticationToken"];
 }
 
@@ -50,7 +49,6 @@
         self.facebookId = [decoder decodeObjectForKey:@"facebookId"];
         self.userId = [decoder decodeObjectForKey:@"userId"];
         self.avatarUrl = [decoder decodeObjectForKey:@"avatarUrl"];
-        self.userImage = [decoder decodeObjectForKey:@"userImage"];
         self.authenticationToken = [decoder decodeObjectForKey:@"authenticationToken"];
     }
 
@@ -93,9 +91,7 @@
     return @{@"name" : self.name, @"fbid" : self.facebookId,@"id" : self.userId};
 }
 
-
 //////////////////
-
 
 - (id)initWithDictionary:(NSDictionary *)dictionary {
     if (self = [super init]) {

@@ -169,19 +169,23 @@
         
         if (self.recommendees != nil) {
             for (FDUser *recommendee in self.recommendees){
-                [postParams addEntriesFromDictionary:@{@"to":recommendee.facebookId}];
-                NSLog(@"new postParams: %@",postParams);
-                [self.facebook dialog:@"feed" andParams:postParams andDelegate:self];
+                if (recommendee.facebookId.length){
+                    NSLog(@"does the recommendee have a facebook id?: %@",recommendee.facebookId);
+                    [postParams addEntriesFromDictionary:@{@"to":recommendee.facebookId}];
+                    [self.facebook dialog:@"feed" andParams:postParams andDelegate:self];
+                } else {
+                    [[[UIAlertView alloc] initWithTitle:@"Sorry" message:[NSString stringWithFormat:@"But we don't have %@'s facebook information. Try sending them a recommendation through FOODIA instead!", recommendee.name] delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+                }
             }
-            [[FDAPIClient sharedClient] recommendPost:self.post toRecommendees:self.recommendees withMessage:self.post.caption success:^(id result) {
+            /*[[FDAPIClient sharedClient] recommendPost:self.post onFacebook:YES toRecommendees:self.recommendees withMessage:self.post.caption success:^(id result) {
                 NSLog(@"success recommending to FOODIA api");
             } failure:^(NSError *error) {
                 NSLog(@"error recommending to FOODIA api: %@",error.description);
-            }];
+            }];*/
         }
     } else {
-        NSMutableSet *nonMembers = [NSMutableSet set];
-        for (FDUser *recommendee in self.recommendees) {
+        //NSMutableSet *nonMembers = [NSMutableSet set];
+        /*for (FDUser *recommendee in self.recommendees) {
             [[FDAPIClient sharedClient] checkIfUser:recommendee.facebookId success:^(id result) {
                 if (![result boolValue]){
                     [self.recommendees removeObject:recommendee];
@@ -191,11 +195,13 @@
         }
         NSLog(@"new recommendees list: %@",self.recommendees);
         NSLog(@"non member set: %@", nonMembers);
-        if (nonMembers.count != 0) [[[UIAlertView alloc] initWithTitle:@"Uh-oh!" message:@"Looks like one or more of your friends isn't on FOODIA. You should send them an invite to join!" delegate:self cancelButtonTitle:@"No Thanks" otherButtonTitles:@"Send Invite",nil] show];
-        [[FDAPIClient sharedClient] recommendPost:self.post toRecommendees:self.recommendees withMessage:self.post.caption success:^(id result) {
+        if (nonMembers.count != 0) [[[UIAlertView alloc] initWithTitle:@"Uh-oh!" message:@"Looks like one or more of your friends isn't on FOODIA. You should send them an invite to join!" delegate:self cancelButtonTitle:@"No Thanks" otherButtonTitles:@"Send Invite",nil] show];*/
+        NSLog(@"self.recommendees: %@",self.recommendees);
+        [[FDAPIClient sharedClient] recommendPost:self.post onFacebook:NO toRecommendees:self.recommendees withMessage:self.post.caption success:^(id result) {
             NSLog(@"success recommending to FOODIA api: %@",result);
-            [[[UIAlertView alloc] initWithTitle:@"Thanks!" message:@"Isn't it fun helping your friends find great food?" delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+            [[[UIAlertView alloc] initWithTitle:@"Thanks!" message:@"Isn't it fun helping your friends find great food?" delegate:self cancelButtonTitle:@"Yup!" otherButtonTitles:nil] show];
         } failure:^(NSError *error) {
+            [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"But we weren't able to send your recommendation right now." delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
             NSLog(@"error recommending to FOODIA api: %@",error.description);
         }];
     }
@@ -242,8 +248,9 @@
 
 - (void) alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
     if ([[alertView buttonTitleAtIndex:buttonIndex] isEqualToString:@"Send Invite"]){
-        NSLog(@"Should be sending FOODIA invite");
         [[[UIActionSheet alloc] initWithTitle:@"Send an invite to join FOODIA!" delegate:self cancelButtonTitle:@"No Thanks" destructiveButtonTitle:nil otherButtonTitles:@"Send via Text", @"Send via Email", nil] showInView:self.view];
+    } else if ([[alertView buttonTitleAtIndex:buttonIndex] isEqualToString:@"Yup!"]){
+        [self.navigationController popViewControllerAnimated:YES];
     }
     [(FDAppDelegate*)[UIApplication sharedApplication].delegate hideLoadingOverlay];
 }

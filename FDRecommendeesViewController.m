@@ -12,7 +12,8 @@
 #import "FDUserCell.h"
 
 @interface FDRecommendeesViewController ()
-@property (nonatomic, retain) NSMutableSet *recommendeeIds;
+@property (nonatomic, strong) NSMutableSet *recommendeeIds;
+@property (nonatomic, strong) NSMutableSet *recommendeeFacebookIds;
 @end
 
 @implementation FDRecommendeesViewController
@@ -21,8 +22,15 @@
 {
     [super viewDidLoad];
     self.recommendeeIds = [NSMutableSet set];
+    self.recommendeeFacebookIds = [NSMutableSet set];
     [FDPost.userPost.recommendedTo enumerateObjectsUsingBlock:^(id obj, BOOL *stop) {
-        [self.recommendeeIds addObject:[obj facebookId]];
+        if ([obj userId]){
+            NSLog(@"object userid: %@",[obj userId]);
+            [self.recommendeeIds addObject:[obj userId]];
+        } else {
+            NSLog(@"object fbid: %@",[obj fbid]);
+            [self.recommendeeFacebookIds addObject:[obj fbid]];
+        }
     }];
     UILabel *navTitle = [[UILabel alloc] init];
     navTitle.frame = CGRectMake(0,0,200,44);
@@ -66,9 +74,8 @@
 }
 
 - (void)save {
-    NSLog(@"self.people from recommendees vc: %@",self.people);
     FDPost.userPost.recommendedTo = [[NSSet setWithArray:self.people] objectsPassingTest:^BOOL(id obj, BOOL *stop) {
-        return [self.recommendeeIds containsObject:[obj facebookId]];
+        return ([self.recommendeeIds containsObject:[obj userId]] ||  [self.recommendeeFacebookIds containsObject:[obj fbid]]);
     }];
 }
 
@@ -86,14 +93,18 @@
     cell.actionButton.hidden = YES;
     if(self.searchDisplayController.searchBar.text.length == 0) {
         FDUser *friend = [self.people objectAtIndex:indexPath.row];
-        if ([self.recommendeeIds containsObject:friend.facebookId]) {
+        if ([self.recommendeeFacebookIds containsObject:friend.fbid]) {
+            cell.accessoryType = UITableViewCellAccessoryCheckmark;
+        } else if ([self.recommendeeIds containsObject:friend.userId]) {
             cell.accessoryType = UITableViewCellAccessoryCheckmark;
         } else {
             cell.accessoryType = UITableViewCellAccessoryNone;
         }
     } else {
         FDUser *friend = [self.filteredPeople objectAtIndex:indexPath.row];
-        if ([self.recommendeeIds containsObject:friend.facebookId]) {
+        if ([self.recommendeeFacebookIds containsObject:friend.fbid]) {
+            cell.accessoryType = UITableViewCellAccessoryCheckmark;
+        } else if ([self.recommendeeIds containsObject:friend.userId]) {
             cell.accessoryType = UITableViewCellAccessoryCheckmark;
         } else {
             cell.accessoryType = UITableViewCellAccessoryNone;
@@ -106,19 +117,30 @@
     FDUser *friend;
     if(self.searchDisplayController.searchBar.text.length == 0) {
         friend = [self.people objectAtIndex:indexPath.row];
-        if ([self.recommendeeIds containsObject:friend.facebookId]) {
-            [self.recommendeeIds removeObject:friend.facebookId];
+        if ([self.recommendeeFacebookIds containsObject:friend.fbid]) {
+            [self.recommendeeFacebookIds removeObject:friend.fbid];
+        } else if ([self.recommendeeIds containsObject:friend.userId]) {
+            [self.recommendeeIds removeObject:friend.userId];
         } else {
-            [self.recommendeeIds addObject:friend.facebookId];
+            if (friend.userId.length) {
+                [self.recommendeeIds addObject:friend.userId];
+            } else {
+                [self.recommendeeFacebookIds addObject:friend.fbid];
+            }
         }
         [tableView reloadData];
     } else {
         friend = [self.filteredPeople objectAtIndex:indexPath.row];
-        if ([self.recommendeeIds containsObject:friend.facebookId]) {
-            [self.recommendeeIds removeObject:friend.facebookId];
+        if ([self.recommendeeFacebookIds containsObject:friend.fbid]) {
+            [self.recommendeeFacebookIds removeObject:friend.fbid];
+        } else if ([self.recommendeeIds containsObject:friend.userId]) {
+            [self.recommendeeIds removeObject:friend.userId];
         } else {
-            [self.recommendeeIds addObject:friend.facebookId];
-            NSLog(@"friend recommended!");
+            if (friend.userId.length) {
+                [self.recommendeeIds addObject:friend.userId];
+            } else {
+                [self.recommendeeFacebookIds addObject:friend.fbid];
+            }
             [self.searchDisplayController setActive:NO animated:YES];
         }
         [self.searchDisplayController.searchResultsTableView reloadData];
@@ -126,9 +148,6 @@
     }
     return indexPath;
 }
-
-
-
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     [tableView deselectRowAtIndexPath:indexPath animated:YES];

@@ -29,7 +29,5 @@
 - (void)hideLoadingOverlay;
 - (void)feedDialogWithParams:(NSMutableDictionary *)params;
 - (void)setupNoConnection;
-- (void)showFacebookWallPost;
-- (void)removeFacebookWallPost;
 - (void)showUserProfile:(NSString *)facebookId;
 @end

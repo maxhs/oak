@@ -7,14 +7,14 @@
 //
 
 #import "FDEditProfileViewController.h"
-#import "FDFeedNavigationViewController.h"
+#import "FDSlidingViewController.h"
 #import "FDAPIClient.h"
 #import "FDAppDelegate.h"
 #import "UIButton+WebCache.h"
 #import "Utilities.h"
 #import "Flurry.h"
 
-@interface FDEditProfileViewController () <UIImagePickerControllerDelegate, UIActionSheetDelegate, UIAlertViewDelegate>
+@interface FDEditProfileViewController () <UIImagePickerControllerDelegate, UIActionSheetDelegate, UIAlertViewDelegate, UINavigationControllerDelegate>
 @property (weak, nonatomic) IBOutlet UIButton *userPhoto;
 @property (weak, nonatomic) IBOutlet UILabel *photoPrompt;
 @property (weak, nonatomic) IBOutlet UIButton *saveProfileButton;
@@ -50,29 +50,47 @@
     self.saveProfileButton.layer.shadowOpacity = .2;
     self.saveProfileButton.layer.shadowRadius = 3.0;
 	// Do any additional setup after loading the view.
+    
+    if ([[[UIDevice currentDevice] systemVersion] floatValue] < 6) {
+        [self.passwordTextField setFont:[UIFont fontWithName:kFuturaMedium size:15]];
+        [self.nameTextField setFont:[UIFont fontWithName:kFuturaMedium size:15]];
+        [self.locationTextField setFont:[UIFont fontWithName:kFuturaMedium size:15]];
+        [self.saveProfileButton.titleLabel setFont:[UIFont fontWithName:kFuturaMedium size:15]];
+    }
+    
 }
 
 - (void)viewWillAppear:(BOOL)animated {
-
     [super viewWillAppear:animated];
     [self.passwordTextField setText:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsPassword]];
     if (self.userPhoto.imageView != nil) [self.photoPrompt setHidden:YES];
-    if ([self.presentingViewController isEqual:[FDLoginViewController class]]) {
+    if ([self.presentingViewController isKindOfClass:[FDLoginViewController class]]) {
         [self.passwordTextField setHidden:YES];
+        [self.passwordBackground setHidden:YES];
     }
 }
 
 - (void)textFieldDidBeginEditing:(UITextField *)textField {
-    
+    [UIView animateWithDuration:.25 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        self.view.transform = CGAffineTransformMakeTranslation(0, -40);
+    } completion:^(BOOL finished) {
+        
+    }];
 }
 
 - (void)textFieldDidEndEditing:(UITextField *)textField {
     [self.view endEditing:YES];
+    
 }
 
 - (BOOL)textFieldShouldReturn:(UITextField *)textField {
     if (textField == self.locationTextField || textField == self.nameTextField || textField == self.passwordTextField) {
         [textField resignFirstResponder];
+        [UIView animateWithDuration:.25 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+            self.view.transform = CGAffineTransformIdentity;
+        } completion:^(BOOL finished) {
+            
+        }];
     }
     return NO;
 }
@@ -85,6 +103,7 @@
             [self.userPhoto setEnabled:NO];
             [self.photoPrompt setHidden:YES];
         } else if ([result objectForKey:@"avatar_url"] != [NSNull null]) {
+            NSLog(@"avatar: %@",[result objectForKey:@"avatar_url"]);
             [self.userPhoto setImageWithURL:[NSURL URLWithString:[result objectForKey:@"avatar_url"]] forState:UIControlStateNormal];
         }
         if ([result objectForKey:@"name"] != [NSNull null]){
@@ -116,12 +135,20 @@
             [[NSUserDefaults standardUserDefaults] setObject:theUser.avatarUrl forKey:kUserDefaultsAvatarUrl];
             [[NSUserDefaults standardUserDefaults] setObject:theUser.password forKey:kUserDefaultsPassword];
             
+                                                     
             if ([self.presentingViewController isKindOfClass:[FDLoginViewController class]]){
-                [self dismissViewControllerAnimated:YES completion:^{
-                    [self performSegueWithIdentifier:@"SaveProfile" sender:self];
-                }];
+                if (([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone && [UIScreen mainScreen].bounds.size.height == 568.0)){
+                    UIStoryboard *storyboard5 = [UIStoryboard storyboardWithName:@"iPhone5" bundle:nil];
+                    FDSlidingViewController *vc = [storyboard5 instantiateViewControllerWithIdentifier:@"SlidingView"];
+                    [self presentViewController:vc animated:YES completion:nil];
+                } else {
+                    UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"iPhone" bundle:nil];
+                    FDSlidingViewController *vc = [storyboard instantiateViewControllerWithIdentifier:@"SlidingView"];
+                    [self presentViewController:vc animated:YES completion:nil];
+                }
             } else {
-                [self.navigationController popViewControllerAnimated:YES];
+                NSLog(@"should be modally dismissing");
+                [self dismissModalViewControllerAnimated:YES];
             }
 
         } failure:^(NSError *error) {
@@ -168,16 +195,15 @@
                     [self choosePhoto];
             }
             break;
-        case 1: // new photo
-            if (self.userPhoto.imageView) {
-                if([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypePhotoLibrary])
+        case 1:
+            if([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypePhotoLibrary])
                     [self choosePhoto];
-            } else {
-                if([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera])
-                    [self takePhoto];
-            }
             break;
         case 2:
+            if([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera])
+                [self takePhoto];
+            break;
+        case 3:
             [actionSheet dismissWithClickedButtonIndex:2 animated:YES];
         default:
             break;

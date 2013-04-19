@@ -123,7 +123,7 @@
                     cell.textLabel.text = @"MY PROFILE";
                     break;
                 case 2:
-                    cell.textLabel.text = @"FRIENDS & INVITES";
+                    cell.textLabel.text = @"FRIENDS";
                 break;
                 case 3:
                     cell.textLabel.text = @"FEEDBACK";
@@ -151,17 +151,20 @@
         [profileButton setFrame:CGRectMake(5,4,40,40)];
         
         //set image
-        NSString *notificationUserId = notification.fromUserId;
+        /*NSString *notificationUserId = notification.fromUserId;
         if ([[SDImageCache sharedImageCache] imageFromMemoryCacheForKey:notificationUserId]) {
             [profileButton setImage:[[SDImageCache sharedImageCache] imageFromMemoryCacheForKey:notificationUserId] forState:UIControlStateNormal];
-        } else if (notification.fromUserFbid.length && [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookAccessToken]) {
+        } else */if (notification.fromUserFbid.length && [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookAccessToken]) {
             [profileButton setImageWithURL:[Utilities profileImageURLForFacebookID:notification.fromUserFbid]forState:UIControlStateNormal];
-            [[SDImageCache sharedImageCache] storeImage:profileButton.imageView.image forKey:notificationUserId];
         } else {
-            [[FDAPIClient sharedClient] getProfilePic:notification.fromUserId success:^(NSURL *result) {
+            //set from Amazon. risky...
+            NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://s3.amazonaws.com/foodia-uploads/user_%@_thumb.jpg",notification.fromUserId]];
+            [profileButton setImageWithURL:url forState:UIControlStateNormal];
+            /*[[FDAPIClient sharedClient] getProfilePic:notification.fromUserId success:^(NSURL *result) {
                 [profileButton setImageWithURL:result forState:UIControlStateNormal];
-            } failure:^(NSError *error) {}];
-            [[SDImageCache sharedImageCache] storeImage:profileButton.imageView.image forKey:notificationUserId];
+                NSLog(@"url for avatar: %@", result);
+            } failure:^(NSError *error) {}];*/
+            //[[SDImageCache sharedImageCache] storeImage:profileButton.imageView.image forKey:notificationUserId];
         }
 
         profileButton.imageView.layer.cornerRadius = 20.0;
@@ -220,13 +223,12 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    [self.feedRequestOperation cancel];
+    self.feedRequestOperation = nil;
     if (indexPath.section == 1) {
         FDNotification *notification = [self.notifications objectAtIndex:indexPath.row];
         if (notification.targetPostId != nil) {
             [self showPost:[NSString stringWithFormat:@"%@",notification.targetPostId]];
         } else if (notification.targetUserId != nil) {
-            NSLog(@"notificaiton.targetuserid: %@",notification.targetUserId);
             [self showProfile:[NSString stringWithFormat:@"%@", notification.targetUserId]];
         }
             
@@ -352,7 +354,6 @@
     self.feedRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getActivitySuccess:^(NSMutableArray *notifications) {
         self.notifications = notifications;
         self.feedRequestOperation = nil;
-        NSLog(@"refreshing activities list");
         [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:1] withRowAnimation:UITableViewRowAnimationFade];
     } failure:^(NSError *error) {
         self.feedRequestOperation = nil;

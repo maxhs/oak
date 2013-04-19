@@ -44,7 +44,6 @@
 @property (nonatomic, strong) AFHTTPRequestOperation *objectSearchRequestOperation;
 - (void)showCategories;
 - (IBAction)cancel:(id)sender;
-- (IBAction)done:(id)sender;
 - (IBAction)selectEat:(id)sender;
 - (IBAction)selectMake:(id)sender;
 - (IBAction)selectDrink:(id)sender;
@@ -95,7 +94,6 @@
         self.thePost = [[FDPost alloc] init];
     }
     [FDPost setUserPost:self.thePost];
-
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -516,7 +514,7 @@
     }
     else cell.textLabel.text = [self.searchResults objectAtIndex:indexPath.row];
     UIView *cellbg = [[UIView alloc] init];
-    [cellbg setBackgroundColor:[UIColor darkGrayColor]];
+    [cellbg setBackgroundColor:kColorLightBlack];
     cell.selectedBackgroundView = cellbg;
     return cell;
 }

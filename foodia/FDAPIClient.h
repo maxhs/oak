@@ -76,6 +76,10 @@ typedef void(^RequestSuccess)(id result);
                                    success:(RequestSuccess)success
                                    failure:(RequestFailure)failure;
 
+- (AFHTTPRequestOperation *)removeRecPost:(NSString*)postIdentifier
+                                  success:(RequestSuccess)success
+                                  failure:(RequestFailure)failure;
+
 - (AFJSONRequestOperation *)getHeldPosts:(RequestSuccess)success
                                   failure:(RequestFailure)failure;
 
@@ -112,6 +116,9 @@ typedef void(^RequestSuccess)(id result);
                                  failure:(RequestFailure)failure;
 
 - (AFJSONRequestOperation *)getFollowing:(NSString *)uid
+                                 success:(RequestSuccess)success
+                                 failure:(RequestFailure)failure;
+- (AFJSONRequestOperation *)getFollowingIds:(NSString *)uid
                                  success:(RequestSuccess)success
                                  failure:(RequestFailure)failure;
 
@@ -151,6 +158,10 @@ typedef void(^RequestSuccess)(id result);
 - (AFJSONRequestOperation *)getCategoryImageURLsWithSuccess:(RequestSuccess)success
                                                     failure:(RequestFailure)failure;
 
+- (AFJSONRequestOperation *)getUsersForQuery:(NSString *)query
+                                     success:(RequestSuccess)success
+                                     failure:(RequestFailure)failure;
+    
 - (AFJSONRequestOperation *)getSearchResultsForObjectCategory:(NSString *)category
                                                         query:(NSString *)query
                                                       success:(RequestSuccess)success
@@ -196,8 +207,10 @@ typedef void(^RequestSuccess)(id result);
                                      failure:(RequestFailure)failure;
 
 
-- (AFHTTPRequestOperation *)getRecommendedPostsSuccess:(RequestSuccess)success
-                                               failure:(RequestFailure)failure;
+- (AFHTTPRequestOperation *)getRecommendedPostsByPopularity:(BOOL)popularity
+                                                 distance:(CLLocation *)location
+                                                  Success:(RequestSuccess)success
+                                                  failure:(RequestFailure)failure;
 
 - (AFHTTPRequestOperation *)getRecommendedPostsSincePost:(FDPost *)sincePost
                                                  success:(RequestSuccess)success
@@ -208,7 +221,7 @@ typedef void(^RequestSuccess)(id result);
                                                   failure:(RequestFailure)failure;
 
 - (AFJSONRequestOperation *)getPeopleListSuccess:(RequestSuccess)success failure:(RequestFailure)failure;
-- (AFJSONRequestOperation *)recommendPost:(FDPost *)post toRecommendees:(NSSet *)recommendes withMessage:(NSString *)message success:(RequestSuccess)success failure:(RequestFailure)failure;
+- (AFJSONRequestOperation *)recommendPost:(FDPost *)post onFacebook:(BOOL)facebook toRecommendees:(NSSet *)recommendes withMessage:(NSString *)message success:(RequestSuccess)success failure:(RequestFailure)failure;
 
 - (AFJSONRequestOperation *)addCommentWithBody:(NSString *)body
                                        forPost:(FDPost *)post

@@ -44,9 +44,9 @@
     frame.size.height = self.bodyLabel.contentSize.height;
     self.bodyLabel.frame = frame;
     [self.timeLabel setText:[Utilities timeIntervalSinceStartDate:comment.date]];
+
     if (comment.commentId){
         [self.editButton setHidden:NO];
-        NSLog(@"comment is not nil");
         [self.editButton setTag:[comment.commentId integerValue]];
         self.editButton.layer.cornerRadius = 14.0f;
         self.editButton.layer.borderColor = [UIColor colorWithWhite:.1 alpha:.1].CGColor;
@@ -58,7 +58,10 @@
         [self.bodyLabel setFont:[UIFont fontWithName:kFuturaMedium size:15.0]];
         [self.timeLabel setFont:[UIFont fontWithName:kFuturaMedium size:14.0]];
         [self.nameLabel setFont:[UIFont fontWithName:kFuturaMedium size:15.0]];
+        [self.editButton.titleLabel setFont:[UIFont fontWithName:kFuturaMedium size:15.0]];
     }
+    
+    if (![comment.user.userId isEqualToString:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]]) [self.editButton setHidden:YES];
 }
 
 -(IBAction)deleteComment:(id)sender{

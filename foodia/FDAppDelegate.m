@@ -11,7 +11,6 @@
 #import "FDUser.h"
 #import "FDCache.h"
 #import "ECSlidingViewController.h"
-#import "FDTumblrAPIClient.h"
 #import "FDNewPostViewController.h"
 #import "Flurry.h"
 #import "FDProfileViewController.h"
@@ -20,6 +19,7 @@
 #import <MessageUI/MessageUI.h>
 #import <Accounts/Accounts.h>
 #import "Constants.h"
+#import "GAI.h"
 #define kFlurryAPIKey @"W5U7NXYMMQ8RJQR7WI9A"
 
 @interface FDAppDelegate ()
@@ -47,6 +47,14 @@
     //[TestFlight takeOff:(@"13a30f1fa03141084d0983b4e6f3e04f_NjQ4NDkyMDEyLTAyLTI0IDE1OjExOjM4LjE1Mjg3Mg")];
     //[MagicalRecord setupCoreDataStackWithStoreNamed:@"FoodiaV2.sqlite"];
     [FDCache clearCache];
+    // Optional: automatically send uncaught exceptions to Google Analytics.
+    [GAI sharedInstance].trackUncaughtExceptions = YES;
+    // Optional: set Google Analytics dispatch interval to e.g. 20 seconds.
+    //[GAI sharedInstance].dispatchInterval = 20;
+    // Optional: set debug to YES for extra debugging information.
+    [GAI sharedInstance].debug = YES;
+    // Create tracker instance.
+    id<GAITracker> tracker = [[GAI sharedInstance] trackerWithTrackingId:@"UA-40164626-1"];
     
     [[UIApplication sharedApplication] registerForRemoteNotificationTypes:(UIRemoteNotificationTypeAlert | UIRemoteNotificationTypeBadge | UIRemoteNotificationTypeSound)];
     
@@ -60,16 +68,19 @@ void uncaughtExceptionHandler(NSException *exception) {
 
 - (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)pushMessage
 {
+    [Flurry logEvent:@"Did Receive Remote Notification"];
     NSLog(@"just got a remote notification: %@",pushMessage);
 }
 
 - (void)application:(UIApplication*)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData*)deviceToken
 {
+    [Flurry logEvent:@"Registered For Remote Notifications"];
     [[FDAPIClient sharedClient] setDeviceToken:deviceToken];
 }
 
 - (void)application:(UIApplication*)application didFailToRegisterForRemoteNotificationsWithError:(NSError*)error
 {
+    [Flurry logEvent:@"Rejected Remote Notifications"];
     NSLog(@"failed to register for remote notificaitons");
 }
 
@@ -228,7 +239,6 @@ void uncaughtExceptionHandler(NSException *exception) {
 }
 
 - (void)fbDidExtendToken:(NSString *)accessToken expiresAt:(NSDate *)expiresAt {
-    NSLog(@"Facebook extended the access token");
     [[NSUserDefaults standardUserDefaults] setObject:accessToken forKey:kUserDefaultsFacebookAccessToken];
 }
 
@@ -253,11 +263,18 @@ void uncaughtExceptionHandler(NSException *exception) {
         [imgOverlay setTag:23];
         [imgOverlay setAlpha:0];
         [imgOverlay addSubview:activityIndicator];
+        [activityIndicator setAlpha:0.0];
         
         [self.window addSubview:imgOverlay];
         
-        [UIView animateWithDuration:0.4 animations:^{
+        [UIView animateWithDuration:0.4 delay:0.0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
             imgOverlay.alpha = 1;
+        } completion:^(BOOL finished) {
+            [UIView animateWithDuration:.25 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+                [activityIndicator setAlpha:1.0];
+            } completion:^(BOOL finished) {
+                
+            }];
         }];
         [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"Loading"];
         //always remove loading indicator after 10.0 seconds. 
@@ -289,33 +306,6 @@ void uncaughtExceptionHandler(NSException *exception) {
      userInfo:userInfo];
 }
 
-- (void)showFacebookWallPost
-{
-    if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookAccessToken]){
-        wallPost = [[UILabel alloc] initWithFrame:CGRectMake(0,self.window.bounds.size.height-22,self.window.bounds.size.width,22)];
-        wallPost.text = @"Invites will be sent to your friend's Facebook wall";
-        if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 6) {
-            wallPost.font = [UIFont fontWithName:kAvenirMedium size:14];
-        } else {
-            wallPost.font = [UIFont fontWithName:kFuturaMedium size:14];
-        }
-        wallPost.backgroundColor = [UIColor whiteColor];
-        wallPost.textColor = [UIColor darkGrayColor];
-        wallPost.textAlignment = NSTextAlignmentCenter;
-        [wallPost setAlpha:0];
-        [self.window addSubview:wallPost];
-        [UIView beginAnimations:nil context:nil];
-        [UIView setAnimationDuration:0.4];
-        wallPost.alpha = 1;
-        [UIView commitAnimations];
-    }
-}
-
-- (void)removeFacebookWallPost
-{
-    [wallPost removeFromSuperview];
-}
-     
 - (void)applicationWillResignActive:(UIApplication *)application
 {
     // Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.
@@ -360,11 +350,14 @@ void uncaughtExceptionHandler(NSException *exception) {
 - (void)customizeAppearance {
     [[UINavigationBar appearance] setBackgroundImage:[UIImage imageNamed:@"newFoodiaHeader.png"] forBarMetrics:UIBarMetricsDefault];
     [[UIToolbar appearance] setBackgroundImage:[UIImage imageNamed:@"newFoodiaHeader.png"] forToolbarPosition:UIToolbarPositionAny barMetrics:UIBarMetricsDefault];
-    
     [[UINavigationBar appearance] setTitleTextAttributes: [NSDictionary dictionaryWithObjectsAndKeys: [UIColor blackColor], UITextAttributeTextColor, [UIFont fontWithName:kAvenirMedium size:21], UITextAttributeFont, [UIColor clearColor], UITextAttributeTextShadowColor, nil]];
     
     UIImage *emptyBarButton = [UIImage imageNamed:@"emptyBarButton.png"];
-    [[UIBarButtonItem appearance] setBackButtonTitlePositionAdjustment:UIOffsetMake(0, -2.0f) forBarMetrics:UIBarMetricsDefault];
+    if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 6) {
+        [[UIBarButtonItem appearance] setBackButtonTitlePositionAdjustment:UIOffsetMake(0, -2.0f) forBarMetrics:UIBarMetricsDefault];
+    } else {
+        [[UIBarButtonItem appearance] setBackButtonTitlePositionAdjustment:UIOffsetMake(0, 0.5f) forBarMetrics:UIBarMetricsDefault];
+    }
     [[UIBarButtonItem appearance] setTintColor:[UIColor whiteColor]];
     if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 6) {
         [[UIBarButtonItem appearance] setTitleTextAttributes:@{
@@ -374,7 +367,6 @@ void uncaughtExceptionHandler(NSException *exception) {
          } forState:UIControlStateNormal];
     } else {
         [[UIBarButtonItem appearance] setTitleTextAttributes:@{
-                                        //UITextAttributeFont : [UIFont fontWithName:kFuturaMedium size:15],
                                    UITextAttributeTextColor : [UIColor blackColor],
          } forState:UIControlStateNormal];
     }

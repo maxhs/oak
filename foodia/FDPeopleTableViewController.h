@@ -11,8 +11,8 @@
 
 @interface FDPeopleTableViewController : UITableViewController <UISearchDisplayDelegate, UISearchBarDelegate>
 
-@property (nonatomic, retain) NSArray *people;
-@property (nonatomic, retain) NSMutableArray *filteredPeople;
+@property (nonatomic, strong) NSMutableArray *people;
+@property (nonatomic, strong) NSMutableArray *filteredPeople;
 @property (nonatomic) Boolean stillRunning;
 @property (weak,nonatomic) id delegate;
 - (id)initWithDelegate:(id)delegate;

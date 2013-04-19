@@ -183,8 +183,12 @@
     FDPost *post = [self.posts objectAtIndex:button.tag];
     
     if ([post isLikedByUser]) {
+        [UIView animateWithDuration:.35 animations:^{
+            [button setBackgroundImage:[UIImage imageNamed:@"recBubble"] forState:UIControlStateNormal];
+        }];
         [[FDAPIClient sharedClient] unlikePost:post
                                        success:^(FDPost *newPost) {
+                                           self.justLiked = NO;
                                            [self.posts replaceObjectAtIndex:button.tag withObject:newPost];
                                            NSIndexPath *path = [NSIndexPath indexPathForRow:button.tag inSection:0];
                                            [self.postsContainerTableView reloadRowsAtIndexPaths:[NSArray arrayWithObject:path] withRowAnimation:UITableViewRowAnimationFade];
@@ -195,6 +199,9 @@
          ];
         
     } else {
+        [UIView animateWithDuration:.35 animations:^{
+            [button setBackgroundImage:[UIImage imageNamed:@"likeBubbleSelected"] forState:UIControlStateNormal];
+        }];
         [[FDAPIClient sharedClient] likePost:post
                                      success:^(FDPost *newPost) {
                                          [self.posts replaceObjectAtIndex:button.tag withObject:newPost];

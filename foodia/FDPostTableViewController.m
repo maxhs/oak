@@ -24,6 +24,7 @@
 #import "Facebook.h"
 #import "FDRecommendViewController.h"
 #import "UIButton+WebCache.h"
+#import "FDFeedViewController.h"
 
 @interface FDPostTableViewController () <UIActionSheetDelegate, MFMailComposeViewControllerDelegate, MFMessageComposeViewControllerDelegate>
 
@@ -66,7 +67,6 @@
     self.tableView.rowHeight = [FDPostCell cellHeight];
     self.canLoadAdditionalPosts = YES;
     self.swipedCells = [NSMutableArray array];
-    
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(swipedCells:) name:@"CellOpened" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(swipedCells:) name:@"CellClosed" object:nil];
     // set up the pull-to-refresh header
@@ -115,7 +115,6 @@
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
-    [self refresh];
     self.justLiked = NO;
     [self getNotificationCount];
 }
@@ -140,10 +139,13 @@
 // like or unlike the post
 - (void)likeButtonTapped:(UIButton *)button {
     FDPost *post = [self.posts objectAtIndex:button.tag];
-    
     if ([post isLikedByUser]) {
+        [UIView animateWithDuration:.35 animations:^{
+            [button setBackgroundImage:[UIImage imageNamed:@"recBubble"] forState:UIControlStateNormal];
+        }];
         [[FDAPIClient sharedClient] unlikePost:post
                                        success:^(FDPost *newPost) {
+                                           self.justLiked = NO;
                                            [self.posts replaceObjectAtIndex:button.tag withObject:newPost];
 
                                            if (self.tableView.numberOfSections < 2) {
@@ -163,6 +165,9 @@
          ];
         
     } else {
+        [UIView animateWithDuration:.35 animations:^{
+            [button setBackgroundImage:[UIImage imageNamed:@"likeBubbleSelected"] forState:UIControlStateNormal];
+        }];
         [[FDAPIClient sharedClient] likePost:post
                                      success:^(FDPost *newPost) {
                                          [self.posts replaceObjectAtIndex:button.tag withObject:newPost];
@@ -213,7 +218,9 @@
         return self.posts.count;
     } else if (self.posts.count == 0) {
         return 0;
-    } else return 1;
+    } else {
+        return 1;
+    }
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -262,7 +269,7 @@
         cell.recButton.tag = indexPath.row;
     
         cell.commentButton.tag = indexPath.row;
-        [cell.commentButton addTarget:self action:@selector(didSelectRow:) forControlEvents:UIControlEventTouchUpInside];
+        [cell.commentButton addTarget:self action:@selector(comment:) forControlEvents:UIControlEventTouchUpInside];
     
         //swipe cell accordingly
         if ([self.swipedCells indexOfObject:post.identifier] != NSNotFound){
@@ -319,9 +326,19 @@
 - (void)recommend:(id)sender {
     UIButton *button = (UIButton *)sender;
     FDPost *post = [self.posts objectAtIndex:button.tag];
+    post.recCount = [NSNumber numberWithInt:[post.recCount integerValue] +1];
+    [self.posts replaceObjectAtIndex:button.tag withObject:post];
+    if (self.tableView.numberOfSections < 2) {
+        NSIndexPath *path = [NSIndexPath indexPathForRow:button.tag inSection:0];
+        [self.tableView reloadRowsAtIndexPaths:[NSArray arrayWithObject:path] withRowAnimation:UITableViewRowAnimationFade];
+    } else {
+        NSIndexPath *path = [NSIndexPath indexPathForRow:button.tag inSection:1];
+        [self.tableView reloadRowsAtIndexPaths:[NSArray arrayWithObject:path] withRowAnimation:UITableViewRowAnimationFade];
+    }
     FDCustomSheet *actionSheet = [[FDCustomSheet alloc] initWithTitle:nil delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:@"Recommend on FOODIA",@"Recommend via Facebook",@"Send a Text", @"Send an Email", nil];
     [actionSheet setFoodiaObject:post.foodiaObject];
     [actionSheet setPost:post];
+    [actionSheet setButtonTag:button.tag];
     [actionSheet showInView:self.view];
 }
 
@@ -387,6 +404,16 @@
             UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Sorry" message:@"But we weren't able to email your recommendation. Please try again..." delegate:self cancelButtonTitle:@"" otherButtonTitles:nil];
             [alert show];
         }
+    } else {
+        actionSheet.post.recCount = [NSNumber numberWithInt:[actionSheet.post.recCount integerValue] -1];
+        [self.posts replaceObjectAtIndex:actionSheet.buttonTag withObject:actionSheet.post];
+        if (self.tableView.numberOfSections < 2) {
+            NSIndexPath *path = [NSIndexPath indexPathForRow:actionSheet.buttonTag inSection:0];
+            [self.tableView reloadRowsAtIndexPaths:[NSArray arrayWithObject:path] withRowAnimation:UITableViewRowAnimationFade];
+        } else {
+            NSIndexPath *path = [NSIndexPath indexPathForRow:actionSheet.buttonTag inSection:1];
+            [self.tableView reloadRowsAtIndexPaths:[NSArray arrayWithObject:path] withRowAnimation:UITableViewRowAnimationFade];
+        }
     }
 }
 
@@ -434,18 +461,11 @@
             //passing liker facebook id as a string instead of NSNumber so that it can hold more data. crafty.
             viewerButton.titleLabel.text = [[viewer objectForKey:@"id"] stringValue];
             viewerButton.titleLabel.hidden = YES;
-            
             [viewerButton addTarget:self action:@selector(profileTappedFromLikers:) forControlEvents:UIControlEventTouchUpInside];
-            NSString *viewerName = [viewer objectForKey:@"name"];
-            if ([[SDImageCache sharedImageCache] imageFromMemoryCacheForKey:viewerName]){
-                NSLog(@"loading cached image for viewer");
-                [viewerButton setImage:[[SDImageCache sharedImageCache] imageFromMemoryCacheForKey:viewerName] forState:UIControlStateNormal];
-            } else if ([viewer objectForKey:@"facebook_id"] != [NSNull null] && [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookAccessToken]){
+            if ([viewer objectForKey:@"facebook_id"] != [NSNull null] && [[viewer objectForKey:@"facebook_id"] length] && [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookAccessToken]){
                 [viewerButton setImageWithURL:[Utilities profileImageURLForFacebookID:[viewer objectForKey:@"facebook_id"]] forState:UIControlStateNormal];
-                [[SDImageCache sharedImageCache] storeImage:viewerButton.imageView.image forKey:viewerName];
-            } else {
+            } else if ([viewer objectForKey:@"avatar_url"] != [NSNull null]) {
                 [viewerButton setImageWithURL:[viewer objectForKey:@"avatar_url"] forState:UIControlStateNormal];
-                [[SDImageCache sharedImageCache] storeImage:viewerButton.imageView.image forKey:viewerName];
             }
             
             viewerButton.imageView.layer.cornerRadius = 17.0;
@@ -537,8 +557,17 @@
     else return 155;
 }
 
+- (void)comment:(id)sender{
+    FDFeedViewController *vc = self.delegate;
+    [vc setGoToComment:YES];
+    UIButton *button = (UIButton*)sender;
+    [self.delegate postTableViewController:self didSelectPost:[self.posts objectAtIndex:button.tag]];
+}
+
 - (void)didSelectRow:(id)sender {
     UIButton *button = (UIButton*)sender;
+    FDFeedViewController *vc = self.delegate;
+    [vc setGoToComment:NO];
     [self.delegate postTableViewController:self didSelectPost:[self.posts objectAtIndex:button.tag]];
 }
 
@@ -629,18 +658,6 @@
 
 - (BOOL)egoRefreshTableHeaderDataSourceIsLoading:(EGORefreshTableHeaderView*)view {
 	return self.isRefreshing; // should return if data source model is reloading
-}
-
-- (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath
-{
-    // Return NO if you do not want the specified item to be editable.
-    return YES;
-}
-// Override to support conditional rearranging of the table view.
-- (BOOL)tableView:(UITableView *)tableView canMoveRowAtIndexPath:(NSIndexPath *)indexPath
-{
-    // Return NO if you do not want the item to be re-orderable.
-    return YES;
 }
 
 @end

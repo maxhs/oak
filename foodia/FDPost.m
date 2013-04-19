@@ -193,7 +193,8 @@ static FDPost *userPost;
             }];
             [self setComments:set];
         }
-    } else if([key isEqualToString:@"featured"]) {
+    } else if([key isEqualToString:@"commentCount"]) {
+        self.commentCount = value;
     } else if([key isEqualToString:@"isfeatured"]) {
         self.featured = value;
     } else {
@@ -236,8 +237,10 @@ static FDPost *userPost;
     [encoder encodeObject:self.epochTime forKey:@"epochTime"];
     [encoder encodeObject:self.isRecommendedToUser forKey:@"isRecommendedToUser"];
     [encoder encodeObject:self.featured forKey:@"featured"];
+    [encoder encodeObject:self.recCount forKey:@"recCount"];
     [encoder encodeObject:self.likeCount forKey:@"likeCount"];
     [encoder encodeObject:self.viewCount forKey:@"viewCount"];
+    [encoder encodeObject:self.commentCount forKey:@"commentCount"];
     [encoder encodeObject:self.locationName forKey:@"locationName"];
     [encoder encodeObject:self.locationHours forKey:@"locationHours"];
     [encoder encodeObject:self.address forKey:@"address"];
@@ -272,6 +275,7 @@ static FDPost *userPost;
         self.recCount = [decoder decodeObjectForKey:@"recCount"];
         self.likeCount = [decoder decodeObjectForKey:@"likeCount"];
         self.viewCount = [decoder decodeObjectForKey:@"viewCount"];
+        self.commentCount = [decoder decodeObjectForKey:@"commentCount"];
         self.locationName = [decoder decodeObjectForKey:@"locationName"];
         self.locationHours = [decoder decodeObjectForKey:@"locationHours"];
         self.address = [decoder decodeObjectForKey:@"address"];

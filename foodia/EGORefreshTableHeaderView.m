@@ -48,7 +48,7 @@
 
 		UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(0.0f, frame.size.height - 30.0f, self.frame.size.width, 20.0f)];
 		label.autoresizingMask = UIViewAutoresizingFlexibleWidth;
-		label.font = [UIFont fontWithName:kAvenirMedium size:14];
+		
 		label.textColor = textColor;
 		label.shadowColor = [UIColor colorWithWhite:0.9f alpha:1.0f];
 		label.shadowOffset = CGSizeMake(0.0f, 1.0f);
@@ -60,7 +60,7 @@
 		
 		label = [[UILabel alloc] initWithFrame:CGRectMake(0.0f, frame.size.height - 48.0f, self.frame.size.width, 20.0f)];
 		label.autoresizingMask = UIViewAutoresizingFlexibleWidth;
-		label.font = [UIFont fontWithName:kAvenirMedium size:15];
+		
 		label.textColor = textColor;
 		label.shadowColor = [UIColor colorWithWhite:0.9f alpha:1.0f];
 		label.shadowOffset = CGSizeMake(0.0f, 1.0f);
@@ -70,6 +70,12 @@
 		_statusLabel=label;
 		//[label release];
 		
+        if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 6) {
+            label.font = [UIFont fontWithName:kAvenirMedium size:16];
+        } else {
+            label.font = [UIFont fontWithName:kFuturaMedium size:16];
+        }
+        
 		CALayer *layer = [CALayer layer];
 		layer.frame = CGRectMake(25.0f, frame.size.height - 65.0f, 30.0f, 55.0f);
 		layer.contentsGravity = kCAGravityResizeAspect;
@@ -120,7 +126,13 @@
 		_lastUpdatedLabel.text = [NSString stringWithFormat:@"Last Updated: %@", [dateFormatter stringFromDate:date]];
 		[[NSUserDefaults standardUserDefaults] setObject:_lastUpdatedLabel.text forKey:@"EGORefreshTableView_LastRefresh"];
 		[[NSUserDefaults standardUserDefaults] synchronize];
-		
+        if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 6) {
+            _lastUpdatedLabel.font = [UIFont fontWithName:kAvenirMedium size:16];
+            
+        } else {
+            _lastUpdatedLabel.font = [UIFont fontWithName:kFuturaMedium size:16];
+        }
+        
 	} else {
 		
 		_lastUpdatedLabel.text = nil;

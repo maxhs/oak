@@ -87,12 +87,11 @@
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     [self getNotificationCount];
-    NSLog(@"notifications pending: %i", self.notificationsPending);
 }
 
 - (void)viewWillDisappear:(BOOL)animated {
     [super viewWillDisappear:animated];
-    [self.feedRequestOperation cancel];
+    self.feedRequestOperation = nil;
     [self saveCache];
 }
 
@@ -146,7 +145,6 @@
             cell = [[[NSBundle mainBundle] loadNibNamed:@"NotificationCell" owner:self options:nil] lastObject];
         }
         [((UIButton *)[cell viewWithTag:1]) addTarget:self action:@selector(revealMenu) forControlEvents:UIControlEventTouchUpInside];
-        NSLog(@"notifications pending from gridview: %i",notificationsPending);
         if (notificationsPending == 1) {
             [((UIButton *)[cell viewWithTag:1]) setTitle:[NSString stringWithFormat:@"You have a new notification!"] forState:UIControlStateNormal];
         } else if (notificationsPending >1 ){

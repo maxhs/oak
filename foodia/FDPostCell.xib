@@ -86,7 +86,7 @@
 									<object class="IBUILabel" id="926749670">
 										<reference key="NSNextResponder" ref="1044128110"/>
 										<int key="NSvFlags">292</int>
-										<string key="NSFrame">{{220, 119}, {52, 21}}</string>
+										<string key="NSFrame">{{219, 119}, {52, 21}}</string>
 										<reference key="NSSuperview" ref="1044128110"/>
 										<reference key="NSWindow"/>
 										<reference key="NSNextKeyView" ref="484350518"/>
@@ -119,7 +119,6 @@
 											<double key="NSSize">14</double>
 											<int key="NSfFlags">16</int>
 										</object>
-										<bool key="IBUIAdjustsFontSizeToFit">NO</bool>
 									</object>
 									<object class="IBUIButton" id="667504516">
 										<reference key="NSNextResponder" ref="1044128110"/>
@@ -193,7 +192,7 @@
 									<object class="IBUILabel" id="998693281">
 										<reference key="NSNextResponder" ref="1044128110"/>
 										<int key="NSvFlags">292</int>
-										<string key="NSFrame">{{-44, 119}, {263, 21}}</string>
+										<string key="NSFrame">{{-44, 119}, {256, 21}}</string>
 										<reference key="NSSuperview" ref="1044128110"/>
 										<reference key="NSWindow"/>
 										<reference key="NSNextKeyView" ref="926749670"/>
@@ -221,6 +220,7 @@
 										<string key="NSFrame">{{270, 98}, {258, 44}}</string>
 										<reference key="NSSuperview" ref="1044128110"/>
 										<reference key="NSWindow"/>
+										<reference key="NSNextKeyView"/>
 										<string key="NSReuseIdentifierKey">_NS:9</string>
 										<object class="NSColor" key="IBUIBackgroundColor">
 											<int key="NSColorSpace">1</int>

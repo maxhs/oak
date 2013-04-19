@@ -24,13 +24,21 @@
     self.taggedFriendFacebookIds = [NSMutableSet set];
     self.taggedFriendIds = [NSMutableSet set];
     [FDPost.userPost.withFriends enumerateObjectsUsingBlock:^(id obj, BOOL *stop) {
-        [self.taggedFriendIds addObject:[obj userId]];
+        if ([obj userId]){
+            [self.taggedFriendIds addObject:[obj userId]];
+        } else {
+            [self.taggedFriendFacebookIds addObject:[obj fbid]];
+        }
     }];
     
     UILabel *navTitle = [[UILabel alloc] init];
     navTitle.frame = CGRectMake(0,0,200,44);
     navTitle.text = @"I'M WITH";
-    navTitle.font = [UIFont fontWithName:kAvenirMedium size:21];
+    if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 6) {
+        navTitle.font = [UIFont fontWithName:kAvenirMedium size:21];
+    } else {
+        navTitle.font = [UIFont fontWithName:kFuturaMedium size:21];
+    }
     navTitle.backgroundColor = [UIColor clearColor];
     navTitle.textColor = [UIColor blackColor];
     navTitle.textAlignment = NSTextAlignmentCenter;
@@ -42,7 +50,12 @@
     for(UIView *subView in self.searchDisplayController.searchBar.subviews) {
         if ([subView isKindOfClass:[UITextField class]]) {
             UITextField *searchField = (UITextField *)subView;
-            searchField.font = [UIFont fontWithName:kAvenirMedium size:15];
+            if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 6) {
+                searchField.font = [UIFont fontWithName:kAvenirMedium size:15];
+            } else {
+                searchField.font = [UIFont fontWithName:kFuturaMedium size:15];
+            }
+            
         }
     }
     //replace ugly background
@@ -68,7 +81,7 @@
 
 - (void)save {
     FDPost.userPost.withFriends = [[NSSet setWithArray:self.people] objectsPassingTest:^BOOL(id obj, BOOL *stop) {
-        return ([self.taggedFriendIds containsObject:[obj userId]] || [self.taggedFriendFacebookIds containsObject:[obj facebookId]]);
+        return ([self.taggedFriendIds containsObject:[obj userId]] || [self.taggedFriendFacebookIds containsObject:[obj fbid]]);
     }];
 }
 
@@ -82,9 +95,7 @@
     cell.actionButton.hidden = YES;
     if(self.searchDisplayController.searchBar.text.length == 0) {
         FDUser *friend = [self.people objectAtIndex:indexPath.row];
-        NSLog(@"cell username: %@",friend.fbid);
-        NSLog(@"cell username: %@",friend.userId);
-        if ([self.taggedFriendFacebookIds containsObject:friend.facebookId]) {
+        if ([self.taggedFriendFacebookIds containsObject:friend.fbid]) {
             cell.accessoryType = UITableViewCellAccessoryCheckmark;
         } else if ([self.taggedFriendIds containsObject:friend.userId]) {
             cell.accessoryType = UITableViewCellAccessoryCheckmark;
@@ -93,7 +104,7 @@
         }
     } else {
         FDUser *friend = [self.filteredPeople objectAtIndex:indexPath.row];
-        if ([self.taggedFriendFacebookIds containsObject:friend.facebookId]) {
+        if ([self.taggedFriendFacebookIds containsObject:friend.fbid]) {
             cell.accessoryType = UITableViewCellAccessoryCheckmark;
         } else if ([self.taggedFriendIds containsObject:friend.userId]) {
             cell.accessoryType = UITableViewCellAccessoryCheckmark;
@@ -108,29 +119,32 @@
     FDUser *friend;
     if(self.searchDisplayController.searchBar.text.length == 0) {
         friend = [self.people objectAtIndex:indexPath.row];
-        if ([self.taggedFriendFacebookIds containsObject:friend.facebookId]) {
-            [self.taggedFriendFacebookIds removeObject:friend.facebookId];
+        if ([self.taggedFriendFacebookIds containsObject:friend.fbid]) {
+            [self.taggedFriendFacebookIds removeObject:friend.fbid];
         } else if ([self.taggedFriendIds containsObject:friend.userId]) {
             [self.taggedFriendFacebookIds removeObject:friend.userId];
         } else {
             if (friend.userId.length) {
                 [self.taggedFriendIds addObject:friend.userId];
             } else {
-                [self.taggedFriendFacebookIds addObject:friend.facebookId];
+                NSLog(@"friend: %@",friend.fbid);
+                [self.taggedFriendFacebookIds addObject:friend.fbid];
             }
         }
         [tableView reloadData];
     } else {
         friend = [self.filteredPeople objectAtIndex:indexPath.row];
-        if ([self.taggedFriendFacebookIds containsObject:friend.facebookId]) {
-            [self.taggedFriendFacebookIds removeObject:friend.facebookId];
+        if ([self.taggedFriendFacebookIds containsObject:friend.fbid]) {
+            [self.taggedFriendFacebookIds removeObject:friend.fbid];
         } else if ([self.taggedFriendIds containsObject:friend.userId]) {
             [self.taggedFriendIds removeObject:friend.userId];
         } else {
+            
             if (friend.userId.length) {
                 [self.taggedFriendIds addObject:friend.userId];
             } else {
-                [self.taggedFriendFacebookIds addObject:friend.facebookId];
+                NSLog(@"friend: %@",friend.fbid);
+                [self.taggedFriendFacebookIds addObject:friend.fbid];
             }
             [self.searchDisplayController setActive:NO animated:YES];
         }

@@ -14,22 +14,20 @@
 
 @interface FDUser : NSObject <NSCoding>
 
-@property (nonatomic, retain) NSString * name;
-@property (nonatomic, retain) NSString * email;
-@property (nonatomic, retain) NSString * facebookId;
-@property (nonatomic, retain) NSString * fbid;
-@property (nonatomic, retain) NSString * userId;
-@property (nonatomic, retain) NSString * password;
-@property (nonatomic, retain) NSNumber * active;
-@property (nonatomic, retain) NSNumber * following;
-@property (nonatomic, retain) NSNumber * invited;
-@property (nonatomic, retain) NSString * identifier;
-@property (nonatomic, retain) NSString * location;
-@property (nonatomic, retain) NSString * occupation;
-@property (nonatomic, retain) NSString * avatarUrl;
-@property (nonatomic, retain) UIImage * userImage;
-@property (nonatomic, retain) NSString * userImageKey;
-@property (nonatomic, retain) NSString * authenticationToken;
+@property (nonatomic, strong) NSString * name;
+@property (nonatomic, strong) NSString * email;
+@property (nonatomic, strong) NSString * facebookId;
+@property (nonatomic, strong) NSString * fbid;
+@property (nonatomic, strong) NSString * userId;
+@property (nonatomic, strong) NSString * password;
+@property (nonatomic, strong) NSNumber * active;
+@property (nonatomic, strong) NSNumber * following;
+@property (nonatomic, strong) NSNumber * invited;
+@property (nonatomic, strong) NSString * identifier;
+@property (nonatomic, strong) NSString * location;
+@property (nonatomic, strong) NSString * occupation;
+@property (nonatomic, strong) NSString * avatarUrl;
+@property (nonatomic, strong) NSString * authenticationToken;
 
 - (void)encodeWithCoder:(NSCoder *)encoder;
 - (id)initWithCoder:(NSCoder *)decoder;

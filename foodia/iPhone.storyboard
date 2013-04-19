@@ -29,7 +29,7 @@
                         <rect key="frame" x="0.0" y="20" width="320" height="460"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
-                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" image="Default.png" id="Hw5-U5-w2H">
+                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" image="foodiaBackground.png" id="Hw5-U5-w2H">
                                 <rect key="frame" x="0.0" y="0.0" width="320" height="460"/>
                             </imageView>
                             <scrollView multipleTouchEnabled="YES" contentMode="scaleToFill" pagingEnabled="YES" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" id="SjT-kA-eCU">
@@ -39,7 +39,7 @@
                                     <outlet property="delegate" destination="gE2-gg-n0F" id="xFu-FM-bI6"/>
                                 </connections>
                             </scrollView>
-                            <pageControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" numberOfPages="6" id="SNF-wD-dBg">
+                            <pageControl opaque="NO" alpha="0.0" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" numberOfPages="6" id="SNF-wD-dBg">
                                 <rect key="frame" x="100" y="312" width="120" height="36"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <color key="pageIndicatorTintColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
@@ -74,7 +74,7 @@
                                             <outlet property="delegate" destination="gE2-gg-n0F" id="Z8G-ax-7nu"/>
                                         </connections>
                                     </textField>
-                                    <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="Email address" minimumFontSize="17" clearButtonMode="whileEditing" id="l2K-WZ-fmZ">
+                                    <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="Your email address" minimumFontSize="17" clearButtonMode="whileEditing" id="l2K-WZ-fmZ">
                                         <rect key="frame" x="50" y="60" width="220" height="30"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="14"/>
@@ -83,7 +83,7 @@
                                             <outlet property="delegate" destination="gE2-gg-n0F" id="nce-je-EOw"/>
                                         </connections>
                                     </textField>
-                                    <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="Password" minimumFontSize="17" clearButtonMode="whileEditing" id="vLX-bd-Wnx">
+                                    <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="Your FOODIA password" minimumFontSize="17" clearButtonMode="whileEditing" id="vLX-bd-Wnx">
                                         <rect key="frame" x="50" y="98" width="220" height="30"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="14"/>
@@ -579,7 +579,7 @@
                                 </connections>
                             </tableView>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="fFv-PM-t1f">
-                                <rect key="frame" x="240" y="78" width="80" height="34"/>
+                                <rect key="frame" x="240" y="80" width="80" height="34"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="15"/>
                                 <state key="normal" title="Shopping" backgroundImage="emptyBarButton.png">
@@ -594,7 +594,7 @@
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="J3t-KS-n1z">
-                                <rect key="frame" x="160" y="78" width="80" height="34"/>
+                                <rect key="frame" x="160" y="80" width="80" height="34"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="15"/>
                                 <state key="normal" title="Making" backgroundImage="emptyBarButton.png">
@@ -609,7 +609,7 @@
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="Abx-R2-A3b">
-                                <rect key="frame" x="80" y="78" width="80" height="34"/>
+                                <rect key="frame" x="80" y="80" width="80" height="34"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="15"/>
                                 <state key="normal" title="Drinking" backgroundImage="emptyBarButton.png">
@@ -624,7 +624,7 @@
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="2rz-O8-hoA">
-                                <rect key="frame" x="0.0" y="78" width="80" height="34"/>
+                                <rect key="frame" x="0.0" y="80" width="80" height="34"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="15"/>
                                 <state key="normal" title="Eating" backgroundImage="emptyBarButton.png">
@@ -639,7 +639,7 @@
                                 </connections>
                             </button>
                             <view contentMode="scaleToFill" id="U2C-pW-MB3" userLabel="ProfileDetailsContainerView">
-                                <rect key="frame" x="0.0" y="0.0" width="320" height="75"/>
+                                <rect key="frame" x="0.0" y="4" width="320" height="75"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <subviews>
                                     <view alpha="0.0" contentMode="scaleToFill" id="bZ2-3q-heT">
@@ -730,7 +730,7 @@
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                             </view>
                             <button opaque="NO" alpha="0.0" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="PEB-wT-jg0">
-                                <rect key="frame" x="80" y="0.0" width="160" height="32"/>
+                                <rect key="frame" x="80" y="4" width="160" height="32"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="16"/>
                                 <state key="normal" title="Follow">
@@ -821,8 +821,8 @@
                         <outlet property="socialButton" destination="PEB-wT-jg0" id="pST-0j-YLU"/>
                         <outlet property="userNameLabel" destination="8tj-fP-aJK" id="6cg-tv-orr"/>
                         <segue destination="LZE-XF-kth" kind="push" identifier="ShowPostFromProfile" id="ciL-Yp-aME"/>
-                        <segue destination="upL-Dx-g5n" kind="push" identifier="ShowPlace" id="EId-hy-XH0"/>
-                        <segue destination="UGU-K2-7hS" kind="push" identifier="EditProfile" id="CLU-xq-KeK"/>
+                        <segue destination="upL-Dx-g5n" kind="push" identifier="ShowPlaceFromProfile" id="EId-hy-XH0"/>
+                        <segue destination="UGU-K2-7hS" kind="modal" identifier="EditProfile" id="CLU-xq-KeK"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="diU-5o-2XJ" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -972,7 +972,7 @@
                                 </connections>
                             </view>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" reversesTitleShadowWhenHighlighted="YES" showsTouchWhenHighlighted="YES" lineBreakMode="middleTruncation" id="jbz-eC-npE">
-                                <rect key="frame" x="132" y="361" width="55" height="55"/>
+                                <rect key="frame" x="133" y="361" width="55" height="55"/>
                                 <fontDescription key="fontDescription" type="boldSystem" pointSize="15"/>
                                 <size key="titleShadowOffset" width="8" height="8"/>
                                 <state key="normal" image="plusButtonv2.png">
@@ -1074,10 +1074,7 @@
                                             <rect key="frame" x="0.0" y="0.0" width="320" height="320"/>
                                             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         </imageView>
-                                        <imageView clipsSubviews="YES" multipleTouchEnabled="YES" alpha="0.0" contentMode="scaleToFill" id="FIb-FL-3GD" userLabel="photo view">
-                                            <rect key="frame" x="5" y="6" width="310" height="310"/>
-                                        </imageView>
-                                        <button hidden="YES" opaque="NO" contentMode="scaleToFill" enabled="NO" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="HKZ-0U-mxo">
+                                        <button hidden="YES" opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="HKZ-0U-mxo">
                                             <rect key="frame" x="5" y="5" width="310" height="310"/>
                                             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                             <gestureRecognizers/>
@@ -1091,10 +1088,16 @@
                                             </state>
                                             <connections>
                                                 <action selector="expandImage:" destination="LZE-XF-kth" eventType="touchUpInside" id="7yi-m1-qVf"/>
-                                                <outletCollection property="gestureRecognizers" destination="PD5-fo-3mW" appends="YES" id="uQW-Bc-agL"/>
-                                                <outletCollection property="gestureRecognizers" destination="GmQ-ZK-RjX" appends="YES" id="1zY-QK-tQW"/>
                                             </connections>
                                         </button>
+                                        <imageView clipsSubviews="YES" multipleTouchEnabled="YES" alpha="0.0" contentMode="scaleToFill" id="FIb-FL-3GD" userLabel="photo view">
+                                            <rect key="frame" x="5" y="6" width="310" height="310"/>
+                                            <gestureRecognizers/>
+                                            <connections>
+                                                <outletCollection property="gestureRecognizers" destination="GmQ-ZK-RjX" appends="YES" id="4Kq-Ax-xSa"/>
+                                                <outletCollection property="gestureRecognizers" destination="PD5-fo-3mW" appends="YES" id="z21-rQ-MQn"/>
+                                            </connections>
+                                        </imageView>
                                         <button opaque="NO" alpha="0.0" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="DHq-Uy-Qsz" userLabel="Profile Button">
                                             <rect key="frame" x="267" y="3" width="50" height="50"/>
                                             <fontDescription key="fontDescription" type="boldSystem" pointSize="15"/>
@@ -1117,21 +1120,21 @@
                                             </connections>
                                         </scrollView>
                                         <button contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="JGQ-AM-nVy" userLabel="like button">
-                                            <rect key="frame" x="5" y="314" width="60" height="34"/>
+                                            <rect key="frame" x="0.0" y="309" width="75" height="44"/>
                                             <color key="backgroundColor" white="0.90000000000000002" alpha="0.0" colorSpace="calibratedWhite"/>
                                             <fontDescription key="fontDescription" type="boldSystem" pointSize="15"/>
-                                            <state key="normal" image="feedLikeButtonGray.png">
+                                            <state key="normal" image="dark_smile.png" backgroundImage="recBubble.png">
                                                 <color key="titleColor" red="0.19607843459999999" green="0.30980393290000002" blue="0.52156865600000002" alpha="1" colorSpace="calibratedRGB"/>
                                             </state>
                                             <state key="highlighted">
                                                 <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                             </state>
                                             <connections>
-                                                <action selector="likeButtonTapped:" destination="LZE-XF-kth" eventType="touchUpInside" id="RbF-lm-R6j"/>
+                                                <action selector="likeButtonTapped" destination="LZE-XF-kth" eventType="touchUpInside" id="t8D-YO-gqi"/>
                                             </connections>
                                         </button>
                                         <label clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumFontSize="10" adjustsFontSizeToFit="NO" id="4OA-FI-PYa" userLabel="like count label">
-                                            <rect key="frame" x="59" y="320" width="40" height="21"/>
+                                            <rect key="frame" x="59" y="321" width="40" height="21"/>
                                             <color key="backgroundColor" white="1" alpha="0.0" colorSpace="custom" customColorSpace="calibratedWhite"/>
                                             <fontDescription key="fontDescription" name="Futura-CondensedMedium" family="Futura" pointSize="15"/>
                                             <color key="textColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
@@ -1182,7 +1185,7 @@
                                 </connections>
                             </tableView>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="2BN-iI-9xc" userLabel="Location button">
-                                <rect key="frame" x="138" y="428" width="44" height="44"/>
+                                <rect key="frame" x="138" y="427" width="44" height="44"/>
                                 <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="14"/>
                                 <state key="normal" title="Rec">
                                     <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
@@ -1196,7 +1199,7 @@
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="pDK-mQ-fhx" userLabel="Rec button">
-                                <rect key="frame" x="138" y="428" width="44" height="44"/>
+                                <rect key="frame" x="138" y="427" width="44" height="44"/>
                                 <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="14"/>
                                 <state key="normal" title="Rec">
                                     <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
@@ -1493,13 +1496,21 @@
                         <rect key="frame" x="0.0" y="64" width="320" height="416"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" image="background.png" id="Ne6-sF-W8N">
+                                <rect key="frame" x="0.0" y="0.0" width="320" height="416"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                            </imageView>
+                            <imageView userInteractionEnabled="NO" alpha="0.0" contentMode="scaleToFill" image="photoCellBackground.png" id="4Ex-Pm-2r2">
+                                <rect key="frame" x="-1" y="0.0" width="272" height="122"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                            </imageView>
                             <textView autoresizesSubviews="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="top" bounces="NO" bouncesZoom="NO" text="I'M THINKING..." id="Xcl-iC-d7C" userLabel="caption text view">
                                 <rect key="frame" x="4" y="124" width="312" height="54"/>
-                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <color key="backgroundColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
                                 <accessibility key="accessibilityConfiguration">
                                     <accessibilityTraits key="traits" none="YES" image="YES"/>
                                 </accessibility>
-                                <color key="textColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
+                                <color key="textColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="15"/>
                                 <textInputTraits key="textInputTraits" autocapitalizationType="sentences" returnKeyType="done"/>
                                 <connections>
@@ -1507,10 +1518,10 @@
                                 </connections>
                             </textView>
                             <button hidden="YES" opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="2Ma-aP-CCN">
-                                <rect key="frame" x="130" y="375" width="60" height="35"/>
+                                <rect key="frame" x="123" y="371" width="75" height="44"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="12"/>
-                                <state key="normal" title="Delete">
+                                <state key="normal" title="Delete" backgroundImage="recBubble.png">
                                     <color key="titleColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
                                     <color key="titleShadowColor" cocoaTouchSystemColor="lightTextColor"/>
                                 </state>
@@ -1542,7 +1553,7 @@
                                 <nil key="highlightedColor"/>
                             </label>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="Y9d-Nd-8Ib" userLabel="photo button">
-                                <rect key="frame" x="3" y="2" width="264" height="115"/>
+                                <rect key="frame" x="3" y="4" width="264" height="115"/>
                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                 <fontDescription key="fontDescription" type="boldSystem" pointSize="15"/>
                                 <state key="normal">
@@ -1559,8 +1570,8 @@
                             <imageView userInteractionEnabled="NO" contentMode="scaleToFill" id="nDw-1K-6hu" userLabel="Poster Profile Image View">
                                 <rect key="frame" x="272" y="3" width="44" height="44"/>
                             </imageView>
-                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" id="f9f-Qv-MWf" userLabel="Instagram Button">
-                                <rect key="frame" x="118" y="377" width="34" height="35"/>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="f9f-Qv-MWf" userLabel="Instagram Button">
+                                <rect key="frame" x="113" y="372" width="44" height="45"/>
                                 <fontDescription key="fontDescription" type="boldSystem" pointSize="15"/>
                                 <state key="normal" image="instagramGray.png">
                                     <color key="titleColor" red="0.19607843459999999" green="0.30980393290000002" blue="0.52156865600000002" alpha="1" colorSpace="calibratedRGB"/>
@@ -1574,7 +1585,7 @@
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="0VH-5X-bU3" userLabel="Twitter Button">
-                                <rect key="frame" x="168" y="377" width="34" height="34"/>
+                                <rect key="frame" x="163" y="372" width="44" height="44"/>
                                 <fontDescription key="fontDescription" type="boldSystem" pointSize="15"/>
                                 <state key="normal" image="twitterGray.png">
                                     <color key="titleColor" red="0.19607843459999999" green="0.30980393290000002" blue="0.52156865600000002" alpha="1" colorSpace="calibratedRGB"/>
@@ -1588,7 +1599,7 @@
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="Rhb-vy-Kbv" userLabel="Tumblr Button">
-                                <rect key="frame" x="217" y="377" width="34" height="34"/>
+                                <rect key="frame" x="212" y="372" width="44" height="44"/>
                                 <fontDescription key="fontDescription" type="boldSystem" pointSize="15"/>
                                 <state key="normal" image="tumblrGray.png">
                                     <color key="titleColor" red="0.19607843459999999" green="0.30980393290000002" blue="0.52156865600000002" alpha="1" colorSpace="calibratedRGB"/>
@@ -1599,20 +1610,6 @@
                                 </state>
                                 <connections>
                                     <action selector="toggleFoursquare:" destination="i81-4z-gaU" eventType="touchUpInside" id="gO0-iz-zRA"/>
-                                </connections>
-                            </button>
-                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="Fb1-gS-1L2" userLabel="Location Button">
-                                <rect key="frame" x="115" y="189" width="90" height="34"/>
-                                <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="15"/>
-                                <state key="normal" title="I'M AT">
-                                    <color key="titleColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
-                                    <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
-                                </state>
-                                <state key="highlighted">
-                                    <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                                </state>
-                                <connections>
-                                    <segue destination="2Qv-FQ-W8B" kind="push" identifier="AddLocation" id="0gE-BN-3hW"/>
                                 </connections>
                             </button>
                             <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" alpha="0.0" contentMode="left" text="" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="4ou-XZ-OuS">
@@ -1630,11 +1627,25 @@
                                 <color key="textColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="q5L-6T-knc" userLabel="Friends Button">
-                                <rect key="frame" x="115" y="284" width="90" height="34"/>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="Fb1-gS-1L2" userLabel="Location Button">
+                                <rect key="frame" x="100" y="184" width="120" height="44"/>
                                 <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="15"/>
-                                <state key="normal" title="I'M WITH">
-                                    <color key="titleColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
+                                <state key="normal" title="I'M AT" backgroundImage="newPostBubble.png">
+                                    <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                    <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                                </state>
+                                <state key="highlighted">
+                                    <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                </state>
+                                <connections>
+                                    <segue destination="2Qv-FQ-W8B" kind="push" identifier="AddLocation" id="0gE-BN-3hW"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="q5L-6T-knc" userLabel="Friends Button">
+                                <rect key="frame" x="100" y="279" width="120" height="44"/>
+                                <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="15"/>
+                                <state key="normal" title="I'M WITH" backgroundImage="newPostBubble.png">
+                                    <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                     <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
                                 <state key="highlighted">
@@ -1645,10 +1656,10 @@
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="e2U-5L-gnD" userLabel="Recommend Button">
-                                <rect key="frame" x="115" y="332" width="90" height="34"/>
+                                <rect key="frame" x="100" y="327" width="120" height="44"/>
                                 <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="15"/>
-                                <state key="normal" title="RECOMMEND">
-                                    <color key="titleColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
+                                <state key="normal" title="RECOMMEND" backgroundImage="newPostBubble.png">
+                                    <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                     <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
                                 <state key="highlighted">
@@ -1659,10 +1670,10 @@
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="w4A-3n-AHd" userLabel="Category Button">
-                                <rect key="frame" x="115" y="236" width="90" height="34"/>
+                                <rect key="frame" x="100" y="231" width="120" height="44"/>
                                 <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="15"/>
-                                <state key="normal" title="I'M EATING">
-                                    <color key="titleColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
+                                <state key="normal" title="I'M EATING" backgroundImage="newPostBubble.png">
+                                    <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                     <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
                                 <state key="highlighted">
@@ -1673,7 +1684,7 @@
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="ll8-6b-kxa" userLabel="Facebook button">
-                                <rect key="frame" x="65" y="377" width="34" height="34"/>
+                                <rect key="frame" x="60" y="372" width="44" height="44"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <fontDescription key="fontDescription" type="boldSystem" pointSize="15"/>
                                 <state key="normal" title="Button" image="facebook.png">
@@ -1721,6 +1732,7 @@
                         <outlet property="instagramButton" destination="f9f-Qv-MWf" id="VRD-Ev-KIJ"/>
                         <outlet property="locationButton" destination="Fb1-gS-1L2" id="zwa-Zm-D5m"/>
                         <outlet property="locationLabel" destination="Vxu-AJ-0Gk" id="mHj-5a-IVD"/>
+                        <outlet property="photoBackgroundView" destination="4Ex-Pm-2r2" id="Vqp-yJ-3dn"/>
                         <outlet property="photoButton" destination="Y9d-Nd-8Ib" id="v4O-Jf-ee1"/>
                         <outlet property="postButtonItem" destination="2xJ-GP-vHZ" id="yau-wR-dVm"/>
                         <outlet property="posterImageView" destination="nDw-1K-6hu" id="zKE-mI-hOL"/>
@@ -1728,10 +1740,10 @@
                         <outlet property="recScrollView" destination="ZYr-er-Z0S" id="S7q-cN-RvK"/>
                         <outlet property="takePhotoButton" destination="g94-SC-k1c" id="xqY-ef-5Wd"/>
                         <outlet property="twitterButton" destination="0VH-5X-bU3" id="JV7-LL-lYH"/>
-                        <segue destination="4xr-Qy-Eta" kind="push" identifier="TakePhoto" id="fxv-tE-qgb"/>
                         <segue destination="ooj-dJ-CFW" kind="push" identifier="tumblrAuth" id="KUS-Cq-XFm"/>
                         <segue destination="MIu-0K-XDF" kind="push" identifier="ShowProfileFromNewPost" id="w3i-0J-Ycf"/>
                         <segue destination="ywJ-KN-kbC" kind="push" identifier="editCategory" id="F9q-yT-YJJ"/>
+                        <segue destination="8sK-W8-pWk" kind="modal" identifier="TakePhoto" id="Hkf-78-IQR"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="BPO-cF-fSi" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -1765,11 +1777,11 @@
             <objects>
                 <viewController id="2Qv-FQ-W8B" customClass="FDAddLocationViewController" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="Otf-8K-9pk">
-                        <rect key="frame" x="0.0" y="20" width="320" height="460"/>
+                        <rect key="frame" x="0.0" y="64" width="320" height="416"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
                             <mapView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" mapType="standard" showsUserLocation="YES" id="dJ7-i2-cCZ">
-                                <rect key="frame" x="0.0" y="0.0" width="320" height="180"/>
+                                <rect key="frame" x="0.0" y="0.0" width="320" height="136"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <connections>
                                     <outlet property="delegate" destination="2Qv-FQ-W8B" id="Aop-7j-IuV"/>
@@ -1943,131 +1955,6 @@
                 </searchDisplayController>
             </objects>
             <point key="canvasLocation" x="583" y="1127"/>
-        </scene>
-        <!--Camera View Controller-->
-        <scene sceneID="pwm-gr-s2t">
-            <objects>
-                <viewController id="4xr-Qy-Eta" customClass="FDCameraViewController" sceneMemberID="viewController">
-                    <view key="view" contentMode="scaleToFill" id="1MY-Gs-rFv">
-                        <rect key="frame" x="0.0" y="64" width="320" height="416"/>
-                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                        <subviews>
-                            <view clearsContextBeforeDrawing="NO" contentMode="scaleToFill" id="0Sb-qD-I9J">
-                                <rect key="frame" x="0.0" y="0.0" width="320" height="504"/>
-                                <subviews>
-                                    <imageView userInteractionEnabled="NO" contentMode="scaleAspectFill" id="V45-Am-mIv" userLabel="Selected Image View">
-                                        <rect key="frame" x="0.0" y="0.0" width="320" height="451"/>
-                                        <color key="backgroundColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
-                                    </imageView>
-                                    <view contentMode="scaleToFill" id="eBJ-2J-eG8" userLabel="Preview View">
-                                        <rect key="frame" x="0.0" y="0.0" width="320" height="504"/>
-                                        <color key="backgroundColor" cocoaTouchSystemColor="darkTextColor"/>
-                                    </view>
-                                    <activityIndicatorView hidden="YES" opaque="NO" contentMode="scaleToFill" hidesWhenStopped="YES" style="whiteLarge" id="oz9-TI-bFK">
-                                        <rect key="frame" x="141" y="212" width="37" height="37"/>
-                                    </activityIndicatorView>
-                                    <view contentMode="scaleToFill" id="jXe-0R-PEa">
-                                        <rect key="frame" x="0.0" y="449" width="320" height="55"/>
-                                        <subviews>
-                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="p5k-6u-YSX" userLabel="Accept Button">
-                                                <rect key="frame" x="191" y="9" width="40" height="40"/>
-                                                <fontDescription key="fontDescription" name="Helvetica-Bold" family="Helvetica" pointSize="29"/>
-                                                <state key="normal" image="cameraAcceptPhotoButton.png">
-                                                    <color key="titleColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
-                                                    <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
-                                                </state>
-                                                <state key="highlighted">
-                                                    <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                                                </state>
-                                                <connections>
-                                                    <action selector="acceptImage:" destination="4xr-Qy-Eta" eventType="touchUpInside" id="XdZ-HG-Qe7"/>
-                                                </connections>
-                                            </button>
-                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="4ut-YM-Sjq" userLabel="Cancel Button">
-                                                <rect key="frame" x="88" y="9" width="40" height="40"/>
-                                                <fontDescription key="fontDescription" type="boldSystem" pointSize="15"/>
-                                                <state key="normal" backgroundImage="close.png">
-                                                    <color key="titleColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
-                                                    <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
-                                                </state>
-                                                <state key="highlighted">
-                                                    <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                                                </state>
-                                                <connections>
-                                                    <action selector="rejectImage:" destination="4xr-Qy-Eta" eventType="touchUpInside" id="jMd-h6-Dwv"/>
-                                                </connections>
-                                            </button>
-                                        </subviews>
-                                        <color key="backgroundColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
-                                    </view>
-                                    <view contentMode="scaleToFill" id="mpZ-zA-NOb">
-                                        <rect key="frame" x="0.0" y="449" width="320" height="55"/>
-                                        <subviews>
-                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="gOJ-kB-eDu" userLabel="Capture Button">
-                                                <rect key="frame" x="135" y="3" width="50" height="50"/>
-                                                <fontDescription key="fontDescription" type="boldSystem" pointSize="15"/>
-                                                <state key="normal" backgroundImage="cameraCaptureButton.png">
-                                                    <color key="titleColor" red="0.19607843459999999" green="0.30980393290000002" blue="0.52156865600000002" alpha="1" colorSpace="calibratedRGB"/>
-                                                    <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
-                                                </state>
-                                                <state key="highlighted">
-                                                    <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                                                </state>
-                                                <connections>
-                                                    <action selector="captureStillImage:" destination="4xr-Qy-Eta" eventType="touchUpInside" id="mTo-zB-C66"/>
-                                                </connections>
-                                            </button>
-                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="H6B-dT-nbs" userLabel="Cancel Button">
-                                                <rect key="frame" x="250" y="3" width="50" height="50"/>
-                                                <fontDescription key="fontDescription" type="boldSystem" pointSize="15"/>
-                                                <state key="normal" image="cameraRejectPhotoButton.png">
-                                                    <color key="titleColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
-                                                    <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
-                                                </state>
-                                                <state key="highlighted">
-                                                    <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                                                </state>
-                                                <connections>
-                                                    <action selector="cancel:" destination="4xr-Qy-Eta" eventType="touchUpInside" id="LUM-hp-9i5"/>
-                                                </connections>
-                                            </button>
-                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="BXB-XH-ZeO" userLabel="Library Button">
-                                                <rect key="frame" x="20" y="3" width="50" height="50"/>
-                                                <fontDescription key="fontDescription" type="boldSystem" pointSize="15"/>
-                                                <state key="normal" image="cameraPhotoLibraryButton.png">
-                                                    <color key="titleColor" red="0.19607843459999999" green="0.30980393290000002" blue="0.52156865600000002" alpha="1" colorSpace="calibratedRGB"/>
-                                                    <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
-                                                </state>
-                                                <state key="highlighted">
-                                                    <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                                                </state>
-                                                <connections>
-                                                    <action selector="selectImage:" destination="4xr-Qy-Eta" eventType="touchUpInside" id="Qs1-CS-Rup"/>
-                                                </connections>
-                                            </button>
-                                        </subviews>
-                                        <color key="backgroundColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
-                                    </view>
-                                </subviews>
-                                <color key="backgroundColor" red="0.29803922770000002" green="0.29803922770000002" blue="0.29803922770000002" alpha="1" colorSpace="calibratedRGB"/>
-                                <simulatedStatusBarMetrics key="simulatedStatusBarMetrics"/>
-                            </view>
-                        </subviews>
-                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
-                    </view>
-                    <navigationItem key="navigationItem" id="6Sf-kS-Tbm"/>
-                    <connections>
-                        <outlet property="activityIndicator" destination="oz9-TI-bFK" id="tNv-EP-8qE"/>
-                        <outlet property="captureButtons" destination="mpZ-zA-NOb" id="ajC-Yv-22E"/>
-                        <outlet property="capturedImageView" destination="V45-Am-mIv" id="vzb-lH-Hta"/>
-                        <outlet property="libraryButton" destination="BXB-XH-ZeO" id="rXV-nd-wuh"/>
-                        <outlet property="reviewButtons" destination="jXe-0R-PEa" id="Sid-w6-feS"/>
-                        <outlet property="videoPreviewView" destination="eBJ-2J-eG8" id="G1R-ss-xfz"/>
-                    </connections>
-                </viewController>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="Z2t-O8-l5C" userLabel="First Responder" sceneMemberID="firstResponder"/>
-            </objects>
-            <point key="canvasLocation" x="583" y="-108"/>
         </scene>
         <!--Recommendees View Controller-->
         <scene sceneID="nkr-j1-eww">
@@ -2311,7 +2198,7 @@
             <objects>
                 <viewController storyboardIdentifier="EditProfile" useStoryboardIdentifierAsRestorationIdentifier="YES" id="UGU-K2-7hS" customClass="FDEditProfileViewController" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="NKM-HL-JVs">
-                        <rect key="frame" x="0.0" y="64" width="320" height="416"/>
+                        <rect key="frame" x="0.0" y="20" width="320" height="460"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
                             <imageView userInteractionEnabled="NO" contentMode="scaleToFill" image="commentField.png" id="OHh-De-QRa">
@@ -2344,7 +2231,7 @@
                                     <outlet property="delegate" destination="UGU-K2-7hS" id="nwM-ia-5WP"/>
                                 </connections>
                             </textField>
-                            <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="Password" minimumFontSize="17" id="Bq6-6B-Q9j">
+                            <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="Your FOODIA Password" minimumFontSize="17" id="Bq6-6B-Q9j">
                                 <rect key="frame" x="50" y="201" width="220" height="30"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <fontDescription key="fontDescription" name="AvenirNextCondensed-Medium" family="Avenir Next Condensed" pointSize="14"/>
@@ -2401,6 +2288,7 @@
                     <connections>
                         <outlet property="locationTextField" destination="dMN-MV-MlW" id="Wun-E6-dvh"/>
                         <outlet property="nameTextField" destination="62w-zc-ecV" id="Jzq-v4-jIA"/>
+                        <outlet property="passwordBackground" destination="I90-rN-hc3" id="dgf-Z5-oni"/>
                         <outlet property="passwordTextField" destination="Bq6-6B-Q9j" id="sTT-8T-LEH"/>
                         <outlet property="photoPrompt" destination="XCw-GH-JSX" id="t62-KX-vOD"/>
                         <outlet property="saveProfileButton" destination="cu7-ZX-xYT" id="MPg-7B-r4A"/>
@@ -2412,33 +2300,129 @@
             </objects>
             <point key="canvasLocation" x="-2007" y="-1337"/>
         </scene>
+        <!--Camera View Controller-->
+        <scene sceneID="ECy-La-kxI">
+            <objects>
+                <viewController storyboardIdentifier="Camera" wantsFullScreenLayout="YES" useStoryboardIdentifierAsRestorationIdentifier="YES" id="8sK-W8-pWk" customClass="FDCameraViewController" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="qhO-xV-wAc" customClass="GPUImageView">
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="480"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
+                        <subviews>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" image="cameraBackground.png" id="mv0-B8-ctA">
+                                <rect key="frame" x="0.0" y="347" width="320" height="133"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                            </imageView>
+                            <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" alpha="0.0" contentMode="scaleToFill" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" id="Rp6-h8-wxT">
+                                <rect key="frame" x="0.0" y="344" width="320" height="94"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <connections>
+                                    <outlet property="delegate" destination="I9v-2c-yug" id="6Dw-6E-bCy"/>
+                                </connections>
+                            </scrollView>
+                            <view contentMode="scaleToFill" id="32o-Mw-07j">
+                                <rect key="frame" x="0.0" y="417" width="320" height="60"/>
+                                <subviews>
+                                    <imageView hidden="YES" userInteractionEnabled="NO" contentMode="scaleToFill" image="customPhotoButtonBackground.png" id="JrU-0b-5H9">
+                                        <rect key="frame" x="0.0" y="-4" width="320" height="64"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                    </imageView>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="dzB-Ph-7Qp" userLabel="Capture Button">
+                                        <rect key="frame" x="132" y="0.0" width="56" height="56"/>
+                                        <fontDescription key="fontDescription" type="boldSystem" pointSize="15"/>
+                                        <state key="normal" backgroundImage="camera.png">
+                                            <color key="titleColor" red="0.19607843459999999" green="0.30980393290000002" blue="0.52156865600000002" alpha="1" colorSpace="calibratedRGB"/>
+                                            <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                                        </state>
+                                        <state key="highlighted">
+                                            <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                        </state>
+                                        <connections>
+                                            <action selector="captureStillImage:" destination="8sK-W8-pWk" eventType="touchUpInside" id="HaB-W5-sWY"/>
+                                        </connections>
+                                    </button>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="vLU-bT-SLa" userLabel="Cancel Button">
+                                        <rect key="frame" x="16" y="6" width="100" height="44"/>
+                                        <fontDescription key="fontDescription" name="AvenirNextCondensed-DemiBold" family="Avenir Next Condensed" pointSize="14"/>
+                                        <state key="normal" title="Cancel" backgroundImage="cameraButton.png">
+                                            <color key="titleColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
+                                            <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                                        </state>
+                                        <state key="highlighted">
+                                            <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                        </state>
+                                        <connections>
+                                            <action selector="cancel" destination="8sK-W8-pWk" eventType="touchUpInside" id="GE4-SG-KMT"/>
+                                        </connections>
+                                    </button>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="uke-8B-gDM" userLabel="Library Button">
+                                        <rect key="frame" x="204" y="6" width="100" height="44"/>
+                                        <fontDescription key="fontDescription" name="AvenirNextCondensed-DemiBold" family="Avenir Next Condensed" pointSize="15"/>
+                                        <state key="normal" backgroundImage="cameraButton.png">
+                                            <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                            <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                                        </state>
+                                        <state key="highlighted">
+                                            <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                        </state>
+                                    </button>
+                                </subviews>
+                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                <accessibility key="accessibilityConfiguration">
+                                    <accessibilityTraits key="traits" none="YES" image="YES"/>
+                                </accessibility>
+                            </view>
+                            <imageView hidden="YES" clipsSubviews="YES" userInteractionEnabled="NO" alpha="0.0" contentMode="scaleAspectFill" id="I9v-2c-yug">
+                                <rect key="frame" x="0.0" y="24" width="320" height="320"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxX="YES" flexibleMinY="YES" flexibleMaxY="YES"/>
+                            </imageView>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+                    </view>
+                    <navigationItem key="navigationItem" id="ggU-8o-g4Y"/>
+                    <nil key="simulatedStatusBarMetrics"/>
+                    <nil key="simulatedTopBarMetrics"/>
+                    <nil key="simulatedBottomBarMetrics"/>
+                    <connections>
+                        <outlet property="cancelButton" destination="vLU-bT-SLa" id="t27-zP-U96"/>
+                        <outlet property="filterScrollView" destination="Rp6-h8-wxT" id="rfp-1G-JQv"/>
+                        <outlet property="filterScrollViewBackground" destination="mv0-B8-ctA" id="8ti-rP-gEj"/>
+                        <outlet property="photoPreviewImageView" destination="I9v-2c-yug" id="YwN-Jh-Lvi"/>
+                        <outlet property="takePhotoButton" destination="dzB-Ph-7Qp" id="rA9-hS-krF"/>
+                        <outlet property="useButton" destination="uke-8B-gDM" id="F5Y-tK-ZLb"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="y1q-zu-RU7" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="583" y="-133"/>
+        </scene>
     </scenes>
     <resources>
-        <image name="Default.png" width="320" height="480"/>
         <image name="FOODIA-black.png" width="192" height="75"/>
-        <image name="cameraAcceptPhotoButton.png" width="20" height="20"/>
-        <image name="cameraCaptureButton.png" width="89" height="89"/>
-        <image name="cameraPhotoLibraryButton.png" width="22" height="24"/>
-        <image name="cameraRejectPhotoButton.png" width="68" height="68"/>
+        <image name="background.png" width="320" height="460"/>
+        <image name="camera.png" width="75" height="76"/>
+        <image name="cameraBackground.png" width="320" height="240"/>
+        <image name="cameraButton.png" width="100" height="44"/>
         <image name="cancelPin.png" width="41" height="41"/>
-        <image name="close.png" width="16" height="16"/>
         <image name="commentField.png" width="227" height="30"/>
         <image name="connect.png" width="241" height="58"/>
+        <image name="customPhotoButtonBackground.png" width="320" height="96"/>
+        <image name="dark_smile.png" width="24" height="24"/>
         <image name="down_arrow.png" width="22" height="14"/>
         <image name="emptyBarButton.png" width="1" height="44"/>
         <image name="facebook.png" width="34" height="34"/>
         <image name="featured.png" width="32" height="32"/>
         <image name="feed.png" width="32" height="32"/>
-        <image name="feedLikeButtonGray.png" width="23" height="23"/>
         <image name="feedTypeNearby.png" width="30" height="36"/>
-        <image name="foodiaBackground.png" width="320" height="568"/>
+        <image name="foodiaBackground.png" width="320" height="480"/>
         <image name="instagramGray.png" width="34" height="34"/>
         <image name="keepers.png" width="32" height="32"/>
         <image name="large_light_smile.png" width="60" height="60"/>
         <image name="magnifier.png" width="19" height="19"/>
         <image name="menuBarButtonImage.png" width="19" height="19"/>
         <image name="newFoodiaHeader.png" width="320" height="44"/>
+        <image name="newPostBubble.png" width="120" height="44"/>
         <image name="newPostCamera.png" width="60" height="45"/>
+        <image name="photoCellBackground.png" width="268" height="119"/>
         <image name="plusButtonv2.png" width="55" height="55"/>
         <image name="postViewPhotoBackground.png" width="320" height="320"/>
         <image name="poweredByFoursquare_gray.png" width="482" height="121"/>
@@ -2472,21 +2456,14 @@
         <class className="FDCameraViewController" superclassName="UIViewController">
             <source key="sourceIdentifier" type="project" relativePath="./Classes/FDCameraViewController.h"/>
             <relationships>
-                <relationship kind="action" name="cancel:"/>
+                <relationship kind="action" name="cancel"/>
                 <relationship kind="action" name="captureStillImage:"/>
-                <relationship kind="action" name="selectImage:"/>
-                <relationship kind="action" name="toggleCamera:"/>
-                <relationship kind="action" name="toggleRecording:"/>
-                <relationship kind="outlet" name="activityIndicator" candidateClass="UIActivityIndicatorView"/>
-                <relationship kind="outlet" name="cameraToggleButton" candidateClass="UIBarButtonItem"/>
-                <relationship kind="outlet" name="captureButtons" candidateClass="UIView"/>
-                <relationship kind="outlet" name="capturedImageView" candidateClass="UIImageView"/>
-                <relationship kind="outlet" name="focusModeLabel" candidateClass="UILabel"/>
-                <relationship kind="outlet" name="libraryButton" candidateClass="UIButton"/>
-                <relationship kind="outlet" name="recordButton" candidateClass="UIButton"/>
-                <relationship kind="outlet" name="reviewButtons" candidateClass="UIView"/>
-                <relationship kind="outlet" name="stillButton" candidateClass="UIButton"/>
-                <relationship kind="outlet" name="videoPreviewView" candidateClass="UIView"/>
+                <relationship kind="outlet" name="cancelButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="filterScrollView" candidateClass="UIScrollView"/>
+                <relationship kind="outlet" name="filterScrollViewBackground" candidateClass="UIImageView"/>
+                <relationship kind="outlet" name="photoPreviewImageView" candidateClass="UIImageView"/>
+                <relationship kind="outlet" name="takePhotoButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="useButton" candidateClass="UIButton"/>
             </relationships>
         </class>
         <class className="FDClipView" superclassName="UIView">
@@ -2502,6 +2479,7 @@
                 <relationship kind="action" name="submitDetails"/>
                 <relationship kind="outlet" name="locationTextField" candidateClass="UITextField"/>
                 <relationship kind="outlet" name="nameTextField" candidateClass="UITextField"/>
+                <relationship kind="outlet" name="passwordBackground" candidateClass="UIImageView"/>
                 <relationship kind="outlet" name="passwordTextField" candidateClass="UITextField"/>
                 <relationship kind="outlet" name="photoPrompt" candidateClass="UILabel"/>
                 <relationship kind="outlet" name="saveProfileButton" candidateClass="UIButton"/>
@@ -2511,7 +2489,7 @@
         <class className="FDFeedNavigationViewController" superclassName="UINavigationController">
             <source key="sourceIdentifier" type="project" relativePath="./Classes/FDFeedNavigationViewController.h"/>
         </class>
-        <class className="FDFeedViewController" superclassName="UIViewController">
+        <class className="FDFeedViewController" superclassName="GAITrackedViewController">
             <source key="sourceIdentifier" type="project" relativePath="./Classes/FDFeedViewController.h"/>
             <relationships>
                 <relationship kind="action" name="revealMenu:" candidateClass="UIBarButtonItem"/>
@@ -2577,7 +2555,7 @@
                 <relationship kind="outlet" name="instagramButton" candidateClass="UIButton"/>
                 <relationship kind="outlet" name="locationButton" candidateClass="UIButton"/>
                 <relationship kind="outlet" name="locationLabel" candidateClass="UILabel"/>
-                <relationship kind="outlet" name="photoBoxView" candidateClass="UIImageView"/>
+                <relationship kind="outlet" name="photoBackgroundView" candidateClass="UIImageView"/>
                 <relationship kind="outlet" name="photoButton" candidateClass="UIButton"/>
                 <relationship kind="outlet" name="postButtonItem" candidateClass="UIBarButtonItem"/>
                 <relationship kind="outlet" name="posterImageView" candidateClass="UIImageView"/>
@@ -2613,7 +2591,6 @@
             <relationships>
                 <relationship kind="action" name="cancel:"/>
                 <relationship kind="action" name="clearTextField:"/>
-                <relationship kind="action" name="done:"/>
                 <relationship kind="action" name="selectDrink:"/>
                 <relationship kind="action" name="selectEat:"/>
                 <relationship kind="action" name="selectMake:"/>
@@ -2644,7 +2621,7 @@
                 <relationship kind="action" name="expandImage:"/>
                 <relationship kind="action" name="handlePan:" candidateClass="UIPanGestureRecognizer"/>
                 <relationship kind="action" name="handlePhotoPinch:" candidateClass="UIPinchGestureRecognizer"/>
-                <relationship kind="action" name="likeButtonTapped:"/>
+                <relationship kind="action" name="likeButtonTapped"/>
                 <relationship kind="action" name="recommend"/>
                 <relationship kind="action" name="showPlace"/>
                 <relationship kind="outlet" name="captionLabel" candidateClass="UILabel"/>
@@ -2762,6 +2739,12 @@
                 <relationship kind="outlet" name="webView" candidateClass="UIWebView"/>
             </relationships>
         </class>
+        <class className="GAITrackedViewController" superclassName="UIViewController">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/GAITrackedViewController.h"/>
+        </class>
+        <class className="GPUImageView" superclassName="UIView">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/GPUImageView.h"/>
+        </class>
     </classes>
     <simulatedMetricsContainer key="defaultSimulatedMetrics">
         <simulatedStatusBarMetrics key="statusBar" statusBarStyle="blackTranslucent"/>
@@ -2769,12 +2752,12 @@
         <simulatedScreenMetrics key="destination"/>
     </simulatedMetricsContainer>
     <inferredMetricsTieBreakers>
-        <segue reference="qe9-VB-C0z"/>
-        <segue reference="sed-cF-CZB"/>
-        <segue reference="ekX-Dm-YKS"/>
         <segue reference="xTD-uL-ChC"/>
-        <segue reference="OZo-md-bVq"/>
+        <segue reference="uS6-Ln-RXv"/>
+        <segue reference="qXJ-nF-yFn"/>
+        <segue reference="H0T-M3-DMm"/>
         <segue reference="F9q-yT-YJJ"/>
         <segue reference="w3i-0J-Ycf"/>
+        <segue reference="F0p-Ve-sxk"/>
     </inferredMetricsTieBreakers>
 </document>

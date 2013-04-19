@@ -56,22 +56,14 @@ static NSDictionary *placeholderImages;
     [self.slideCellButton setHidden:YES];
     self.postId = self.post.identifier;
     self.userId = self.post.user.facebookId;
-    
     // set up the user image
-    if ([[SDImageCache sharedImageCache] imageFromMemoryCacheForKey:self.post.user.userImageKey]) {
-        NSLog(@"getting cached user profile image for post");
-        [self.posterButton setImage:[[SDImageCache sharedImageCache] imageFromMemoryCacheForKey:self.post.user.userImageKey] forState:UIControlStateNormal];
-    } else if (self.post.user.facebookId && [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookAccessToken]){
+    /*if ([[SDImageCache sharedImageCache] imageFromMemoryCacheForKey:self.post.user.userId]) {
+        [self.posterButton setImage:[[SDImageCache sharedImageCache] imageFromMemoryCacheForKey:self.post.user.userId] forState:UIControlStateNormal];
+    } else */if (self.post.user.facebookId.length && [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookAccessToken]){
         [self.posterButton setImageWithURL:[Utilities profileImageURLForFacebookID:self.post.user.facebookId] forState:UIControlStateNormal];
-        [[SDImageCache sharedImageCache] storeImage:self.posterButton.imageView.image forKey:self.post.user.userImageKey];
     } else {
-        [[FDAPIClient sharedClient] getProfilePic:self.post.user.userId success:^(NSURL *url) {
-            [self.posterButton setImageWithURL:url forState:UIControlStateNormal];
-            [UIView animateWithDuration:.25 animations:^{
-                [self.posterButton setAlpha:1.0];
-            }];
-        } failure:^(NSError *error) {}];
-        [[SDImageCache sharedImageCache] storeImage:self.posterButton.imageView.image forKey:self.post.user.userImageKey];
+        NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://s3.amazonaws.com/foodia-uploads/user_%@_thumb.jpg",self.post.user.userId]];
+        [self.posterButton setImageWithURL:url forState:UIControlStateNormal];
     }
     
     self.posterButton.imageView.layer.cornerRadius = 22.0f;
@@ -111,8 +103,8 @@ static NSDictionary *placeholderImages;
     
     // show the like count, and set the like button's image to indicate whether current user likes
     self.likeCountLabel.text = [NSString stringWithFormat:@"%@", self.post.likeCount];
-    self.recCountLabel.text = [NSString stringWithFormat:@"%d", [self.post.recommendedTo count]];
-    self.commentCountLabel.text = [NSString stringWithFormat:@"%i", self.post.comments.count];
+    self.recCountLabel.text = [NSString stringWithFormat:@"%@", self.post.recCount];//[self.post.recommendedTo count]];
+    self.commentCountLabel.text = [NSString stringWithFormat:@"%@", self.post.commentCount];
     
     if ([self.post.locationName isEqualToString:@""]){
         [self.locationButton setHidden:YES];

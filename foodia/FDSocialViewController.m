@@ -29,7 +29,7 @@
 - (id)initWithStyle:(UITableViewStyle)style
 {
     self = [super initWithStyle:style];
-      self.navigationItem.title = @"FRIENDS & INVITES";
+      self.navigationItem.title = @"FRIENDS";
     if (self) {
         // Custom initialization
     }
@@ -43,7 +43,7 @@
     self.delegate = self;
     UILabel *navTitle = [[UILabel alloc] init];
     navTitle.frame = CGRectMake(0,0,200,44);
-    navTitle.text = @"FRIENDS & INVITES";
+    navTitle.text = @"FRIENDS";
     if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 6) {
         navTitle.font = [UIFont fontWithName:kAvenirDemiBold size:21];
     } else {
@@ -73,16 +73,6 @@
             break;
         }
     }
-}
--(void)viewDidAppear:(BOOL)animated {
-    [super viewDidAppear:animated];
-    [(FDAppDelegate *)[UIApplication sharedApplication].delegate showFacebookWallPost];
-}
-
--(void)viewDidDisappear:(BOOL)animated {
-    [super viewDidDisappear:animated];
-    [(FDAppDelegate *)[UIApplication sharedApplication].delegate removeFacebookWallPost];
-    [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
 }
 
 - (void)didReceiveMemoryWarning
@@ -246,7 +236,6 @@
 
 - (IBAction)revealMenu:(UIBarButtonItem *)sender {
     [self.slidingViewController anchorTopViewTo:ECRight];
-    [(FDAppDelegate *)[UIApplication sharedApplication].delegate removeFacebookWallPost];
     [(FDMenuViewController*)self.slidingViewController.underLeftViewController refresh];
     [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
 }

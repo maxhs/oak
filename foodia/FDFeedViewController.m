@@ -21,8 +21,14 @@
 #import "FDMenuViewController.h"
 #import "FDPlacesViewController.h"
 #import "FDProfileViewController.h"
+#import "TWAPIManager.h"
+#import <Twitter/Twitter.h>
+#import "OAuth+Additions.h"
+#import "TWSignedRequest.h"
+#import "FDAppDelegate.h"
+#import <Accounts/Accounts.h>
 
-@interface FDFeedViewController () <FDPostTableViewControllerDelegate, FDPostGridViewControllerDelegate, UIScrollViewDelegate, UISearchDisplayDelegate, UISearchBarDelegate>
+@interface FDFeedViewController () <FDPostTableViewControllerDelegate, FDPostGridViewControllerDelegate, UIScrollViewDelegate, UISearchDisplayDelegate, UISearchBarDelegate, UIActionSheetDelegate>
 
 @property (nonatomic,strong) FDFeedTableViewController          *feedTableViewController;
 @property (nonatomic,strong) FDFeaturedGridViewController      *featuredGridViewController;
@@ -43,6 +49,11 @@
 @property (strong, nonatomic) UIDocumentInteractionController *documentInteractionController;
 @property BOOL movedRight;
 @property int page;
+@property (nonatomic, strong) ACAccountStore *accountStore;
+@property (nonatomic, strong) TWAPIManager *apiManager;
+@property (nonatomic, strong) NSArray *accounts;
+@property (strong, nonatomic) UIActionSheet *twitterActionSheet;
+@property (strong, nonatomic) SLComposeViewController *tweetSheet;
 
 - (IBAction)revealMenu:(UIBarButtonItem *)sender;
 @end
@@ -52,11 +63,17 @@
 @synthesize lastContentOffsetY = _lastContentOffsetY;
 @synthesize page = _page;
 @synthesize documentInteractionController = _documentInteractionController;
+@synthesize twitterActionSheet = _twitterActionSheet;
+@synthesize tweetSheet = _tweetSheet;
+@synthesize goToComment;
 
 - (void)viewDidLoad
 {
     [super viewDidLoad];
     [Flurry logEvent:@"Looking at Feed View" timed:YES];
+    self.trackedViewName = @"Initial Feed View";
+    _accountStore = [[ACAccountStore alloc] init];
+    _apiManager = [[TWAPIManager alloc] init];
 
     [(FDMenuViewController*)self.slidingViewController.underLeftViewController shrink];
     
@@ -144,7 +161,14 @@
                                              selector:@selector(postToInstagram)
                                                  name:@"PostToInstagram"
                                                object:nil];
-
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(postToTwitter:)
+                                                 name:@"PostToTwitter"
+                                               object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(postToFacebook:)
+                                                 name:@"PostToFacebook"
+                                               object:nil];
     
     UIImage *emptyBarButton = [UIImage imageNamed:@"emptyBarButton.png"];
     //[self.searchButtonItem setBackgroundImage:emptyBarButton forState:UIControlStateNormal barMetrics:UIBarMetricsDefault];
@@ -158,6 +182,7 @@
         // show the featured feed initially
         //[[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"JustLaunched"];
         [self showFeatured];
+    [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
         //[self hideLabelsExcept:self.featuredLabel];
     //} else {
         //[self showFeed];
@@ -239,8 +264,9 @@
 }
 
 - (void)revealSlider {
-    
     [UIView animateWithDuration:0.3f delay:0.0 options:UIViewAnimationOptionTransitionCurlDown animations:^{
+        [self.navigationItem.rightBarButtonItem setImage:[UIImage imageNamed:@"up_arrow"]];
+        
         [self.feedContainerView setFrame:CGRectMake(0,78,320,self.view.bounds.size.height)];
         CGAffineTransform rotate = CGAffineTransformMakeRotation(1.4*M_PI/180);
         CGAffineTransform translation = CGAffineTransformMakeTranslation(0, 8);
@@ -269,6 +295,7 @@
 
 - (void)hideSlider {
     [UIView animateWithDuration:0.25 delay:0.0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        [self.navigationItem.rightBarButtonItem setImage:[UIImage imageNamed:@"down_arrow"]];
         [self.feedContainerView setFrame:CGRectMake(0,0,320,self.view.bounds.size.height)];
         CGAffineTransform rotate = CGAffineTransformMakeRotation(0);
         CGAffineTransform translation = CGAffineTransformMakeTranslation(0, -85);
@@ -328,6 +355,7 @@
 
 - (void)viewWillDisappear:(BOOL)animated {
     [super viewWillDisappear:animated];
+
     self.slidingViewController.panGesture.enabled = NO;
 }
 
@@ -346,6 +374,8 @@
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
     if ([segue.identifier isEqualToString:@"ShowPost"]) {
         FDPostViewController *vc = segue.destinationViewController;
+        if (self.goToComment) [vc setShouldShowComment:YES];
+        else [vc setShouldShowComment:NO];
         [vc setPostIdentifier:[(FDPost *)sender identifier]];
     } else if ([segue.identifier isEqualToString:@"AddPost"]) {
         [(FDAppDelegate*)[UIApplication sharedApplication].delegate hideLoadingOverlay];
@@ -385,6 +415,7 @@
     //[self.searchButtonItem setEnabled:NO];
     //self.title = @"RECOMMENDED";
     [self.recommendedTableViewController setShouldShowKeepers:NO];
+    [self.recommendedTableViewController refresh];
     [self showPostViewController:self.recommendedTableViewController];
 }
 
@@ -399,6 +430,7 @@
     //[self.searchButtonItem setImage:[UIImage imageNamed:@"magnifier"]];
     //[self.searchButtonItem setEnabled:YES];
     [self.keepersViewController setShouldShowKeepers:YES];
+    [self.keepersViewController refresh];
     [self showPostViewController:self.keepersViewController];
 }
 
@@ -488,8 +520,6 @@
 - (void)searchDisplayController:(UISearchDisplayController *)controller didLoadSearchResultsTableView:(UITableView *)tableView
 {
     [tableView setHidden:YES];
-    NSLog(@"controller searchBar text: %@",controller.searchBar.text);
-
 }
 
 - (void)postToInstagram {
@@ -506,12 +536,244 @@
         self.documentInteractionController.annotation = [NSDictionary dictionaryWithObject:@"#FOODIA" forKey:@"InstagramCaption"];
         
         [((FDAppDelegate *)[UIApplication sharedApplication].delegate) hideLoadingOverlay];
-        [self performSelector:@selector(showIg) withObject:nil afterDelay:2.0];
+        [self performSelector:@selector(showIg) withObject:nil afterDelay:0.2];
+    } else {
+        UIAlertView *errorToShare = [[UIAlertView alloc] initWithTitle:@"Instagram unavailable " message:@"We were unable to connect to Instagram on this device" delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil];
+        [errorToShare show];
     }
 }
 
 -(void)showIg {
     [self.documentInteractionController presentOpenInMenuFromRect:self.view.frame inView:self.view animated:true];
+}
+
+- (void)postToTwitter:(NSNotification*)notification {
+    if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 6) {
+        NSString *postId = [notification.userInfo objectForKey:@"identifier"];
+        if ([SLComposeViewController isAvailableForServiceType:SLServiceTypeTwitter]){
+            self.tweetSheet = [SLComposeViewController
+                                                   composeViewControllerForServiceType:SLServiceTypeTwitter];
+            [self.tweetSheet setInitialText:[NSString stringWithFormat:@"%@ on #FOODIA | http://posts.foodia.com/p/%@", FDPost.userPost.foodiaObject, postId]];
+            if (FDPost.userPost.photoImage){
+                [self.tweetSheet addImage:FDPost.userPost.photoImage];
+            }
+            self.tweetSheet.completionHandler = ^(TWTweetComposeViewControllerResult result) {
+                switch (result) {
+                    case TWTweetComposeViewControllerResultCancelled:
+                    {
+                        [self.navigationController popViewControllerAnimated:YES];
+                        //if posting to Instagram
+                        if ([[NSUserDefaults standardUserDefaults] boolForKey:kDefaultsInstagramActive]) [self postToInstagram];
+                    }
+                        break;
+                        
+                    case TWTweetComposeViewControllerResultDone:
+                    {
+                        [self dismissViewControllerAnimated:YES completion:nil];
+                        //if posting to Instagram
+                        if ([[NSUserDefaults standardUserDefaults] boolForKey:kDefaultsInstagramActive]) [self postToInstagram];
+                    }
+                        break;
+                        
+                    default:
+                        break;
+                }
+            };
+            
+            [self performSelector:@selector(showTwitter) withObject:nil afterDelay:0.1];
+            
+        } else {
+            [self refreshTwitterAccounts];
+        }
+    } else {
+        UIAlertView *errorSharingTwitter = [[UIAlertView alloc] initWithTitle:@"Twitter unavailable" message:@"Sorry, but we weren't able to connect to your Twitter account on this device." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil];
+        [errorSharingTwitter show];
+    }
+}
+
+-(void)showTwitter {
+    [self presentViewController:self.tweetSheet animated:YES completion:nil];
+}
+
+#pragma mark - UIActionSheetDelegate
+
+- (void)actionSheet:(UIActionSheet *)actionSheet
+clickedButtonAtIndex:(NSInteger)buttonIndex
+{
+    if (actionSheet == self.twitterActionSheet){
+        if (buttonIndex != (actionSheet.numberOfButtons - 1)) {
+            [_apiManager
+             performReverseAuthForAccount:_accounts[buttonIndex]
+             withHandler:^(NSData *responseData, NSError *error) {
+                 if (responseData) {
+                     NSString *responseStr = [[NSString alloc]
+                                              initWithData:responseData
+                                              encoding:NSUTF8StringEncoding];
+                     
+                     NSArray *parts = [responseStr
+                                       componentsSeparatedByString:@"&"];
+                     
+                     for (NSString *part in parts){
+                         if ([part rangeOfString:@"oauth_token="].location != NSNotFound){
+                             //NSLog(@"part: %@",[[part componentsSeparatedByString:@"="] lastObject]);
+                             //[_user setTwitterAuthToken:[[part componentsSeparatedByString:@"="] lastObject]];
+                         } else if ([part rangeOfString:@"oauth_token_secret="].location != NSNotFound){
+                             
+                         } else if ([part rangeOfString:@"user_id="].location != NSNotFound){
+                             //NSLog(@"part: %@",[[part componentsSeparatedByString:@"="] lastObject]);
+                             //[_user setTwitterId:[[part componentsSeparatedByString:@"="] lastObject]];
+                         } else {
+                             //NSLog(@"part: %@",[[part componentsSeparatedByString:@"="] lastObject]);
+                             //[_user setTwitterScreenName:[[part componentsSeparatedByString:@"="] lastObject]];
+                         }
+                     }
+                     
+                     dispatch_async(dispatch_get_main_queue(), ^{
+                         // NSLog(@"twitter user: %@",_user.twitterId);
+                         // NSLog(@"twitter auth token: %@",_user.twitterAuthToken);
+                         // NSLog(@"twitter screename: %@",_user.twitterScreenName);
+                     });
+                 }
+                 else {
+                     NSLog(@"Error!\n%@", [error localizedDescription]);
+                 }
+             }];
+        }
+    } else [(FDAppDelegate*)[UIApplication sharedApplication].delegate hideLoadingOverlay];
+}
+
+- (void)refreshTwitterAccounts
+{
+    //  Get access to the user's Twitter account(s)
+    [self obtainAccessToAccountsWithBlock:^(BOOL granted) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            if (granted) {
+                NSLog(@"You have access to the user's Twitter accounts");
+                [self performReverseAuth:nil];
+            }
+            else {
+                NSLog(@"You were not granted access to the Twitter accounts.");
+                [self showTwitterSettings];
+            }
+        });
+    }];
+}
+
+- (void)showTwitterSettings{
+    TWTweetComposeViewController *tweetViewController = [[TWTweetComposeViewController alloc] init];
+    
+    // Create the completion handler block.
+    [tweetViewController setCompletionHandler:^(TWTweetComposeViewControllerResult result)
+     {
+         [self dismissViewControllerAnimated:YES completion:nil];
+     }];
+    
+    // Present the tweet composition view controller modally.
+    [self presentViewController:tweetViewController animated:YES completion:nil];
+    //tweetViewController.view.hidden = YES;
+    for (UIView *view in tweetViewController.view.subviews){
+        [view removeFromSuperview];
+    }
+}
+
+- (void)obtainAccessToAccountsWithBlock:(void (^)(BOOL))block
+{
+    ACAccountType *twitterType = [_accountStore
+                                  accountTypeWithAccountTypeIdentifier:
+                                  ACAccountTypeIdentifierTwitter];
+    
+    ACAccountStoreRequestAccessCompletionHandler handler =
+    ^(BOOL granted, NSError *error) {
+        if (granted) {
+            self.accounts = [_accountStore accountsWithAccountType:twitterType];
+        }
+        
+        block(granted);
+    };
+    
+    //  This method changed in iOS6.  If the new version isn't available, fall
+    //  back to the original (which means that we're running on iOS5+).
+    if ([_accountStore
+         respondsToSelector:@selector(requestAccessToAccountsWithType:
+                                      options:
+                                      completion:)]) {
+             [_accountStore requestAccessToAccountsWithType:twitterType
+                                                    options:nil
+                                                 completion:handler];
+         }
+    else {
+        [_accountStore requestAccessToAccountsWithType:twitterType
+                                 withCompletionHandler:handler];
+    }
+}
+
+- (void)performReverseAuth:(id)sender
+{
+    if ([TWAPIManager isLocalTwitterAccountAvailable]) {
+        self.twitterActionSheet = [[UIActionSheet alloc]
+                                   initWithTitle:@"Choose an Account"
+                                   delegate:self
+                                   cancelButtonTitle:nil
+                                   destructiveButtonTitle:nil
+                                   otherButtonTitles:nil];
+        
+        for (ACAccount *acct in _accounts) {
+            [self.twitterActionSheet addButtonWithTitle:acct.username];
+        }
+        
+        [self.twitterActionSheet addButtonWithTitle:@"Cancel"];
+        [self.twitterActionSheet setDestructiveButtonIndex:[_accounts count]];
+        [self.twitterActionSheet showInView:self.view];
+    }
+    else {
+        UIAlertView *alert = [[UIAlertView alloc]
+                              initWithTitle:@"No Accounts"
+                              message:@"Please configure a Twitter "
+                              "account in Settings.app"
+                              delegate:nil
+                              cancelButtonTitle:@"OK"
+                              otherButtonTitles:nil];
+        [alert show];
+    }
+}
+
+- (void)postToFacebook:(NSNotification*) notification{
+    NSString *identifier = [notification.userInfo objectForKey:@"identifier"];
+    [self performSelector:@selector(shareFacebookNonOpenGraph:) withObject:(NSString*)identifier afterDelay:0.2];
+}
+
+- (void)shareFacebookNonOpenGraph:(NSString*)identifier{
+    if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 6) {
+
+        SLComposeViewController *facebookSheet = [SLComposeViewController composeViewControllerForServiceType:SLServiceTypeFacebook];
+        
+        if (FDPost.userPost.foodiaObject.length){
+            [facebookSheet setInitialText:[NSString stringWithFormat:@"I just posted about %@ on FOODIA",FDPost.userPost.foodiaObject]];
+        } else {
+            [facebookSheet setInitialText:[NSString stringWithFormat:@"I'm %@ on FOODIA",FDPost.userPost.category]];
+        }
+        
+        if (FDPost.userPost.photoImage) [facebookSheet addImage:FDPost.userPost.photoImage];
+        
+        [facebookSheet addURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://posts.foodia.com/p/%@",identifier]]];
+        
+        [facebookSheet setCompletionHandler:^(SLComposeViewControllerResult result) {
+            
+            switch (result) {
+                case SLComposeViewControllerResultCancelled:
+                    NSLog(@"Facebook Post Cancelled");
+                    break;
+                case SLComposeViewControllerResultDone:
+                    NSLog(@"Facebook Post Sucessful");
+                    break;
+                    
+                default:
+                    break;
+            }
+        }];
+        
+        [self presentViewController:facebookSheet animated:YES completion:nil];
+    }
 }
 
 #pragma mark - FDPostTableViewControllerDelegate Methods
@@ -524,14 +786,12 @@
 - (void)postTableViewController:(FDPostTableViewController *)controller didSelectPlace:(FDVenue *)place {
     [self.navigationController setNavigationBarHidden:NO];
     [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
-    NSLog(@"place we're going to: %@",place.name);
     [self performSegueWithIdentifier:@"ShowPlace" sender:place];
 }
 
 #pragma mark - FDPostGridViewControllerDelegate Methods
 
 - (void)postGridViewController:(FDPostGridViewController *)controller didSelectPost:(FDPost *)post {
-    NSLog(@"did select a post: %@",post.identifier);
     [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
     [self performSegueWithIdentifier:@"ShowPost" sender:post];
 }

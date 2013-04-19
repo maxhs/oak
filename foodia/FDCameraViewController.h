@@ -5,33 +5,26 @@
 //  Created by Max Haines-Stiles on 12/30/12.
 //  Copyright (c) 2012 FOODIA. All rights reserved.
 //
-
-@class AVCamCaptureManager, AVCamPreviewView, AVCaptureVideoPreviewLayer, AVCamViewController;
+#import <UIKit/UIKit.h>
+#import "AVCamCaptureManager.h"
+#import "GPUImage.h"
 
 @interface FDCameraViewController : UIViewController <UIImagePickerControllerDelegate,UINavigationControllerDelegate> {
-    BOOL selectingImageFromLibrary;
+    
+    GPUImageStillCamera *stillCamera;
+    GPUImageOutput<GPUImageInput> *filter/*, *secondFilter, *terminalFilter*/;
 }
-
+//@class AVCamCaptureManager, AVCamPreviewView, AVCaptureVideoPreviewLayer;
 
 @property (nonatomic,retain) AVCamCaptureManager *captureManager;
-@property (nonatomic,retain) IBOutlet UIView *videoPreviewView;
+@property (nonatomic, strong) IBOutlet UIImageView *photoPreviewImageView;
 @property (nonatomic,retain) AVCaptureVideoPreviewLayer *captureVideoPreviewLayer;
-@property (nonatomic,retain) IBOutlet UIBarButtonItem *cameraToggleButton;
-@property (nonatomic,retain) IBOutlet UIButton *recordButton;
-@property (nonatomic,retain) IBOutlet UIButton *stillButton;
-@property (nonatomic,retain) IBOutlet UILabel *focusModeLabel;
-@property (nonatomic,retain) IBOutlet UIActivityIndicatorView *activityIndicator;
-@property (nonatomic,retain) IBOutlet UIImageView *capturedImageView;
-@property (nonatomic,retain) IBOutlet UIView *captureButtons;
-@property (nonatomic,retain) IBOutlet UIView *reviewButtons;
-@property (nonatomic,retain) IBOutlet UIButton *libraryButton;
-@property (nonatomic,retain) UIImage *capturedImage;
+@property (nonatomic,retain) IBOutlet UIButton *takePhotoButton;
+@property (nonatomic,retain) IBOutlet UIButton *cancelButton;
+@property (nonatomic,retain) IBOutlet UIButton *useButton;
 
-#pragma mark Toolbar Actions
-- (IBAction)toggleRecording:(id)sender;
 - (IBAction)captureStillImage:(id)sender;
-- (IBAction)toggleCamera:(id)sender;
-- (IBAction)cancel:(id)sender;
-- (IBAction)selectImage:(id)sender;
+- (IBAction)cancel;
 
 @end
+

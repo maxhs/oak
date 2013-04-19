@@ -30,7 +30,7 @@
 @property (strong, nonatomic) UIView *editContainerView;
 @property (strong, nonatomic) UIButton *sortByDistanceButton;
 @property (strong, nonatomic) UIButton *sortByPopularityButton;
-@property (strong, nonatomic) UIButton *selfSortButton;
+@property (strong, nonatomic) UIButton *rankButton;
 @property (strong, nonatomic) CLLocationManager *locationManager;
 @property (strong, nonatomic) CLLocation *currentLocation;
 @property (weak, nonatomic) AFJSONRequestOperation *holdRequestOperation;
@@ -58,68 +58,72 @@
     [super viewDidLoad];
     [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
     [Flurry logPageView];
+    [self.refreshHeaderView setHidden:YES];
     
-    //[self.selfSortButton setBackgroundColor:kColorLightBlack];
-    //[self.selfSortButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    //location manager stuff
     self.locationManager = [[CLLocationManager alloc] init];
     self.locationManager.desiredAccuracy = kCLLocationAccuracyBest;
     self.locationManager.delegate = self;
     [self.locationManager startUpdatingLocation];
-    [self refresh];
+    
+    //set up editcontainer stuff
     self.editContainerView = [[UIView alloc] initWithFrame:CGRectMake(0,-44,320,44)];
     [self.editContainerView setBackgroundColor:[UIColor colorWithPatternImage:[UIImage imageNamed:@"newFoodiaHeader"]]];
-    [self.editContainerView setAlpha:0.0];
     
     self.sortByDistanceButton = [UIButton buttonWithType:UIButtonTypeCustom];
     [self.sortByDistanceButton setFrame:CGRectMake(222, 7, 88, 34)];
-    [self.sortByDistanceButton addTarget:self action:@selector(sortByDistance:) forControlEvents:UIControlEventTouchUpInside];
-    [self.editContainerView addSubview:self.sortByDistanceButton];
     [self.sortByDistanceButton setTitle:@"DISTANCE" forState:UIControlStateNormal];
-    
-
     [self.sortByDistanceButton.titleLabel setTextColor:[UIColor darkGrayColor]];
     self.sortByDistanceButton.layer.cornerRadius = 17.0;
     self.sortByDistanceButton.clipsToBounds = YES;
-    
-    self.selfSortButton = [UIButton buttonWithType:UIButtonTypeCustom];
-    [self.selfSortButton setFrame:CGRectMake(116, 7, 88, 34)];
-    [self.selfSortButton addTarget:self action:@selector(selfSort:) forControlEvents:UIControlEventTouchUpInside];
-    [self.editContainerView addSubview:self.selfSortButton];
-    [self.selfSortButton setTitle:@"MY RANK" forState:UIControlStateNormal];
+    [self.editContainerView addSubview:self.sortByDistanceButton];
 
-    [self.selfSortButton.titleLabel setTextColor:[UIColor darkGrayColor]];
-    self.selfSortButton.layer.cornerRadius = 17.0;
-    self.selfSortButton.clipsToBounds = YES;
+    
+    self.rankButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    [self.rankButton setFrame:CGRectMake(116, 7, 88, 34)];
+    [self.rankButton setTitle:@"MY RANK" forState:UIControlStateNormal];
+    [self.rankButton.titleLabel setTextColor:[UIColor darkGrayColor]];
+    self.rankButton.layer.cornerRadius = 17.0;
+    self.rankButton.clipsToBounds = YES;
+    [self.rankButton setHidden:YES];
+    [self.editContainerView addSubview:self.rankButton];
     
     self.sortByPopularityButton = [UIButton buttonWithType:UIButtonTypeCustom];
-    [self.sortByPopularityButton addTarget:self action:@selector(sortByPopularity:) forControlEvents:UIControlEventTouchUpInside];
     [self.sortByPopularityButton setTitle:@"POPULAR" forState:UIControlStateNormal];
     [self.sortByPopularityButton setFrame:CGRectMake(10, 7, 88, 34)];
-
     [self.sortByPopularityButton.titleLabel setTextColor:[UIColor darkGrayColor]];
     self.sortByPopularityButton.layer.cornerRadius = 17.0;
     self.sortByPopularityButton.clipsToBounds = YES;
     [self.editContainerView addSubview:self.sortByPopularityButton];
+    
+    self.tableView.tableHeaderView = self.editContainerView;
+    
+    //conditionals to support the button actions depending on whether its the recommended view or the keepers view
     if (_shouldShowKeepers){
-        self.tableView.tableHeaderView = self.editContainerView; 
+        [self.sortByDistanceButton addTarget:self action:@selector(sortByDistance:) forControlEvents:UIControlEventTouchUpInside];
+        [self.rankButton addTarget:self action:@selector(rank) forControlEvents:UIControlEventTouchUpInside];
+        [self.sortByPopularityButton addTarget:self action:@selector(sortByPopularity:) forControlEvents:UIControlEventTouchUpInside];
+    } else {
+        [self.sortByDistanceButton addTarget:self action:@selector(sortRecByDistance) forControlEvents:UIControlEventTouchUpInside];
+        [self.sortByPopularityButton addTarget:self action:@selector(sortRecByPopularity) forControlEvents:UIControlEventTouchUpInside];
     }
     self.tableView.dataSource = self;
     self.tableView.delegate = self;
 
     if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 6) {
         [self.sortByPopularityButton.titleLabel setFont:[UIFont fontWithName:kAvenirMedium size:16]];
-        [self.selfSortButton.titleLabel setFont:[UIFont fontWithName:kAvenirMedium size:16]];
+        [self.rankButton.titleLabel setFont:[UIFont fontWithName:kAvenirMedium size:16]];
         [self.sortByDistanceButton.titleLabel setFont:[UIFont fontWithName:kAvenirMedium size:16]];
     } else {
         [self.sortByPopularityButton.titleLabel setFont:[UIFont fontWithName:kFuturaMedium size:16]];
-        [self.selfSortButton.titleLabel setFont:[UIFont fontWithName:kFuturaMedium size:16]];
+        [self.rankButton.titleLabel setFont:[UIFont fontWithName:kFuturaMedium size:16]];
         [self.sortByDistanceButton.titleLabel setFont:[UIFont fontWithName:kFuturaMedium size:16]];
     }
 
     /*[[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(updatePostNotification:)
                                                  name:@"UpdatePostNotification"
-                                               object:nil];*/
+                                               object:nil];
     
     //replace ugly background
     for (UIView *view in self.searchDisplayController.searchBar.subviews) {
@@ -133,25 +137,54 @@
     [self.view addSubview:self.searchDisplayController.searchBar];
     
     UIBarButtonItem *searchBarButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"magnifier"] style:UIBarButtonItemStyleBordered target:self action:@selector(activateSearch)];
-    self.navigationItem.rightBarButtonItem = searchBarButton;
+    self.navigationItem.rightBarButtonItem = searchBarButton;*/
 }
 
-- (void) activateSearch {
-    [self.navigationController setNavigationBarHidden:YES animated:YES];
-}
+//- (void) activateSearch {
+//    [self.navigationController setNavigationBarHidden:YES animated:YES];
+//}
 
-- (void) viewWillAppear:(BOOL)animated {
+- (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
-    [self.tableView setEditing:NO animated:YES];
     self.showingDistance = NO;
     [UIView animateWithDuration:.25 animations:^{
         [self.editContainerView setAlpha:1.0];
     }];
-    if (!self.shouldShowKeepers) [self createAdBannerView];
+
+    /*if (self.shouldShowKeepers){
+        //[self loadFromCache];
+    } else {
+        [self refresh:NO andDistance:nil];
+    }*/
+}
+
+- (void) refresh {
+    [self refresh:NO andDistance:nil];
+}
+
+- (void)sortRecByDistance {
+    [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
+    self.showingRank = NO;
+    self.showingDistance = YES;
+    [self resetButtonColors];
+    [self.sortByDistanceButton setBackgroundColor:kColorLightBlack];
+    [self.sortByDistanceButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    [self refresh:NO andDistance:self.currentLocation];
+}
+
+- (void)sortRecByPopularity {
+    NSLog(@"should be sorting by popualrity");
+    [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
+    self.showingRank = NO;
+    self.showingDistance = NO;
+    [self resetButtonColors];
+    [self.sortByPopularityButton setBackgroundColor:kColorLightBlack];
+    [self.sortByPopularityButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    [self refresh:YES andDistance:nil];
 }
 
 - (void) locationManager:(CLLocationManager *)manager didFailWithError:(NSError *)error {
-    
+    NSLog(@"Location manager failed with error: %@",error.description);
 }
 
 - (void) locationManager:(CLLocationManager *)manager didUpdateLocations:(NSArray *)locations {
@@ -159,38 +192,48 @@
     self.currentLocation = [locations lastObject];
     [self.locationManager stopUpdatingLocation];
 }
+
 - (void)loadFromCache {
-    NSMutableArray *cachedPosts = [FDCache getCachedRankedPosts];
-    NSLog(@"self.ranked count: %d", cachedPosts.count);
-    NSLog(@"self.posts count: %d", self.posts.count);
-    if (self.posts.count != cachedPosts.count && self.posts.count != 0){
+    //self.posts = [FDCache getCachedRankedPosts];
+    [self.posts removeAllObjects];
+    if (self.posts.count != 0){
         [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
-        NSLog(@"count between self.posts and ranked.posts is different and not 0");
-        self.holdRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getHeldPostsSincePost:[self.posts objectAtIndex:0] success:^(NSMutableArray *rankedResult) {
-            NSLog(@"rankedResult: %@",rankedResult);
-            self.posts = [[rankedResult arrayByAddingObjectsFromArray:cachedPosts] mutableCopy];
-            NSLog(@"self.ranked count after: %d", cachedPosts.count);
-            NSLog(@"self.posts count after: %d", self.posts.count);
-            /*NSMutableArray *indexPathsForAddedPosts = [NSMutableArray arrayWithCapacity:rankedResult.count];
-            for (FDPost *post in rankedResult) {
-                NSIndexPath *path = [NSIndexPath indexPathForRow:[self.posts indexOfObject:post] inSection:0];
-                [indexPathsForAddedPosts addObject:path];
+        self.holdRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getHeldPostsSincePost:[self.posts objectAtIndex:0] success:^(NSMutableArray *keepers) {
+            NSLog(@"rankedResult: %@",keepers);
+            if (keepers.count != self.posts.count){
+                self.posts = [[keepers arrayByAddingObjectsFromArray:self.posts] mutableCopy];
+                NSLog(@"self.posts count after: %d", self.posts.count);
+                /*NSMutableArray *indexPathsForAddedPosts = [NSMutableArray arrayWithCapacity:rankedResult.count];
+                for (FDPost *post in rankedResult) {
+                    NSIndexPath *path = [NSIndexPath indexPathForRow:[self.posts indexOfObject:post] inSection:0];
+                    [indexPathsForAddedPosts addObject:path];
+                }
+                [self.tableView insertRowsAtIndexPaths:indexPathsForAddedPosts
+                                      withRowAnimation:UITableViewRowAnimationAutomatic];*/
+                self.showingRank = YES;
             }
-            [self.tableView insertRowsAtIndexPaths:indexPathsForAddedPosts
-                                  withRowAnimation:UITableViewRowAnimationAutomatic];*/
-            self.showingRank = YES;
             [self reloadData];
             [FDCache clearCache];
             self.feedRequestOperation = nil;
-            
+        
         } failure:^(NSError *error) {
             self.feedRequestOperation = nil;
             [self reloadData];
         }];
     } else {
-        NSLog(@"count was the same, so we're using the cache");
-        self.posts = cachedPosts;
-        [self reloadData];
+        NSLog(@"getting fresh cache");
+        [Flurry logEvent:@"Loading initial held onto" timed:YES];
+        self.holdRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getHeldPosts:^(NSMutableArray *posts) {
+            if (posts.count == 0){
+                [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
+            }
+            self.posts = posts;
+            [self reloadData];
+            self.feedRequestOperation = nil;
+        } failure:^(NSError *error) {
+            self.feedRequestOperation = nil;
+            [self reloadData];
+        }];
     }
 }
 
@@ -233,8 +276,8 @@
             [cell.cellMotionButton setHidden:YES];
             [cell configureForPost:post];
             
-            UIImageView *editingAccessory = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"menuBarButtonImage"]];
-            cell.accessoryView = editingAccessory;
+            /*UIImageView *editingAccessory = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"menuBarButtonImage"]];
+            cell.accessoryView = editingAccessory;*/
         } else {
             post = [self.posts objectAtIndex:indexPath.row];
             
@@ -251,16 +294,17 @@
             [self showLikers:cell forPost:post];
             [cell bringSubviewToFront:cell.likersScrollView];
             
-            //capture recommend touch event
+            //change the recommend touch event to removeHeldPost
             if (self.shouldShowKeepers){
                 [cell.recButton addTarget:self action:@selector(removeHeldPost:) forControlEvents:UIControlEventTouchUpInside];
                 [cell.recButton setTag:[post.identifier integerValue]];
                 [cell.recButton setTitle:@"Remove" forState:UIControlStateNormal];
                 [cell.recCountLabel setHidden:YES];
             } else {
-                [cell.recButton addTarget:self action:@selector(recommend:) forControlEvents:UIControlEventTouchUpInside];
-                [cell.recButton setTitle:@"Rec" forState:UIControlStateNormal];
-                [cell.recButton setTag:indexPath.row];
+                [cell.recButton addTarget:self action:@selector(removeRecPost:) forControlEvents:UIControlEventTouchUpInside];
+                [cell.recButton setTag:[post.identifier integerValue]];
+                [cell.recButton setTitle:@"Remove" forState:UIControlStateNormal];
+                [cell.recCountLabel setHidden:YES];
             }
             
             //capture post detail view touch event
@@ -291,14 +335,6 @@
     }
 }
 
-- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    [self longPress];
-}
-
--(void)longPress {
-    [self.tableView setEditing:YES animated:NO];
-}
-
 -(BOOL) tableView:(UITableView *)tableView shouldIndentWhileEditingRowAtIndexPath:(NSIndexPath *)indexPath {
     return NO;
 }
@@ -313,6 +349,8 @@
     if([indexPath row] == ((NSIndexPath*)[[tableView indexPathsForVisibleRows] lastObject]).row){
         //end of loading
         [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
+        //show ad!
+        if (!self.shouldShowKeepers) [self createAdBannerView];
     }
 }
 
@@ -322,16 +360,22 @@
     [self.delegate performSegueWithIdentifier:@"ShowPlace" sender:(FDPost*)[self.posts objectAtIndex:button.tag]];
 }
 
-- (void)resetButtonColors {
+- (void)endEditMode {
+    [self.rankButton setTitle:@"MY RANK" forState:UIControlStateNormal];
     [self.tableView setEditing:NO animated:YES];
     [self saveCache];
+    [self.rankButton addTarget:self action:@selector(rank) forControlEvents:UIControlEventTouchUpInside];
+}
+
+- (void)resetButtonColors {
+    [self.tableView setEditing:NO animated:YES];
     [UIView animateWithDuration:.2 animations:^{
         [self.sortByPopularityButton setBackgroundColor:[UIColor clearColor]];
         [self.sortByDistanceButton setBackgroundColor:[UIColor clearColor]];
-        [self.selfSortButton setBackgroundColor:[UIColor clearColor]];
+        [self.rankButton setBackgroundColor:[UIColor clearColor]];
         [self.sortByPopularityButton setTitleColor:[UIColor darkGrayColor] forState:UIControlStateNormal];
         [self.sortByDistanceButton setTitleColor:[UIColor darkGrayColor] forState:UIControlStateNormal];
-        [self.selfSortButton setTitleColor:[UIColor darkGrayColor] forState:UIControlStateNormal];
+        [self.rankButton setTitleColor:[UIColor darkGrayColor] forState:UIControlStateNormal];
     }];
 
 }
@@ -357,7 +401,6 @@
             distance = distance / FEET_IN_MILES;
         }
     }
-    
     return [NSString stringWithFormat:format, [self stringWithDouble:distance]];
 }
 
@@ -370,89 +413,33 @@
     return [numberFormatter stringFromNumber:[NSNumber numberWithDouble:value]];
 }
 
-- (void)refresh {
-    NSLog(@"refresh called");
+- (void)refresh:(BOOL)popularity andDistance:(CLLocation*)location {
     [self resetButtonColors];
-    // if we already have some posts in the feed, get the feed since the last post
-    /*if (self.posts.count && self.shouldShowLikes) {
-            NSLog(@"should be showing likes instead");
-            self.feedRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getLikedPosts:^(NSMutableArray *posts) {
-                self.posts = [[posts arrayByAddingObjectsFromArray:self.posts] mutableCopy];
-                NSLog(@"liked posts from rec vc: %@",self.posts);
-                NSMutableArray *indexPathsForAddedPosts = [NSMutableArray arrayWithCapacity:posts.count];
-                for (FDPost *post in posts) {
-                    NSLog(@"each post identifier: %@",post.identifier);
-                    NSIndexPath *path = [NSIndexPath indexPathForRow:[self.posts indexOfObject:post] inSection:0];
-                    [indexPathsForAddedPosts addObject:path];
-                }
-                [self.tableView insertRowsAtIndexPaths:indexPathsForAddedPosts
-                                      withRowAnimation:UITableViewRowAnimationAutomatic];
-                
-                [self reloadData];
-                self.feedRequestOperation = nil;
-                
-            } failure:^(NSError *error) {
-                self.feedRequestOperation = nil;
-                [self reloadData];
-            }];
-    } else if (self.posts.count && !self.shouldShowLikes) {
-            self.feedRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getRecommendedPostsSincePost:[self.posts objectAtIndex:0] success:^(NSMutableArray *posts) {
-                self.posts = [[posts arrayByAddingObjectsFromArray:self.posts] mutableCopy];
-                NSMutableArray *indexPathsForAddedPosts = [NSMutableArray arrayWithCapacity:posts.count];
-                for (FDPost *post in posts) {
-                    NSIndexPath *path = [NSIndexPath indexPathForRow:[self.posts indexOfObject:post] inSection:0];
-                    [indexPathsForAddedPosts addObject:path];
-                }
-                [self.tableView insertRowsAtIndexPaths:indexPathsForAddedPosts
-                                      withRowAnimation:UITableViewRowAnimationAutomatic];
-                
-                [self reloadData];
-                self.feedRequestOperation = nil;
-                
-            } failure:^(NSError *error) {
-                self.feedRequestOperation = nil;
-                [self reloadData];            
-            }];
-            // otherwise, get the intial feed
-    } else */
-    if (_showingRank){
-        NSLog(@"shuold be showing rank, so not refreshing");
+    /*if (_showingRank){
         [self loadFromCache];
-    } else {
-
-        if (self.shouldShowKeepers) {
-            [Flurry logEvent:@"Loading initial held onto" timed:YES];
-            self.holdRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getHeldPosts:^(NSMutableArray *posts) {
-                if (posts.count == 0){
-                    [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
-                }
-                self.posts = posts;
-                [self reloadData];
-                self.feedRequestOperation = nil;
-            } failure:^(NSError *error) {
-                self.feedRequestOperation = nil;
-                [self reloadData];
-            }];
-        } else {
-            NSLog(@"should be showing recommended posts");
+    } else {*/
+        if (!self.shouldShowKeepers){
             [Flurry logEvent:@"Loading initial recommended posts" timed:YES];
-            self.feedRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getRecommendedPostsSuccess:^(NSMutableArray *posts) {
+            self.feedRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getRecommendedPostsByPopularity:popularity distance:location Success:^(NSMutableArray *posts) {
                 if (posts.count == 0){
                     [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
                     return;
+                } else {
+                    [self.posts removeAllObjects];
+                    self.posts = posts;
+                    [self reloadData];
+                    self.feedRequestOperation = nil;
                 }
-                self.posts = posts;
-                [self reloadData];
-                self.feedRequestOperation = nil;
             } failure:^(NSError *error) {
                 self.feedRequestOperation = nil;
                 [self reloadData];
             }];
         }
-    }
+    //}
 }
 
 - (void)removeHeldPost:(id)sender {
+    [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
     UIButton *button = (UIButton*)sender;
     [[FDAPIClient sharedClient] removeHeldPost:[NSString stringWithFormat:@"%i",button.tag] success:^(NSArray *result) {
         self.posts = [result mutableCopy];
@@ -462,7 +449,16 @@
     }];
 }
 
-- (void)sortByPopularity:(id)sender {\
+- (void)removeRecPost:(id)sender {
+    [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
+    UIButton *button = (UIButton*)sender;
+    [[FDAPIClient sharedClient] removeRecPost:[NSString stringWithFormat:@"%i",button.tag] success:^(NSArray *result) {
+        [self refresh:NO andDistance:nil];
+    } failure:^(NSError *error) {
+        
+    }];
+}
+- (void)sortByPopularity:(id)sender {
     self.showingRank = NO;
     self.showingDistance = NO;
     [self resetButtonColors];
@@ -475,19 +471,21 @@
         [self.tableView reloadData];
         self.holdRequestOperation = nil;
     } failure:^(NSError *error) {
-        NSLog(@"error getting sorted by populairty posts");
+        NSLog(@"Error sorting keepers by popularity: %@",error.description);
         self.holdRequestOperation = nil;
     }];
 }
 
-- (void)selfSort:(id)sender {
+- (void)rank {
+    //[self loadFromCache];
     self.showingDistance = NO;
     self.showingRank = YES;
     [self resetButtonColors];
-    [self loadFromCache];
-    UIButton *button = (UIButton*)sender;
-    [button setBackgroundColor:kColorLightBlack];
-    [button setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    [self.tableView setEditing:YES animated:NO];
+    [self.rankButton setBackgroundColor:kColorLightBlack];
+    [self.rankButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    [self.rankButton setTitle:@"SAVE" forState:UIControlStateNormal];
+    [self.rankButton addTarget:self action:@selector(endEditMode) forControlEvents:UIControlEventTouchUpInside];
 }
 
 - (void)sortByDistance:(id)sender {
@@ -503,7 +501,7 @@
         [self.tableView reloadData];
         self.holdRequestOperation = nil;
     } failure:^(NSError *error) {
-        NSLog(@"error getting posts sorted by distance");
+        NSLog(@"Error sorting keepers by distance: %@",error.description);
         self.holdRequestOperation = nil;
     }];
 }
@@ -560,7 +558,6 @@
         [self loadAdditionalPosts];
     }
 }
-
 
 #pragma mark - Display likers
 
@@ -637,7 +634,6 @@
 - (void)tableView:(UITableView *)tableView moveRowAtIndexPath:(NSIndexPath *)fromIndexPath toIndexPath:(NSIndexPath *)toIndexPath
 {
     if(fromIndexPath == toIndexPath) return;
-
     FDPostCell *cellToMove = [self.posts objectAtIndex:fromIndexPath.row];
     [self.posts removeObjectAtIndex:fromIndexPath.row];
     [self.posts insertObject:cellToMove atIndex:toIndexPath.row];
@@ -682,6 +678,29 @@
         _adBannerViewIsVisible = NO;
         //[self fixupAdView:[UIDevice currentDevice].orientation];
     }
+}
+
+#pragma mark - EGORefreshTableHeaderDelegate Methods
+
+- (void)egoRefreshTableHeaderDidTriggerRefresh:(EGORefreshTableHeaderView*)view {
+
+}
+
+- (BOOL)egoRefreshTableHeaderDataSourceIsLoading:(EGORefreshTableHeaderView*)view {
+    return YES;
+}
+
+
+- (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    // Return NO if you do not want the specified item to be editable.
+    return YES;
+}
+// Override to support conditional rearranging of the table view.
+- (BOOL)tableView:(UITableView *)tableView canMoveRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    // Return NO if you do not want the item to be re-orderable.
+    return YES;
 }
 
 @end

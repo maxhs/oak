@@ -11,7 +11,7 @@
 
 @implementation FDComment
 
-@synthesize body;
+@synthesize body, commentId;
 
 - (NSDate *)date {
     return [NSDate dateWithTimeIntervalSince1970:self.epochTime.integerValue];

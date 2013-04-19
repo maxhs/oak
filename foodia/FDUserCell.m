@@ -38,7 +38,6 @@
 - (void)buttonPressed:(id)sender
 {
     UIButton *button = (UIButton*)sender;
-    NSLog(@"button pressed for this user: %i",button.tag);
     if ([button.titleLabel.text isEqualToString:@"Follow"]) {
         [self setUnfollowButton];
         [[FDAPIClient sharedClient] followUser:[NSString stringWithFormat:@"%i",button.tag]];
@@ -93,6 +92,7 @@
 
 - (void)configureForUser:(FDUser *)user
 {
+    
     self.actionButton.layer.cornerRadius = 17.0;
     self.actionButton.layer.shouldRasterize = YES;
     self.actionButton.layer.rasterizationScale = [UIScreen mainScreen].scale;
@@ -102,36 +102,20 @@
         [self.actionButton.titleLabel setFont:[UIFont fontWithName:kFuturaMedium size:15]];
     }
     if (user.fbid){
-        [self.profileButton setImageWithURL:[Utilities profileImageURLForFacebookID:user.fbid] forState:UIControlStateNormal completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType) {
-            if (image) {
-                [self.profileButton.imageView setImage:image];
-                [UIView animateWithDuration:.25 animations:^{
-                    [self.profileButton setAlpha:1.0];
-                }];
-            }
+        [self.profileButton setImageWithURL:[Utilities profileImageURLForFacebookID:user.fbid] forState:UIControlStateNormal];
+        [UIView animateWithDuration:.25 animations:^{
+            [self.profileButton setAlpha:1.0];
         }];
-        self.profileButton.titleLabel.text = [NSString stringWithFormat:@"%@",user.fbid];
-        self.profileButton.titleLabel.hidden = YES;
-        
     } else {
-        if (user.facebookId.length){
-            [self.profileButton setImageWithURL:[Utilities profileImageURLForFacebookID:user.facebookId] forState:UIControlStateNormal completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType) {
-                if (image) {
-                    [self.profileButton.imageView setImage:image];
-                    [UIView animateWithDuration:.25 animations:^{
-                        [self.profileButton setAlpha:1.0];
-                    }];
-                }
+        if (user.facebookId.length && [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookAccessToken]){
+            [self.profileButton setImageWithURL:[Utilities profileImageURLForFacebookID:user.facebookId] forState:UIControlStateNormal];
+            [UIView animateWithDuration:.25 animations:^{
+                [self.profileButton setAlpha:1.0];
             }];
         } else {
-            
-            [[FDAPIClient sharedClient] getProfilePic:user.userId success:^(NSURL *url) {
-                [self.profileButton setImageWithURL:url forState:UIControlStateNormal];
-                NSLog(@"should be setting avatar url for user: %@",url);
-            } failure:^(NSError *error) {
-                
-            }];
-            self.profileButton.titleLabel.hidden = YES;
+            //set from Amazon. risky...
+            NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://s3.amazonaws.com/foodia-uploads/user_%@_thumb.jpg",user.userId]];
+            [self.profileButton setImageWithURL:url forState:UIControlStateNormal];
             [UIView animateWithDuration:.25 animations:^{
                 [self.profileButton setAlpha:1.0];
             }];
@@ -143,46 +127,17 @@
     [self.profileButton.imageView.layer setBackgroundColor:[UIColor whiteColor].CGColor];
     self.profileButton.imageView.layer.shouldRasterize = YES;
     self.profileButton.imageView.layer.rasterizationScale = [UIScreen mainScreen].scale;
-    if (user.fbid){
+    if (user.fbid.length){
         self.facebookId = user.fbid;
-        [self.actionButton addTarget:self action:@selector(inviteUser) forControlEvents:UIControlEventTouchUpInside];
+        //[self.actionButton addTarget:self action:@selector(inviteUser) forControlEvents:UIControlEventTouchUpInside];
         [self setInviteButton];
     } else {
         [self.actionButton setTag:[user.userId integerValue]];
-            [self.actionButton addTarget:self action:@selector(buttonPressed:) forControlEvents:UIControlEventTouchUpInside];
+        [self.actionButton removeTarget:self action:@selector(inviteUser) forControlEvents:UIControlEventTouchUpInside];
+        [self.actionButton addTarget:self action:@selector(buttonPressed:) forControlEvents:UIControlEventTouchUpInside];
     }
     if ([[[UIDevice currentDevice] systemVersion] floatValue] < 6) {
         [self.nameLabel setFont:[UIFont fontWithName:kFuturaMedium size:16]];
-    }
-}
-
--(void)inviteUser {
-    [self setInvitedButton];
-    if ([FBSession.activeSession.permissions
-         indexOfObject:@"publish_actions"] == NSNotFound) {
-        // No permissions found in session, ask for it
-        [FBSession.activeSession reauthorizeWithPublishPermissions:[NSArray arrayWithObjects:@"publish_actions",nil] defaultAudience:FBSessionDefaultAudienceFriends completionHandler:^(FBSession *session, NSError *error) {
-            if (!error) {
-                // If permissions granted, publish the story
-                if ([FBSession.activeSession.permissions
-                     indexOfObject:@"publish_actions"] != NSNotFound) {
-                    NSDictionary *inviteRecipient = [NSDictionary dictionaryWithObject:self.facebookId forKey:@"fbid"];
-                    [[NSNotificationCenter defaultCenter]
-                     postNotificationName:@"SendInvite"
-                     object:inviteRecipient];
-                    NSLog(@"sending invite from userCell");
-                } else {
-                    [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"But we can't send invites through Facebook without your permission." delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
-                }
-            }
-        }];
-    } else if ([FBSession.activeSession.permissions
-                indexOfObject:@"publish_actions"] != NSNotFound) {
-        // If permissions present, publish the story
-        NSDictionary *inviteRecipient = [NSDictionary dictionaryWithObject:self.facebookId forKey:@"fbid"];
-        [[NSNotificationCenter defaultCenter]
-         postNotificationName:@"SendInvite"
-         object:inviteRecipient];
     }
 }
 

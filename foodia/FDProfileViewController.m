@@ -29,8 +29,6 @@
 #import "UIButton+WebCache.h"
 #import <CoreLocation/CoreLocation.h>
 
-#define kLargePostList CGRectMake(0,114,320,390)
-#define kSmallPostList CGRectMake(0,114,320,390)
 NSString* const searchBarPlaceholder = @"Search for food and drink";
 NSString* const locationBarPlaceholder = @"Search the places you've been";
 
@@ -138,7 +136,7 @@ NSString* const locationBarPlaceholder = @"Search the places you've been";
     } failure:^(NSError *error) {
 
     }];
-    if (self.myProfile){
+    if (self.myProfile && ![[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookAccessToken]){
         [self.socialButton setHidden:YES];
         self.editButton = [UIButton buttonWithType:UIButtonTypeCustom];
         [self.editButton setFrame:CGRectMake(80,0,160,34)];
@@ -153,7 +151,19 @@ NSString* const locationBarPlaceholder = @"Search the places you've been";
         self.editButton.showsTouchWhenHighlighted = YES;
         [self.view addSubview:self.editButton];
         [self.view bringSubviewToFront:self.editButton];
+    } else if (self.myProfile) {
+        [self.socialButton setHidden:YES];
+        self.postButton.transform = CGAffineTransformMakeTranslation(0,-16);
+        self.followersButton.transform = CGAffineTransformMakeTranslation(0,-16);
+        self.followingButton.transform = CGAffineTransformMakeTranslation(0,-16);
+        self.postsButtonBackground.transform = CGAffineTransformMakeTranslation(0,-16);
+        self.followersButtonBackground.transform = CGAffineTransformMakeTranslation(0,-16);
+        self.followingButtonBackground.transform = CGAffineTransformMakeTranslation(0,-16);
+        self.postCountLabel.transform = CGAffineTransformMakeTranslation(0,-16);
+        self.followerCountLabel.transform = CGAffineTransformMakeTranslation(0,-16);
+        self.followingCountLabel.transform = CGAffineTransformMakeTranslation(0,-16);
     }
+    
     self.user = nil;
     if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 6) {
         [self.editButton.titleLabel setFont:[UIFont fontWithName:kAvenirMedium size:16]];
@@ -314,11 +324,7 @@ NSString* const locationBarPlaceholder = @"Search the places you've been";
     if (self.navigationController.navigationBar.backItem == nil) {
         self.navigationItem.leftBarButtonItem = menuButton;
     }
-    if ([UIScreen mainScreen].bounds.size.height == 568){
-        [self.postList setFrame:kLargePostList];
-    } else {
-        [self.postList setFrame:kSmallPostList];
-    }
+    [self.postList setFrame:CGRectMake(0,self.profileContainerView.frame.size.height+114,320,self.view.frame.size.height-114-profileContainerView.frame.size.height)];
     self.postListRect = self.postList.frame;
 }
 
@@ -345,11 +351,10 @@ NSString* const locationBarPlaceholder = @"Search the places you've been";
     } else if (self.filteredPosts.count > 0 && section == 0 && currentTab == 0) {
 
         return self.filteredPosts.count;
-    } else if (self.noSearchResults  && tableView != self.locationSearchDisplayController.searchResultsTableView) {
+    } else if (self.noSearchResults && section == 0 && currentTab == 0/*  && tableView != self.locationSearchDisplayController.searchResultsTableView*/) {
 
         return 1;
     } else if(section == 0 && currentTab == 0 && tableView != self.locationSearchDisplayController.searchResultsTableView) {
-
         return self.posts.count;
     } else if(section == 1 && currentTab == 1 && tableView != self.locationSearchDisplayController.searchResultsTableView) {
 
@@ -489,7 +494,6 @@ NSString* const locationBarPlaceholder = @"Search the places you've been";
         [peopleButton setFrame:cell.profileButton.frame];
         return cell;
     } else {
-        NSLog(@"returning an empty cell");
         [self.locationSearchDisplayController.searchResultsTableView setSeparatorStyle:UITableViewCellSeparatorStyleNone];
         [self.postList setSeparatorStyle:UITableViewCellSeparatorStyleNone];
         UITableViewCell *emptyCell = [[UITableViewCell alloc]initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"EmptyCell"];
@@ -526,9 +530,9 @@ NSString* const locationBarPlaceholder = @"Search the places you've been";
     [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
     UIButton *button = (UIButton *) sender;
     if (self.filteredPosts.count > 0) {
-        [self performSegueWithIdentifier:@"ShowPlace" sender:[self.filteredPosts objectAtIndex:button.tag]];
+        [self performSegueWithIdentifier:@"ShowPlaceFromProfile" sender:[self.filteredPosts objectAtIndex:button.tag]];
     } else {
-        [self performSegueWithIdentifier:@"ShowPlace" sender:[self.posts objectAtIndex:button.tag]];
+        [self performSegueWithIdentifier:@"ShowPlaceFromProfile" sender:[self.posts objectAtIndex:button.tag]];
     }
 }
 
@@ -648,7 +652,7 @@ NSString* const locationBarPlaceholder = @"Search the places you've been";
 
             UIButton *viewerButton = [UIButton buttonWithType:UIButtonTypeCustom];
             [viewerButton setFrame:CGRectMake(((space+imageSize)*index),0,imageSize, imageSize)];
-            if ([[viewer objectForKey:@"facebook_id"] length]){
+            if ([[viewer objectForKey:@"facebook_id"] length] && [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookAccessToken]){
                 [viewerButton setImageWithURL:[Utilities profileImageURLForFacebookID:[viewer objectForKey:@"facebook_id"]] forState:UIControlStateNormal];
             } else {
                 [viewerButton setImageWithURL:[viewer objectForKey:@"avatar_url"] forState:UIControlStateNormal];
@@ -731,7 +735,7 @@ NSString* const locationBarPlaceholder = @"Search the places you've been";
         [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
         FDProfileMapViewController *vc = segue.destinationViewController;
         [vc setUid:self.userId];
-    } else if ([segue.identifier isEqualToString:@"ShowPlace"]){
+    } else if ([segue.identifier isEqualToString:@"ShowPlaceFromProfile"]){
         FDPlaceViewController *placeView = [segue destinationViewController];
         FDPost *post = (FDPost *) sender;
         [placeView setVenueId:post.foursquareid];
@@ -852,7 +856,6 @@ NSString* const locationBarPlaceholder = @"Search the places you've been";
         // because our fallback will show the share view controller.
         if (error && [error code] == 7) {
             return;
-            NSLog(@"there was an error code 7");
         }
         NSString *alertText = @"";
         if (error) {
@@ -882,9 +885,13 @@ NSString* const locationBarPlaceholder = @"Search the places you've been";
     FDPost *post = [self.posts objectAtIndex:button.tag];
     [button setEnabled:NO];
     if ([post isLikedByUser]) {
+        [UIView animateWithDuration:.35 animations:^{
+            [button setBackgroundImage:[UIImage imageNamed:@"recBubble"] forState:UIControlStateNormal];
+        }];
         [[FDAPIClient sharedClient] unlikePost:post
                                        success:^(FDPost *newPost) {
                                            [button setEnabled:YES];
+                                           self.justLiked = NO;
                                            [self.posts replaceObjectAtIndex:button.tag withObject:newPost];
                                            NSIndexPath *path = [NSIndexPath indexPathForRow:button.tag inSection:0];
                                            [self.postList reloadRowsAtIndexPaths:[NSArray arrayWithObject:path] withRowAnimation:UITableViewRowAnimationFade];
@@ -895,6 +902,9 @@ NSString* const locationBarPlaceholder = @"Search the places you've been";
          ];
         
     } else {
+        [UIView animateWithDuration:.35 animations:^{
+            [button setBackgroundImage:[UIImage imageNamed:@"likeBubbleSelected"] forState:UIControlStateNormal];
+        }];
         [[FDAPIClient sharedClient] likePost:post
                                      success:^(FDPost *newPost) {
                                          [button setEnabled:YES];
@@ -923,14 +933,13 @@ NSString* const locationBarPlaceholder = @"Search the places you've been";
             [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
         } else {
             [self.posts addObjectsFromArray:morePosts];
-            NSLog(@"this is self.posts.count after additions: %d", self.posts.count);
             /*if (self.posts.count < [self.postCountLabel.text integerValue] && self.canLoadMore == YES)[self loadAdditionalPosts];*/
             [self.postList reloadData];
         }
         self.feedRequestOperation = nil;
     } failure:^(NSError *error){
         self.feedRequestOperation = nil;
-        NSLog(@"adding more profile posts has failed");
+
     }];
     }
 }
@@ -1025,6 +1034,7 @@ NSString* const locationBarPlaceholder = @"Search the places you've been";
 }
 
 -(void) resetCategoryButtons {
+    self.posts = 0;
     [self.shoppingButton setTitleColor:[UIColor darkGrayColor] forState:UIControlStateNormal];
     [self.shoppingButton setBackgroundColor:[UIColor clearColor]];
     [self.makingButton setTitleColor:[UIColor darkGrayColor] forState:UIControlStateNormal];
@@ -1065,7 +1075,6 @@ NSString* const locationBarPlaceholder = @"Search the places you've been";
     [UIView animateWithDuration:UINavigationControllerHideShowBarDuration animations:^{
         [self moveRight:self.searchBar withDelay:0];
         [self moveRight:self.locationSearchBar withDelay:.1];
-        //self.profileDetailsContainerView.frame = CGRectMake(0,0,320,self.profileDetailsContainerView.bounds.size.height);
         self.makingButton.alpha = 1.0f;
         self.shoppingButton.alpha = 1.0f;
         self.drinkingButton.alpha = 1.0f;
@@ -1078,7 +1087,7 @@ NSString* const locationBarPlaceholder = @"Search the places you've been";
 
 -(void)searchBarSearchButtonClicked:(UISearchBar *)thisSearchBar {
     self.currentTab = 0;
-    [self.postSearchRequestOperation cancel];
+    self.postSearchRequestOperation = nil;
     [self.view endEditing:YES];
     [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
     [self.filteredPosts removeAllObjects];
@@ -1114,7 +1123,6 @@ NSString* const locationBarPlaceholder = @"Search the places you've been";
             self.postSearchRequestOperation = nil;
         }];
     } else {
-        NSLog(@"self selected venue: %@",self.selectedVenue);
         self.postSearchRequestOperation = [[FDAPIClient sharedClient] getUserPosts:self.userId forQuery:searchBarText withVenue:nil nearCoordinate:nil success:^(NSMutableArray *result) {
             if (result.count == 0) {
                 self.noSearchResults = YES;
@@ -1214,7 +1222,6 @@ NSString* const locationBarPlaceholder = @"Search the places you've been";
 - (IBAction)revealMenu:(UIBarButtonItem *)sender {
     [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
     [self.slidingViewController anchorTopViewTo:ECRight];
-    [(FDAppDelegate *)[UIApplication sharedApplication].delegate removeFacebookWallPost];
     [(FDMenuViewController*)self.slidingViewController.underLeftViewController refresh];
 }
 
