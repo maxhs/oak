@@ -16,7 +16,7 @@
     NSManagedObjectContext *managedObjectContext;
     NSPersistentStoreCoordinator *persistentStoreCoordinator;
 }*/
-
+@property BOOL isTakingPhoto;
 @property (strong, nonatomic) UIWindow *window;
 @property (nonatomic, retain) Facebook *facebook;
 /*@property (nonatomic, retain, readonly) NSManagedObjectModel *managedObjectModel;
@@ -28,6 +28,6 @@
 - (void)showLoadingOverlay;
 - (void)hideLoadingOverlay;
 - (void)feedDialogWithParams:(NSMutableDictionary *)params;
-- (void)setupNoConnection;
+
 - (void)showUserProfile:(NSString *)facebookId;
 @end

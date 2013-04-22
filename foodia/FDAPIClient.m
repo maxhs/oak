@@ -51,6 +51,7 @@
 #define COMMENT_PATH @"comments"
 #define MAP_PATH @"posts/map.json"
 #define PLACES_PATH @"posts/places.json"
+#define FREE_SEARCH_PATH @"posts/free_search.json"
 #define PEOPLE_PATH @"follows"
 #define FOLLOWERS_PATH @"follows/followers.json"
 #define FOLLOWING_PATH @"follows/following.json"
@@ -562,6 +563,27 @@ AFJSONRequestOperation *op = (AFJSONRequestOperation *)[self HTTPRequestOperatio
     
     return [self requestOperationWithMethod:@"GET"
                                        path:FEATURED_PATH
+                                 parameters:parameters
+                                    success:opSuccess
+                                    failure:opFailure];
+}
+
+#pragma mark - FREE search Post Methods
+
+- (AFHTTPRequestOperation *)getPostsForQuery:(NSString*)query
+                                     Success:(RequestSuccess)success
+                                     failure:(RequestFailure)failure
+{
+    NSDictionary *parameters = @{@"search":query};
+    OperationSuccess opSuccess = ^(AFHTTPRequestOperation *operation, id responseObject) {
+        success([self postsFromJSONArray:[responseObject objectForKey:@"posts"]]);
+    };
+    OperationFailure opFailure = ^(AFHTTPRequestOperation *operation, NSError *error) {
+        failure(error);
+    };
+    
+    return [self requestOperationWithMethod:@"GET"
+                                       path:FREE_SEARCH_PATH
                                  parameters:parameters
                                     success:opSuccess
                                     failure:opFailure];

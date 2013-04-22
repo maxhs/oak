@@ -241,9 +241,9 @@ static NSDictionary *categoryImages = nil;
     } else {
         self.captionTextView.text = kPlaceholderAddPostCommentPrompt;
     }
-    self.captionTextView.layer.borderWidth = .5f;
+    self.captionTextView.layer.borderWidth = 1.0f;
     self.captionTextView.layer.cornerRadius = 5.0f;
-    self.captionTextView.layer.borderColor = [[UIColor lightGrayColor] CGColor];
+    self.captionTextView.layer.borderColor = [UIColor colorWithWhite:.4 alpha:.5].CGColor;
     self.captionTextView.contentInset = UIEdgeInsetsMake(-2,-3,0,0);
     self.captionTextView.textAlignment = NSTextAlignmentLeft;
     if (FDPost.userPost.photoImage){
@@ -451,7 +451,6 @@ static NSDictionary *categoryImages = nil;
         [self.captionTextView setContentOffset:CGPointZero animated:YES];
         return NO;
     }
-    
     return YES;
 }
 

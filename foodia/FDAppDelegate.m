@@ -30,8 +30,7 @@
 
 @implementation FDAppDelegate
 
-@synthesize wallPost, noConnection, tryReconnecting;
-@synthesize facebook;
+@synthesize facebook, isTakingPhoto;
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
@@ -41,7 +40,6 @@
     
     self.facebook.sessionDelegate = self;
     [self performSetup];
-    [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"JustLaunched"];
     NSSetUncaughtExceptionHandler(&uncaughtExceptionHandler);
     [Flurry startSession:kFlurryAPIKey];
     //[TestFlight takeOff:(@"13a30f1fa03141084d0983b4e6f3e04f_NjQ4NDkyMDEyLTAyLTI0IDE1OjExOjM4LjE1Mjg3Mg")];
@@ -96,7 +94,7 @@ void uncaughtExceptionHandler(NSException *exception) {
     [self.window makeKeyAndVisible];
 }
 
--(void)setupNoConnection{
+/*-(void)setupNoConnection{
     CGRect screen = [[UIScreen mainScreen] bounds];
     CGFloat backgroundWidth = screen.size.width*3/4;
     CGFloat backgroundHeight = screen.size.height/3;
@@ -126,7 +124,7 @@ void uncaughtExceptionHandler(NSException *exception) {
     [self.window addSubview:noConnection];
     [self.window addSubview:tryReconnecting];
     [self hideLoadingOverlay];
-}
+}*/
 
 - (void)fbDidNotLogin:(BOOL)cancelled {
     if (cancelled){
@@ -310,6 +308,7 @@ void uncaughtExceptionHandler(NSException *exception) {
 {
     // Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.
     // Use this method to pause ongoing tasks, disable timers, and throttle down OpenGL ES frame rates. Games should use this method to pause the game.
+    if (self.isTakingPhoto) [[NSNotificationCenter defaultCenter] postNotificationName:@"CleanupCameraCapture" object:nil];
 }
 
 - (void)applicationDidEnterBackground:(UIApplication *)application
@@ -327,6 +326,12 @@ void uncaughtExceptionHandler(NSException *exception) {
 - (void)applicationDidBecomeActive:(UIApplication *)application
 {
     // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
+    //UIViewController* root = _window.rootViewController;
+    //UIViewController * mycontroller = [[(UINavigationController*)root viewControllers] objectAtIndex:0];
+    if (self.isTakingPhoto){
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"StartCameraCapture" object:nil];
+        NSLog(@"user is taking a photo");
+    }
     [FBSession.activeSession handleDidBecomeActive];
 }
 

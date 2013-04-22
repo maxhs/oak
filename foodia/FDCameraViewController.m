@@ -8,16 +8,16 @@
 
 #import "FDCameraViewController.h"
 #import "AVCamCaptureManager.h"
-#import "AVCamRecorder.h"
 #import <AVFoundation/AVFoundation.h>
 #import <QuartzCore/QuartzCore.h>
 #import "FDPost.h"
 #import <ImageIO/ImageIO.h>
 #import <AssetsLibrary/AssetsLibrary.h>
+#import "FDAppDelegate.h"
 
 static void *AVCamFocusModeObserverContext = &AVCamFocusModeObserverContext;
 
-@interface FDCameraViewController () <UIGestureRecognizerDelegate, AVCamCaptureManagerDelegate, AVCaptureMetadataOutputObjectsDelegate>
+@interface FDCameraViewController () <UIGestureRecognizerDelegate>
 
 @property (strong, nonatomic) IBOutlet UIScrollView *filterScrollView;
 @property (strong, nonatomic) IBOutlet UIImageView *filterScrollViewBackground;
@@ -80,13 +80,9 @@ static void *AVCamFocusModeObserverContext = &AVCamFocusModeObserverContext;
 
 - (void)viewDidLoad
 {
+    [(FDAppDelegate*)[UIApplication sharedApplication].delegate setIsTakingPhoto:YES];
     [[UIApplication sharedApplication] setStatusBarHidden:YES withAnimation:NO];
     self.filterScrollView.transform = CGAffineTransformMakeTranslation(320, 0);
-    self.cancelButton.layer.borderColor = [UIColor colorWithWhite:.9 alpha:.5].CGColor;
-    [self.cancelButton setTitleColor:[UIColor darkGrayColor] forState:UIControlStateNormal];
-    self.cancelButton.layer.borderWidth = 1.f;
-    self.cancelButton.layer.cornerRadius = 9.f;
-    self.cancelButton.clipsToBounds = YES;
     [self createFilterArray];
     self.isPreview = NO;
     int index = 0;
@@ -95,6 +91,15 @@ static void *AVCamFocusModeObserverContext = &AVCamFocusModeObserverContext;
         [self.filterScrollView addSubview:filterButtonView];
         index ++;
     }
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(cleanupCameraCapture)
+                                                 name:@"CleanupCameraCapture"
+                                               object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(setUpCamera)
+                                                 name:@"StartCameraCapture"
+                                               object:nil];
     
     // Create the focus mode UI overlay
     [self addObserver:self forKeyPath:@"captureManager.videoInput.device.focusMode" options:NSKeyValueObservingOptionNew context:AVCamFocusModeObserverContext];
@@ -112,11 +117,8 @@ static void *AVCamFocusModeObserverContext = &AVCamFocusModeObserverContext;
     [self.singleTap requireGestureRecognizerToFail:self.doubleTap];
     [self.view addGestureRecognizer:self.doubleTap];
     
+    [self.cancelButton setTitleColor:[UIColor darkGrayColor] forState:UIControlStateNormal];
     [self.useButton setTitle:@"Use" forState:UIControlStateNormal];
-    //[self.useButton setBackgroundImage:[UIImage imageNamed:@"darkButtonBackground"] forState:UIControlStateNormal];
-    self.useButton.layer.borderColor = [UIColor colorWithWhite:.9 alpha:.5].CGColor;
-    self.useButton.layer.borderWidth = 1.f;
-    self.useButton.layer.cornerRadius = 9.f;
     [self.useButton setTitleColor:[UIColor darkGrayColor] forState:UIControlStateNormal];
     self.useButton.clipsToBounds = YES;
     [self.useButton addTarget:self action:@selector(useImage) forControlEvents:UIControlEventTouchUpInside];
@@ -132,15 +134,19 @@ static void *AVCamFocusModeObserverContext = &AVCamFocusModeObserverContext;
     self.squareImageView.layer.borderWidth = 1.5f;
     self.squareImageView.layer.borderColor = [UIColor darkGrayColor].CGColor;
     [self.view addSubview:self.squareImageView];
+    [self setUpCamera];
+    [super viewDidLoad];
+}
 
+- (void)setUpCamera {
+    NSLog(@"should be setting up the camera");
     if ([UIScreen mainScreen].bounds.size.height == 568){
         stillCamera = [[GPUImageStillCamera alloc] initWithSessionPreset:AVCaptureSessionPreset1920x1080 cameraPosition:AVCaptureDevicePositionBack];
     } else {
         stillCamera = [[GPUImageStillCamera alloc] init];
     }
-
-    stillCamera.outputImageOrientation = UIInterfaceOrientationPortrait;
     
+    stillCamera.outputImageOrientation = UIInterfaceOrientationPortrait;
     filter = [[GPUImageBrightnessFilter alloc] init];
     //    filter = [[GPUImageUnsharpMaskFilter alloc] init];
     //    [(GPUImageSketchFilter *)filter setTexelHeight:(1.0 / 1024.0)];
@@ -152,40 +158,26 @@ static void *AVCamFocusModeObserverContext = &AVCamFocusModeObserverContext;
     //    terminalFilter = [[GPUImageSepiaFilter alloc] init];
     //    [filter addTarget:secondFilter];
     //    [secondFilter addTarget:terminalFilter];
-    
-    //	[filter prepareForImageCapture];
-    //	[terminalFilter prepareForImageCapture];
+    //    [filter prepareForImageCapture];
+    //	  [terminalFilter prepareForImageCapture];
+    //    [terminalFilter addTarget:filterView];
+    //    [stillCamera.inputCamera lockForConfiguration:nil];
+    //    [stillCamera.inputCamera setFlashMode:AVCaptureFlashModeOn];
+    //    [stillCamera.inputCamera unlockForConfiguration];
     
     [stillCamera addTarget:filter];
     GPUImageView *filterView = (GPUImageView *)self.view;
     [filterView setFrame:[[UIScreen mainScreen] bounds]];
     [filter addTarget:filterView];
-    //    [terminalFilter addTarget:filterView];
-    
-    //    [stillCamera.inputCamera lockForConfiguration:nil];
-    //    [stillCamera.inputCamera setFlashMode:AVCaptureFlashModeOn];
-    //    [stillCamera.inputCamera unlockForConfiguration];
-    
     [stillCamera startCameraCapture];
-    [super viewDidLoad];
 }
-
 
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
-    [self performSelector:@selector(addFiltersToView) withObject:nil afterDelay:.0f];
+    [self addFiltersToView];
 }
 
-- (void)adjustFlash {
-    AVCaptureDevice *device = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
-    if ([device hasTorch]) {
-        [device lockForConfiguration:nil];
-        [device setTorchMode:AVCaptureTorchModeAuto];  // use AVCaptureTorchModeOff to turn off
-        [device unlockForConfiguration];
-    }
-}
-
-- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context
+/*- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context
 {
     if (context == AVCamFocusModeObserverContext) {
         // Update the focus UI overlay string when the focus mode changes
@@ -193,7 +185,7 @@ static void *AVCamFocusModeObserverContext = &AVCamFocusModeObserverContext;
 	} else {
         [super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
     }
-}
+}*/
 
 - (IBAction)captureStillImage:(id)sender
 {
@@ -232,28 +224,12 @@ static void *AVCamFocusModeObserverContext = &AVCamFocusModeObserverContext;
                 [self.photoPreviewImageView setAlpha:1.0];
                 [self.squareImageView setAlpha:0.0];
 
-                //[self moveFilterScrollViewOffScreen];
             }completion:^(BOOL finished) {
-                //[self.filterScrollView setAlpha:0.0];
                 [self.singleTap setEnabled:NO];
                 [self.doubleTap setEnabled:NO];
-                [filter removeAllTargets];
-                [stillCamera removeAllTargets];
             }];
         }
      }];
-}
-
-- (void)moveFilterScrollViewOffScreen {
-    int anotherIndex = 0;
-    for (UIView *view in self.filterScrollView.subviews) {
-        [UIView animateWithDuration:.3 delay:.05*anotherIndex options:UIViewAnimationOptionCurveEaseInOut animations:^{
-            view.transform = CGAffineTransformMakeTranslation(0, -100);
-            [self.filterScrollView setAlpha:0.0];
-        } completion:^(BOOL finished) {
-        }];
-        anotherIndex ++;
-    }
 }
 
 - (void)retake {
@@ -273,10 +249,8 @@ static void *AVCamFocusModeObserverContext = &AVCamFocusModeObserverContext;
     self.photoPreviewImageView.image = nil;
     [self.photoPreviewImageView setHidden:YES];
     [stillCamera removeAllTargets];
-    //for (GPUImageOutput<GPUImageInput> *eachFilter in self.filterArray){
-        [filter removeAllTargets];
-        [filter deleteOutputTexture];
-    //}
+    [filter removeAllTargets];
+    [filter deleteOutputTexture];
     
     filter = [self.filterArray objectAtIndex:0];
     [stillCamera addTarget:filter];
@@ -321,7 +295,6 @@ static void *AVCamFocusModeObserverContext = &AVCamFocusModeObserverContext;
     UILabel *filterLabel = [[UILabel alloc] init];
     [filterLabel setFont:[UIFont fontWithName:kAvenirMedium size:16]];
     [filterLabel setBackgroundColor:[UIColor clearColor]];
-    
     [filterLabel setTextAlignment:NSTextAlignmentCenter];
     
     [view addSubview:filterButton];
@@ -409,18 +382,14 @@ static void *AVCamFocusModeObserverContext = &AVCamFocusModeObserverContext;
     button.layer.shadowOpacity = .75f;
     button.layer.shadowRadius = 10.0;
     
+    [filter removeAllTargets];
+    [stillCamera removeAllTargets];
+    
     if (self.isPreview) {
-        [filter removeAllTargets];
-        [stillCamera removeAllTargets];
-        //self.originalImage = [(GPUImageFilter*)[self.filterArray objectAtIndex:button.tag] imageByFilteringImage:self.cropImage];
         [self.photoPreviewImageView setImage:[(GPUImageFilter*)[self.filterArray objectAtIndex:button.tag] imageByFilteringImage:self.cropImage]];
     } else {
         //reset GPUImage to apply newly selected filter
-        [stillCamera removeAllTargets];
-        [filter removeAllTargets];
-        [filter deleteOutputTexture];
         filter = [self.filterArray objectAtIndex:button.tag];
-        
         [stillCamera addTarget:filter];
         [filter addTarget:(GPUImageView *)self.view];
         [filter prepareForImageCapture];
@@ -487,12 +456,20 @@ static void *AVCamFocusModeObserverContext = &AVCamFocusModeObserverContext;
 }
 
 - (void)viewDidDisappear:(BOOL)animated {
+    NSLog(@"view did disappear");
+    [(FDAppDelegate*)[UIApplication sharedApplication].delegate setIsTakingPhoto:NO];
     [self removeObserver:self forKeyPath:@"captureManager.videoInput.device.focusMode" context:AVCamFocusModeObserverContext];
-    [stillCamera stopCameraCapture];
-    if (captureManager) [captureManager stopRecording];
     self.filterArray = nil;
+    [self cleanupCameraCapture];
     [[UIApplication sharedApplication] setStatusBarHidden:NO withAnimation:NO];
     [super viewDidDisappear:animated];
+}
+
+- (void)cleanupCameraCapture {
+    NSLog(@"should be cleaning up the campera capture setup");
+    [stillCamera stopCameraCapture];
+    stillCamera = nil;
+    if (captureManager) [captureManager stopRecording];
 }
 
 // Convert from view coordinates to camera coordinates, where {0,0} represents the top left of the picture area, and {1,1} represents
@@ -569,13 +546,13 @@ static void *AVCamFocusModeObserverContext = &AVCamFocusModeObserverContext;
 }
 
 // Auto focus at a particular point. The focus mode will change to locked once the auto focus happens.
-- (void)tapToAutoFocus:(UIGestureRecognizer *)gestureRecognizer
+/*- (void)tapToAutoFocus:(UIGestureRecognizer *)gestureRecognizer
 {
     CGPoint tapPoint = [gestureRecognizer locationInView:self.view];
     [self animateFocusSquare:tapPoint];
     CGPoint convertedFocusPoint = [self convertToPointOfInterestFromViewCoordinates:tapPoint];
     [captureManager autoFocusAtPoint:convertedFocusPoint];
-}
+}*/
 
 -(void)animateFocusSquare:(CGPoint)point {
     if (point.y < 320){
@@ -627,40 +604,6 @@ static void *AVCamFocusModeObserverContext = &AVCamFocusModeObserverContext;
             NSLog(@"some sort of focus error");
         }
     }
-}
-
-- (void)captureManager:(AVCamCaptureManager *)captureManager didFailWithError:(NSError *)error
-{
-    CFRunLoopPerformBlock(CFRunLoopGetMain(), kCFRunLoopCommonModes, ^(void) {
-        UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:[error localizedDescription]
-                                                            message:[error localizedFailureReason]
-                                                           delegate:nil
-                                                  cancelButtonTitle:NSLocalizedString(@"OK", @"OK button title")
-                                                  otherButtonTitles:nil];
-        [alertView show];
-    });
-}
-
-- (void)captureManagerRecordingBegan:(AVCamCaptureManager *)captureManager
-{
-    CFRunLoopPerformBlock(CFRunLoopGetMain(), kCFRunLoopCommonModes, ^(void) {
-        [[self takePhotoButton] setEnabled:YES];
-    });
-}
-
-- (void)captureManagerRecordingFinished:(AVCamCaptureManager *)captureManager
-{
-    CFRunLoopPerformBlock(CFRunLoopGetMain(), kCFRunLoopCommonModes, ^(void) {
-        [[self takePhotoButton] setEnabled:YES];
-    });
-}
-
-- (void)captureManagerStillImageCaptured:(AVCamCaptureManager *)captureManager
-{
-    CFRunLoopPerformBlock(CFRunLoopGetMain(), kCFRunLoopCommonModes, ^(void) {
-
-        //[[self stillButton] setEnabled:YES];
-    });
 }
 
 @end

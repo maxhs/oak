@@ -135,7 +135,6 @@ static NSArray *tagLines;
         //ensure user has no legacy info
         self.signupEmailButton.transform = CGAffineTransformIdentity;
         self.loginEmailButton.transform = CGAffineTransformIdentity;
-        [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"JustLaunched"];
         [FBSession.activeSession closeAndClearTokenInformation];
         [NSUserDefaults resetStandardUserDefaults];
         [NSUserDefaults standardUserDefaults];

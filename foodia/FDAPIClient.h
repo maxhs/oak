@@ -155,6 +155,10 @@ typedef void(^RequestSuccess)(id result);
                                                success:(RequestSuccess)success
                                                failure:(RequestFailure)failure;
 
+- (AFHTTPRequestOperation *)getPostsForQuery:(NSString*)query
+                                     Success:(RequestSuccess)success
+                                     failure:(RequestFailure)failure;
+
 - (AFJSONRequestOperation *)getCategoryImageURLsWithSuccess:(RequestSuccess)success
                                                     failure:(RequestFailure)failure;
 

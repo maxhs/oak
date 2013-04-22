@@ -27,8 +27,11 @@
 #import "TWSignedRequest.h"
 #import "FDAppDelegate.h"
 #import <Accounts/Accounts.h>
+#import "FDPostCell.h"
+#import "Utilities.h"
+#import "UIButton+WebCache.h"
 
-@interface FDFeedViewController () <FDPostTableViewControllerDelegate, FDPostGridViewControllerDelegate, UIScrollViewDelegate, UISearchDisplayDelegate, UISearchBarDelegate, UIActionSheetDelegate>
+@interface FDFeedViewController () <FDPostTableViewControllerDelegate, FDPostGridViewControllerDelegate, UIScrollViewDelegate, UISearchDisplayDelegate, UISearchBarDelegate, UIActionSheetDelegate, UITableViewDataSource, UITableViewDelegate>
 
 @property (nonatomic,strong) FDFeedTableViewController          *feedTableViewController;
 @property (nonatomic,strong) FDFeaturedGridViewController      *featuredGridViewController;
@@ -41,10 +44,11 @@
 @property (retain, nonatomic) IBOutlet UIButton *addPostButton;
 @property (weak, nonatomic) IBOutlet UILabel *feedLabel;
 @property (weak, nonatomic) IBOutlet UILabel *featuredLabel;
-@property (weak, nonatomic) IBOutlet UILabel *myPostsLabel;
+//@property (weak, nonatomic) IBOutlet UILabel *myPostsLabel;
 @property (weak, nonatomic) IBOutlet UILabel *keepersLabel;
 @property (weak, nonatomic) IBOutlet UILabel *nearbyLabel;
 @property (weak, nonatomic) IBOutlet UILabel *recLabel;
+@property (strong, nonatomic) UIImageView *logoImageView;
 @property (nonatomic, weak) UIViewController *currentChildViewController;
 @property (strong, nonatomic) UIDocumentInteractionController *documentInteractionController;
 @property BOOL movedRight;
@@ -54,6 +58,8 @@
 @property (nonatomic, strong) NSArray *accounts;
 @property (strong, nonatomic) UIActionSheet *twitterActionSheet;
 @property (strong, nonatomic) SLComposeViewController *tweetSheet;
+@property (weak, nonatomic) IBOutlet UITableView *resultsTableView;
+@property (strong, nonatomic) NSMutableArray *searchPosts;
 
 - (IBAction)revealMenu:(UIBarButtonItem *)sender;
 @end
@@ -66,6 +72,7 @@
 @synthesize twitterActionSheet = _twitterActionSheet;
 @synthesize tweetSheet = _tweetSheet;
 @synthesize goToComment;
+@synthesize swipedCells;
 
 - (void)viewDidLoad
 {
@@ -82,9 +89,7 @@
     //self.placesViewController      = [[FDPlacesViewController alloc] initWithDelegate:self];
     self.recommendedTableViewController = [[FDRecommendedTableViewController alloc] initWithDelegate:self];
     self.keepersViewController          = [[FDRecommendedTableViewController alloc]  initWithDelegate:self];
-    
-    self.navigationItem.titleView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"blackLogo.png"]];
-    
+
     self.addPostButton.layer.shadowOffset = CGSizeMake(0,0);
     self.addPostButton.layer.shadowColor = [UIColor blackColor].CGColor;
     self.addPostButton.layer.shadowRadius = 3.0;
@@ -98,41 +103,18 @@
 
     self.clipViewBackground.layer.rasterizationScale = [UIScreen mainScreen].scale;
     self.clipViewBackground.layer.shouldRasterize = YES;
-
-    /*int screenWidth = self.view.bounds.size.width;
-    int screenHeight = self.view.bounds.size.height;
-    BOOL existingUser = [[NSUserDefaults standardUserDefaults] boolForKey:@"existingUser"];
-    if (!existingUser) {
-        [self.navigationController setNavigationBarHidden:YES];
-        [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
-        UIView *blackView = [[UIView alloc] initWithFrame:CGRectMake(0,0,screenWidth,screenHeight)];
-        [blackView setBackgroundColor:[UIColor colorWithRed:0 green:0 blue:0 alpha:0.70]];
-        UIImageView *newUser = [[UIImageView alloc] init];
-        if (([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone && [UIScreen mainScreen ].bounds.size.height == 568.0)){
-            [newUser setImage:[UIImage imageNamed:@"newUser@2x.png"]];
-        } else {
-            [newUser setImage:[UIImage imageNamed:@"newUserShort.png"]];
-        }
-        [newUser setFrame:CGRectMake(0,0,320,screenHeight)];
-        [blackView addSubview:newUser];
-        [blackView setTag:333];
-        UIButton *dismiss = [[UIButton alloc] initWithFrame:CGRectMake(0,0,screenWidth,screenHeight)];
-        [dismiss setBackgroundColor:[UIColor clearColor]];
-        [dismiss addTarget:self action:@selector(dismissSelf) forControlEvents:UIControlEventTouchUpInside];
-        [blackView addSubview:dismiss];
-        [self.view addSubview:blackView];
-        [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"existingUser"];
-    }*/
     
-    /*self.searchBar = [[UISearchBar alloc] initWithFrame:CGRectMake(0,-44,320,44)];
-    self.searchDisplay = [[UISearchDisplayController alloc] initWithSearchBar:self.searchBar contentsController:self];
-    self.searchDisplay.delegate = self;
-    
+    self.logoImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"blackLogo.png"]];
+    self.searchBar = [[UISearchBar alloc] init];
+    self.searchBar.delegate = self;
+    self.searchPosts = [NSMutableArray array];
+    self.resultsTableView.delegate = self;
+    self.resultsTableView.dataSource = self;
     //customize the searchbar
-    self.searchBar.placeholder = @"Search food, drink, or descriptors";
+    self.searchBar.placeholder = @"Search for food or drink";
     for (UIView *view in self.searchBar.subviews) {
         if ([view isKindOfClass:NSClassFromString(@"UISearchBarBackground")]){
-            UIImageView *header = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"newFoodiaHeader"]];
+            UIImageView *header = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"thinSearchBackground"]];
             [view addSubview:header];
             break;
         }
@@ -144,11 +126,12 @@
         }
     }
     
-    [self.view insertSubview:self.searchBar belowSubview:_scrollView];
-    [self.searchBar setHidden:YES];*/
-    
     self.slidingViewController.panGesture.enabled = YES;
     
+    //set up swiped cells thing
+    self.swipedCells = [NSMutableArray array];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(swipedCells:) name:@"CellOpened" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(swipedCells:) name:@"CellClosed" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(hideSlider)
                                                  name:@"HideSlider"
@@ -178,25 +161,22 @@
 	_scrollView.showsHorizontalScrollIndicator = NO;
     _scrollView.delegate = self;
     [_scrollView setContentSize:CGSizeMake(352,78)];
-    //if ([[NSUserDefaults standardUserDefaults] boolForKey:@"JustLaunched"]){
-        // show the featured feed initially
-        //[[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"JustLaunched"];
-        [self showFeatured];
-    [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
-        //[self hideLabelsExcept:self.featuredLabel];
-    //} else {
-        //[self showFeed];
-        //[self hideLabelsExcept:self.feedLabel];
-        //[_scrollView setContentOffset:CGPointMake(88,0)];
-    //}
-    //[[NSUserDefaults standardUserDefaults] setBool:NO forKey:kJustPosted];
-    
+    [self showFeatured];
     if ([[[UIDevice currentDevice] systemVersion] floatValue] < 6) {
         [self.featuredLabel setFont:[UIFont fontWithName:kFuturaMedium size:15]];
         [self.recLabel setFont:[UIFont fontWithName:kFuturaMedium size:15]];
         [self.feedLabel setFont:[UIFont fontWithName:kFuturaMedium size:15]];
         [self.keepersLabel setFont:[UIFont fontWithName:kFuturaMedium size:15]];
     }
+    
+    UIView *testView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 200, 88)];
+    [testView addSubview:self.searchBar];
+    [self.searchBar setTintColor:[UIColor whiteColor]];
+    [self.searchBar setFrame:CGRectMake(0, -24, 200, 44)];
+    [testView addSubview:self.logoImageView];
+    [self.logoImageView setFrame:CGRectMake(60,29,80,31)];
+    
+    self.navigationItem.titleView = testView;
 }
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
@@ -264,25 +244,30 @@
 }
 
 - (void)revealSlider {
+    [UIView animateWithDuration:.19 animations:^{
+        [self.logoImageView setAlpha:0.0];
+    }];
     [UIView animateWithDuration:0.3f delay:0.0 options:UIViewAnimationOptionTransitionCurlDown animations:^{
         [self.navigationItem.rightBarButtonItem setImage:[UIImage imageNamed:@"up_arrow"]];
-        
         [self.feedContainerView setFrame:CGRectMake(0,78,320,self.view.bounds.size.height)];
         CGAffineTransform rotate = CGAffineTransformMakeRotation(1.4*M_PI/180);
         CGAffineTransform translation = CGAffineTransformMakeTranslation(0, 8);
-        
         _scrollView.transform = CGAffineTransformConcat(rotate, translation);
         self.clipViewBackground.transform = CGAffineTransformConcat(rotate, translation);
-
         clipView.transform = CGAffineTransformConcat(rotate, translation);
-        [self.navigationController setNavigationBarHidden:NO animated:NO];
+        self.searchBar.transform = CGAffineTransformMakeTranslation(0, 46);
+        
+        self.logoImageView.transform = CGAffineTransformMakeTranslation(0, 44);
+        
     } completion:^(BOOL finished) {
+
         [UIView animateWithDuration:0.15 delay:0.0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
             self.feedContainerView.transform = CGAffineTransformIdentity;
             _scrollView.transform = CGAffineTransformMakeRotation(-0.8*M_PI/180);
             self.clipViewBackground.transform = CGAffineTransformMakeRotation(-0.8*M_PI/180);
             clipView.transform = CGAffineTransformMakeRotation(-0.8*M_PI/180);
             [self showAllLabels];
+
         }  completion:^(BOOL finished) {
             [UIView animateWithDuration:.125 animations:^{
                 _scrollView.transform = CGAffineTransformIdentity;
@@ -294,6 +279,7 @@
 }
 
 - (void)hideSlider {
+    [self hideKeyboard];
     [UIView animateWithDuration:0.25 delay:0.0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
         [self.navigationItem.rightBarButtonItem setImage:[UIImage imageNamed:@"down_arrow"]];
         [self.feedContainerView setFrame:CGRectMake(0,0,320,self.view.bounds.size.height)];
@@ -302,6 +288,9 @@
         _scrollView.transform = CGAffineTransformConcat(rotate, translation);
         clipView.transform = CGAffineTransformConcat(rotate, translation);
         self.clipViewBackground.transform = CGAffineTransformConcat(rotate, translation);
+        self.searchBar.transform = CGAffineTransformIdentity;
+        self.logoImageView.transform = CGAffineTransformIdentity;
+        [self.logoImageView setAlpha:1.0];
             } completion:^(BOOL finished) {
                 [self hideLabels];
             }];
@@ -339,23 +328,10 @@
     }];
     
 }
-/*- (void)dismissSelf {
-    UIView *blackView = [self.view viewWithTag:333];
-    [self.navigationController setNavigationBarHidden:NO animated:YES];
-    [UIView animateWithDuration:0.25f
-                          delay:0
-                        options:UIViewAnimationOptionCurveEaseOut
-                     animations:^{
-        [blackView setAlpha:0.0f];
-    }
-                     completion: ^(BOOL finished){
-                         [blackView removeFromSuperview];
-    }];
-}*/
 
 - (void)viewWillDisappear:(BOOL)animated {
     [super viewWillDisappear:animated];
-
+    //[self hideKeyboard];
     self.slidingViewController.panGesture.enabled = NO;
 }
 
@@ -397,22 +373,16 @@
 #pragma mark - Private Methods
 
 - (void)showFeed {
-    //[self.searchButtonItem setImage:[UIImage imageNamed:@"emptyBarButton"]];
-    //[self.searchButtonItem setEnabled:NO];
     //self.title = @"FRIENDS";
     [self showPostViewController:self.feedTableViewController];
 }
 
 - (void)showFeatured {
-    //[self.searchButtonItem setImage:[UIImage imageNamed:@"emptyBarButton"]];
-    //[self.searchButtonItem setEnabled:NO];
     //self.title = @"FEATURED";
     [self showPostViewController:self.featuredGridViewController];
 }
 
 - (void)showRecommended {
-    //[self.searchButtonItem setImage:[UIImage imageNamed:@"emptyBarButton"]];
-    //[self.searchButtonItem setEnabled:NO];
     //self.title = @"RECOMMENDED";
     [self.recommendedTableViewController setShouldShowKeepers:NO];
     [self.recommendedTableViewController refresh];
@@ -421,14 +391,10 @@
 
 - (void)showNearby {
     //self.title = @"NEARBY";
-    //[self.searchButtonItem setImage:[UIImage imageNamed:@"magnifier"]];
-    //[self.searchButtonItem setEnabled:YES];
     [self showPostViewController:self.placesViewController];
 }
 
 - (void)showKeepers {
-    //[self.searchButtonItem setImage:[UIImage imageNamed:@"magnifier"]];
-    //[self.searchButtonItem setEnabled:YES];
     [self.keepersViewController setShouldShowKeepers:YES];
     [self.keepersViewController refresh];
     [self showPostViewController:self.keepersViewController];
@@ -444,14 +410,8 @@
         [self.feedContainerView addSubview:toViewController.view];
         self.currentChildViewController = toViewController;
     } else {
-        // inform the current controller that it's being orphaned (Oh no!)
         [self.currentChildViewController willMoveToParentViewController:nil];
-    
-        //add the new view controller as a child
         [self addChildViewController:toViewController];
-
-        // perform the view switch
-        //toViewController.view.alpha = 0.0f;
         toViewController.view.frame = self.feedContainerView.bounds;
         
         if (self.movedRight) {
@@ -486,6 +446,8 @@
 }
                                                                  
 - (IBAction)revealMenu:(UIBarButtonItem *)sender {
+    NSLog(@"reveal menu tapped");
+    [self hideKeyboard];
     [self.slidingViewController anchorTopViewTo:ECRight];
     int badgeCount = 0;
     // Resets the badge count when the view is opened
@@ -496,30 +458,224 @@
     [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
 }
 
-- (IBAction)activateSearch:(UIBarButtonItem *)sender {
-    if (!self.navigationController.navigationBar.isHidden){
-        [self hideSlider];
-        [UIView animateWithDuration:UINavigationControllerHideShowBarDuration animations:^{
-            //[self.searchBar setFrame:CGRectMake(0,0,320,44)];
-            [self.feedContainerView setFrame:CGRectMake(0,44,320,self.view.frame.size.height)];
-        }];
-        //[self.searchBar setHidden:NO];
+#pragma mark - Table view data source
+
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
+{
+    return 1;
+}
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
+{
+    return self.searchPosts.count;
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
+    return 155;
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    static NSString *PostCellIdentifier = @"PostCell";
+    FDPostCell *cell = (FDPostCell *)[tableView dequeueReusableCellWithIdentifier:PostCellIdentifier];
+    if (cell == nil) {
+        cell = [[[NSBundle mainBundle] loadNibNamed:@"FDPostCell" owner:self options:nil] lastObject];
+    }
+    FDPost *post = [self.searchPosts objectAtIndex:indexPath.row];
+    [cell configureForPost:post];
+    
+    [cell.likeButton addTarget:self action:@selector(likeButtonTapped:) forControlEvents:UIControlEventTouchUpInside];
+    cell.likeButton.tag = indexPath.row;
+    cell.posterButton.titleLabel.text = post.user.userId;
+    [cell.posterButton addTarget:self action:@selector(showProfile:) forControlEvents:UIControlEventTouchUpInside];
+    cell.detailPhotoButton.tag = indexPath.row;
+    [cell.detailPhotoButton addTarget:self action:@selector(didSelectRow:) forControlEvents:UIControlEventTouchUpInside];
+    cell = [self showLikers:cell forPost:post];
+    [cell bringSubviewToFront:cell.likersScrollView];
+    
+    //capture touch event to show user place map
+    if (post.locationName.length){
+        [cell.locationButton setHidden:NO];
+        [cell.locationButton addTarget:self action:@selector(showPlace:) forControlEvents:UIControlEventTouchUpInside];
+        cell.locationButton.tag = indexPath.row;
+    }
+    
+    [cell.recButton addTarget:self action:@selector(recommend:) forControlEvents:UIControlEventTouchUpInside];
+    cell.recButton.tag = indexPath.row;
+    
+    cell.commentButton.tag = indexPath.row;
+    [cell.commentButton addTarget:self action:@selector(comment:) forControlEvents:UIControlEventTouchUpInside];
+    
+    //swipe cell accordingly
+    if ([self.swipedCells indexOfObject:post.identifier] != NSNotFound){
+        [cell.scrollView setContentOffset:CGPointMake(271,0)];
+    } else [cell.scrollView setContentOffset:CGPointZero];
+    
+    if (cell.scrollView.contentOffset.x > 270) {
+        [cell.slideCellButton setHidden:NO];
     } else {
-        [UIView animateWithDuration:.3f animations:^{
-            //[self.searchBar setFrame:CGRectMake(0,-44,320,44)];
-            [self.feedContainerView setFrame:CGRectMake(0,26,320,self.view.frame.size.height)];
-            //[self.searchBar setHidden:YES];
+        [cell.slideCellButton setHidden:YES];
+    }
+    
+    return cell;
+}
+
+
+- (void)tableView:(UITableView *)tableView didEndDisplayingCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath {
+    if ([cell isKindOfClass:[FDPostCell class]]){
+        FDPostCell *thisCell = (FDPostCell*)cell;
+        //[thisCell.scrollView setContentOffset:CGPointMake(0,0) animated:NO];
+        [UIView animateWithDuration:.25 animations:^{
+            [thisCell.photoBackground setAlpha:0.0];
+            [thisCell.photoImageView setAlpha:0.0];
+            [thisCell.posterButton setAlpha:0.0];
         }];
     }
 }
 
-- (NSString *)searchText {
-    return self.searchBar.text;
+- (void)comment:(id)sender{
+    [self setGoToComment:YES];
+    UIButton *button = (UIButton*)sender;
+    [self performSegueWithIdentifier:@"ShowPost" sender:[self.searchPosts objectAtIndex:button.tag]];
 }
 
-- (void)searchDisplayController:(UISearchDisplayController *)controller didLoadSearchResultsTableView:(UITableView *)tableView
-{
-    [tableView setHidden:YES];
+- (void)didSelectRow:(id)sender {
+    UIButton *button = (UIButton*)sender;
+    [self setGoToComment:NO];
+    [self performSegueWithIdentifier:@"ShowPost" sender:[self.searchPosts objectAtIndex:button.tag]];
+}
+
+-(void)showPlace: (id)sender {
+    [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
+    UIButton *button = (UIButton *) sender;
+    [self performSegueWithIdentifier:@"ShowPlace" sender:[self.searchPosts objectAtIndex:button.tag]];
+}
+
+#pragma mark - Display likers
+
+- (FDPostCell *)showLikers:(FDPostCell *)cell forPost:(FDPost *)post{
+    NSDictionary *likers = post.likers;
+    NSDictionary *viewers = post.viewers;
+    [cell.likersScrollView.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
+    cell.likersScrollView.showsHorizontalScrollIndicator = NO;
+    
+    float imageSize = 34.0;
+    float space = 6.0;
+    int index = 0;
+    
+    for (NSDictionary *viewer in viewers) {
+        if ([viewer objectForKey:@"id"] != [NSNull null]){
+            UIImageView *face = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"light_smile"]];
+            UIButton *viewerButton = [UIButton buttonWithType:UIButtonTypeCustom];
+            [viewerButton setFrame:CGRectMake(((space+imageSize)*index),0,imageSize, imageSize)];
+            [cell.likersScrollView addSubview:viewerButton];
+            //passing liker facebook id as a string instead of NSNumber so that it can hold more data. crafty.
+            viewerButton.titleLabel.text = [[viewer objectForKey:@"id"] stringValue];
+            viewerButton.titleLabel.hidden = YES;
+            [viewerButton addTarget:self action:@selector(profileTappedFromLikers:) forControlEvents:UIControlEventTouchUpInside];
+            if ([viewer objectForKey:@"facebook_id"] != [NSNull null] && [[viewer objectForKey:@"facebook_id"] length] && [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookAccessToken]){
+                [viewerButton setImageWithURL:[Utilities profileImageURLForFacebookID:[viewer objectForKey:@"facebook_id"]] forState:UIControlStateNormal];
+            } else if ([viewer objectForKey:@"avatar_url"] != [NSNull null]) {
+                [viewerButton setImageWithURL:[viewer objectForKey:@"avatar_url"] forState:UIControlStateNormal];
+            }
+            
+            viewerButton.imageView.layer.cornerRadius = 17.0;
+            //rasterize to improve performance
+            [viewerButton.imageView setBackgroundColor:[UIColor clearColor]];
+            [viewerButton.imageView.layer setBackgroundColor:[UIColor whiteColor].CGColor];
+            viewerButton.imageView.layer.shouldRasterize = YES;
+            viewerButton.imageView.layer.rasterizationScale = [UIScreen mainScreen].scale;
+            
+            face.frame = CGRectMake((((space+imageSize)*index)+18),18,20,20);
+            
+            for (NSDictionary *liker in likers) {
+                if ([[liker objectForKey:@"id"] isEqualToNumber:[viewer objectForKey:@"id"]]){
+                    [cell.likersScrollView addSubview:face];
+                    break;
+                }
+            }
+            index++;
+        }
+        [cell.likersScrollView setContentSize:CGSizeMake(((space*(index+1))+(imageSize*(index+1))),40)];
+    }
+    return cell;
+}
+
+-(void)showProfile:(id)sender {
+    UIButton *button = (UIButton *)sender;
+    UIStoryboard *storyboard;
+    if (([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone && [UIScreen mainScreen].bounds.size.height == 568.0)){
+        storyboard = [UIStoryboard storyboardWithName:@"iPhone5"
+                                               bundle:nil];
+    } else {
+        storyboard = [UIStoryboard storyboardWithName:@"iPhone"
+                                               bundle:nil];
+    }
+    FDProfileViewController *vc = [storyboard instantiateViewControllerWithIdentifier:@"ProfileView"];
+    [vc initWithUserId:button.titleLabel.text];
+    [self.navigationController pushViewController:vc animated:YES];
+    
+}
+
+-(void)profileTappedFromLikers:(id)sender {
+    [self performSegueWithIdentifier:@"ShowProfileFromLikers" sender:sender];
+}
+
+-(void)profileTappedFromComment:(id)sender{
+    [self performSegueWithIdentifier:@"ShowProfileFromComment" sender:sender];
+}
+
+- (void)searchBarTextDidBeginEditing:(UISearchBar *)searchBar {
+    [UIView animateWithDuration:.25 animations:^{
+        [self.resultsTableView setAlpha:.85];
+    }];
+}
+
+- (void)searchBarTextDidEndEditing:(UISearchBar *)searchBar {
+    //[searchBar resignFirstResponder];
+    //[self hideKeyboard];
+}
+
+- (void)searchBar:(UISearchBar *)searchBar textDidChange:(NSString *)searchText {
+    if (searchText.length){
+        
+    }
+}
+
+- (void)searchBarSearchButtonClicked:(UISearchBar *)searchBar {
+    [[FDAPIClient sharedClient] getPostsForQuery:searchBar.text Success:^(id result) {
+        self.searchPosts = result;
+        [self.resultsTableView reloadData];
+        [UIView animateWithDuration:.25 animations:^{
+            [self.resultsTableView setAlpha:1.0];
+        }];
+        self.resultsTableView.separatorStyle = UITableViewCellSeparatorStyleSingleLine;
+    } failure:^(NSError *error) {
+        NSLog(@"error from search method: %@",error.description);
+    }];
+    [searchBar endEditing:YES];
+}
+
+- (void)hideKeyboard {
+    [self.searchBar endEditing:YES];
+    [self.searchBar resignFirstResponder];
+    [UIView animateWithDuration:.25 delay:0.0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        [self.resultsTableView setAlpha:0.0];
+    } completion:^(BOOL finished) {
+        [self.searchPosts removeAllObjects];
+        [self.resultsTableView reloadData];
+        [self.resultsTableView setSeparatorStyle:UITableViewCellSeparatorStyleNone];
+    }];
+}
+
+//take care of swiped cells
+- (void)swipedCells:(NSNotification*)notification {
+    NSString *identifier = [notification.userInfo objectForKey:@"identifier"];
+    if ([self.swipedCells indexOfObject:identifier] == NSNotFound){
+        [self.swipedCells addObject:identifier];
+    } else {
+        [self.swipedCells removeObject:identifier];
+    }
 }
 
 - (void)postToInstagram {

@@ -249,7 +249,6 @@
         case 4:
         {
             [FDCache clearCache];
-            [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"JustLaunched"];
             [FBSession.activeSession closeAndClearTokenInformation];
             [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
             [NSUserDefaults resetStandardUserDefaults];
@@ -257,7 +256,6 @@
             NSString *domainName = [[NSBundle mainBundle] bundleIdentifier];
             [[NSUserDefaults standardUserDefaults] removePersistentDomainForName:domainName];
             [self.slidingViewController dismissViewControllerAnimated:YES completion:nil];
-            NSLog(@"facebook id: %@",[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookId]);
         }
             break;
         default:

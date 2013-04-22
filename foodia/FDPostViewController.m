@@ -29,9 +29,6 @@
 #import <MessageUI/MessageUI.h>
 #import "FDNewPostViewController.h"
 
-#define COMMENT_SECTION 1
-#define LIKE_SECTION 0
-#define RECOMMEND_SECTION 2
 NSString *const kPlaceholderAddCommentPrompt = @"Add your two cents...";
 static NSDictionary *placeholderImages;
 
@@ -104,7 +101,7 @@ static NSDictionary *placeholderImages;
 
 - (void)viewDidLoad
 {
-    //self.view.transform = CGAffineTransformMakeScale(.9, .9);
+
     [super viewDidLoad];
     [Flurry logEvent:@"ViewingPost" timed:YES];
     [self.navigationController setNavigationBarHidden:NO animated:YES];

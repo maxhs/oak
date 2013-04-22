@@ -174,7 +174,6 @@ NSString* const locationBarPlaceholder = @"Search the places you've been";
 
 -(IBAction)followButtonTapped {
     if([currButton isEqualToString:@"follow"]) {
-        NSLog(@"Follow Tapped...");
         [[FDAPIClient sharedClient] followUser:self.userId];
         //temporarily change follow number
         int followerCounter;
@@ -186,7 +185,6 @@ NSString* const locationBarPlaceholder = @"Search the places you've been";
         [self.socialButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
         self.socialButton.layer.borderColor = [UIColor clearColor].CGColor;
     } else if([currButton isEqualToString:@"following"]) {
-        NSLog(@"unfollowing Tapped...");
         int followerCounter;
         followerCounter = [followerCountLabel.text integerValue];
         followerCounter-=1;
@@ -198,7 +196,6 @@ NSString* const locationBarPlaceholder = @"Search the places you've been";
         [self.socialButton setTitle:@"FOLLOW" forState:UIControlStateNormal];
         [self.socialButton setTitleColor:[UIColor darkGrayColor] forState:UIControlStateNormal];
     } else if([currButton isEqualToString:@"invite"]) {
-        NSLog(@"Invite Tapped...");
         [self inviteUser:self.userId];
         [self.socialButton setTitle:@"INVITED" forState:UIControlStateNormal];
         [self.socialButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
@@ -387,7 +384,6 @@ NSString* const locationBarPlaceholder = @"Search the places you've been";
     self.feedRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getFeedForProfile:uid success:^(NSMutableArray *newPosts) {
         self.posts = newPosts;
         if (self.posts.count == 0) {
-            [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
             [UIView animateWithDuration:.25 animations:^{
                 [self.socialButton setAlpha:1.0];
                 [self.postsButtonBackground setAlpha:1.0];
@@ -396,6 +392,7 @@ NSString* const locationBarPlaceholder = @"Search the places you've been";
         } else [self.postList reloadData];
         self.feedRequestOperation = nil;
     } failure:^(NSError *error) {
+        [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
         self.feedRequestOperation = nil;
     }];
 }
@@ -926,21 +923,21 @@ NSString* const locationBarPlaceholder = @"Search the places you've been";
 }
 
 - (void)loadAdditionalPosts{
-    if (self.canLoadMore == YES && self.filteredPosts == 0){
-    self.feedRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getProfileFeedBefore:self.posts.lastObject forProfile:self.userId success:^(NSMutableArray *morePosts) {
-        if (morePosts.count == 0){
-            self.canLoadMore = NO;
-            [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
-        } else {
-            [self.posts addObjectsFromArray:morePosts];
-            /*if (self.posts.count < [self.postCountLabel.text integerValue] && self.canLoadMore == YES)[self loadAdditionalPosts];*/
-            [self.postList reloadData];
-        }
-        self.feedRequestOperation = nil;
-    } failure:^(NSError *error){
-        self.feedRequestOperation = nil;
+    if (self.canLoadMore == YES && self.filteredPosts.count == 0){
+        self.feedRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getProfileFeedBefore:self.posts.lastObject forProfile:self.userId success:^(NSMutableArray *morePosts) {
+            if (morePosts.count == 0){
+                self.canLoadMore = NO;
+                [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
+            } else {
+                [self.posts addObjectsFromArray:morePosts];
+                /*if (self.posts.count < [self.postCountLabel.text integerValue] && self.canLoadMore == YES)[self loadAdditionalPosts];*/
+                [self.postList reloadData];
+            }
+            self.feedRequestOperation = nil;
+        } failure:^(NSError *error){
+            self.feedRequestOperation = nil;
 
-    }];
+        }];
     }
 }
 
@@ -1119,7 +1116,6 @@ NSString* const locationBarPlaceholder = @"Search the places you've been";
             [self.postList reloadData];
             self.postSearchRequestOperation = nil;
         } failure:^(NSError *error) {
-            NSLog(@"error from getuserposts method: %@", error.description);
             self.postSearchRequestOperation = nil;
         }];
     } else {
@@ -1135,7 +1131,6 @@ NSString* const locationBarPlaceholder = @"Search the places you've been";
             [self.postList reloadData];
             self.postSearchRequestOperation = nil;
         } failure:^(NSError *error) {
-            NSLog(@"error from getuserposts method: %@", error.description);
             self.postSearchRequestOperation = nil;
         }];
     }
@@ -1197,7 +1192,6 @@ NSString* const locationBarPlaceholder = @"Search the places you've been";
             [[FDAPIClient sharedClient] getVenuesForUser:self.userId success:^(id result) {
                 self.userVenues = result;
             } failure:^(NSError *error) {
-                NSLog(@"failure from getvenues: %@",error.description);
             }];
         }];
     } else {
@@ -1249,7 +1243,6 @@ NSString* const locationBarPlaceholder = @"Search the places you've been";
 
 
 - (void)searchDisplayControllerDidBeginSearch:(UISearchDisplayController *)controller {
-    NSLog(@"search dispaly controller will start");
     [self.locationSearchDisplayController.searchResultsTableView setHidden:NO];
     [UIView animateWithDuration:.25 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
         [self.locationSearchDisplayController.searchResultsTableView setAlpha:1.0];

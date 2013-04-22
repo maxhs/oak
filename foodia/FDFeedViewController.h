@@ -20,6 +20,7 @@
 @property (nonatomic, assign) int lastContentOffsetX;
 @property (nonatomic, assign) int lastContentOffsetY;
 @property BOOL goToComment;
+@property (nonatomic, strong) NSMutableArray *swipedCells;
 
 - (void)hideSlider;
 - (IBAction)rightBarButtonAction;
