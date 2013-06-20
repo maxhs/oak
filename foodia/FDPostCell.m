@@ -60,10 +60,14 @@ static NSDictionary *placeholderImages;
     /*if ([[SDImageCache sharedImageCache] imageFromMemoryCacheForKey:self.post.user.userId]) {
         [self.posterButton setImage:[[SDImageCache sharedImageCache] imageFromMemoryCacheForKey:self.post.user.userId] forState:UIControlStateNormal];
     } else */if (self.post.user.facebookId.length && [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookAccessToken]){
-        [self.posterButton setImageWithURL:[Utilities profileImageURLForFacebookID:self.post.user.facebookId] forState:UIControlStateNormal];
+        [self.posterButton.imageView setImageWithURL:[Utilities profileImageURLForFacebookID:self.post.user.facebookId] completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType) {
+            [self.posterButton setImage:image forState:UIControlStateNormal];
+        }];
     } else {
         NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://s3.amazonaws.com/foodia-uploads/user_%@_thumb.jpg",self.post.user.userId]];
-        [self.posterButton setImageWithURL:url forState:UIControlStateNormal];
+        [self.posterButton.imageView setImageWithURL:url completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType) {
+            [self.posterButton setImage:image forState:UIControlStateNormal];
+        }];
     }
     
     self.posterButton.imageView.layer.cornerRadius = 22.0f;
@@ -103,7 +107,7 @@ static NSDictionary *placeholderImages;
     
     // show the like count, and set the like button's image to indicate whether current user likes
     self.likeCountLabel.text = [NSString stringWithFormat:@"%@", self.post.likeCount];
-    self.recCountLabel.text = [NSString stringWithFormat:@"%@", self.post.recCount];//[self.post.recommendedTo count]];
+    self.recCountLabel.text = [NSString stringWithFormat:@"%@", self.post.recCount];
     self.commentCountLabel.text = [NSString stringWithFormat:@"%@", self.post.commentCount];
     
     if ([self.post.locationName isEqualToString:@""]){
@@ -132,48 +136,48 @@ static NSDictionary *placeholderImages;
 // here we configure the cell to display a given post
 - (void)configureForPost:(FDPost *)thePost {
     self.post = thePost;
-    if ([[[UIDevice currentDevice] systemVersion] floatValue] < 6) {
-        [self.socialLabel setFont:[UIFont fontWithName:kFuturaMedium size:15]];
-        [self.locationButton.titleLabel setFont:[UIFont fontWithName:kFuturaMedium size:15]];
-        [self.timeLabel setFont:[UIFont fontWithName:kFuturaMedium size:14]];
-        [self.likeCountLabel setFont:[UIFont fontWithName:kFuturaMedium size:15]];
-        [self.recCountLabel setFont:[UIFont fontWithName:kFuturaMedium size:15]];
-        [self.recButton.titleLabel setFont:[UIFont fontWithName:kFuturaMedium size:15]];
-        [self.commentButton.titleLabel setFont:[UIFont fontWithName:kFuturaMedium size:15]];
-        [self.commentCountLabel setFont:[UIFont fontWithName:kFuturaMedium size:15]];
-    }
-    
     [self showPost];
 }
 
 - (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView {
-    NSDictionary *userInfo = [NSDictionary dictionaryWithObject:self.post.identifier forKey:@"identifier"];
-    if (scrollView.contentOffset.x > 270) {
-        [[NSNotificationCenter defaultCenter] postNotificationName:@"CellOpened" object:nil userInfo:userInfo];
-        [self.slideCellButton setHidden:NO];
-    } else {
-        [[NSNotificationCenter defaultCenter] postNotificationName:@"CellClosed" object:nil userInfo:userInfo];
-        [self.slideCellButton setHidden:YES];
+    if (scrollView == self.scrollView) {
+        NSDictionary *userInfo;
+        if (self.post) {
+            userInfo = [NSDictionary dictionaryWithObject:self.post.identifier forKey:@"identifier"];
+        }
+        if (scrollView.contentOffset.x > 270) {
+            if (userInfo)[[NSNotificationCenter defaultCenter] postNotificationName:@"CellOpened" object:nil userInfo:userInfo];
+            [self.slideCellButton setHidden:NO];
+        } else {
+            if (userInfo)[[NSNotificationCenter defaultCenter] postNotificationName:@"CellClosed" object:nil userInfo:userInfo];
+            [self.slideCellButton setHidden:YES];
+        }
     }
 }
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
-    if (scrollView.contentOffset.x > 270) {
-        [self.slideCellButton setHidden:NO];
-    } else {
-        [self.slideCellButton setHidden:YES];
+    if (scrollView == self.scrollView) {
+        self.cellMotionButton.transform = CGAffineTransformMakeRotation((180 * scrollView.contentOffset.x/271)*M_PI/180);
+        if (scrollView.contentOffset.x > 270) {
+            [self.slideCellButton setHidden:NO];
+        } else {
+            [self.slideCellButton setHidden:YES];
+        }
     }
 }
 
 - (IBAction)slideCell {
-    NSDictionary *userInfo = [NSDictionary dictionaryWithObject:self.post.identifier forKey:@"identifier"];
+    NSDictionary *userInfo;
+    if (self.post){
+        userInfo = [NSDictionary dictionaryWithObject:self.post.identifier forKey:@"identifier"];
+    }
     if (self.scrollView.contentOffset.x < 270 ){
         [self.scrollView setContentOffset:CGPointMake(271,0) animated:YES];
         [self.slideCellButton setHidden:NO];
-        [[NSNotificationCenter defaultCenter] postNotificationName:@"CellOpened" object:nil userInfo:userInfo];
+        if (userInfo) [[NSNotificationCenter defaultCenter] postNotificationName:@"CellOpened" object:nil userInfo:userInfo];
     } else {
         [self.scrollView setContentOffset:CGPointMake(0,0) animated:YES];
-        [[NSNotificationCenter defaultCenter] postNotificationName:@"CellClosed" object:nil userInfo:userInfo];
+        if (userInfo) [[NSNotificationCenter defaultCenter] postNotificationName:@"CellClosed" object:nil userInfo:userInfo];
         [self.slideCellButton setHidden:YES];
     }
 }

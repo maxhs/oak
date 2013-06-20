@@ -13,7 +13,7 @@
 #import "FDAppDelegate.h"
 #import "FDPostViewController.h"
 
-@interface FDProfileMapViewController () <MKMapViewDelegate, MKAnnotation, CLLocationManagerDelegate>
+@interface FDProfileMapViewController () <MKMapViewDelegate, CLLocationManagerDelegate>
 @property (nonatomic, retain) CLLocationManager *locationManager;
 @property (nonatomic) BOOL canLoadMore;
 @property (nonatomic) AFJSONRequestOperation *feedRequestOperation;
@@ -28,7 +28,6 @@
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
     if (self) {
         // Custom initialization
-        NSLog(@"nibNameOrNIl: %@",nibNameOrNil);
     }
     return self;
 }
@@ -38,9 +37,9 @@
     [super viewDidLoad];
 	// Do any additional setup after loading the view.
     UILabel *navTitle = [[UILabel alloc] init];
-    navTitle.frame = CGRectMake(0,0,200,40);
+    navTitle.frame = CGRectMake(0,0,180,40);
     navTitle.text = @"THE PLACES I'VE BEEN";
-    navTitle.font = [UIFont fontWithName:kAvenirMedium size:21];
+    navTitle.font = [UIFont fontWithName:kHelveticaNeueMedium size:21];
     navTitle.backgroundColor = [UIColor clearColor];
     navTitle.textColor = [UIColor blackColor];
     navTitle.textAlignment = NSTextAlignmentCenter;
@@ -72,7 +71,6 @@
         }
         for (FDPost *post in newPosts){
             if (post.latitude != 0){
-                NSLog(@"post.locationname: %@",post.locationName);
                 [self.posts addObject:post];
             }
         }

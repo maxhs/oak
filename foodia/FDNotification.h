@@ -13,7 +13,7 @@
 
 @class FDUser, FDVenue;
 
-@interface FDNotification : FDRecord <MKAnnotation>
+@interface FDNotification : FDRecord
 
 @property (nonatomic, retain) NSString * message;
 @property (nonatomic, retain) NSString * fromUserFbid;

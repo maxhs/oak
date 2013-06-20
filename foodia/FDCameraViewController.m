@@ -7,33 +7,32 @@
 //
 
 #import "FDCameraViewController.h"
-#import "AVCamCaptureManager.h"
 #import <AVFoundation/AVFoundation.h>
 #import <QuartzCore/QuartzCore.h>
 #import "FDPost.h"
 #import <ImageIO/ImageIO.h>
 #import <AssetsLibrary/AssetsLibrary.h>
 #import "FDAppDelegate.h"
+#import "FDPhotoLibraryViewController.h"
 
 static void *AVCamFocusModeObserverContext = &AVCamFocusModeObserverContext;
 
-@interface FDCameraViewController () <UIGestureRecognizerDelegate>
+@interface FDCameraViewController () <UIGestureRecognizerDelegate, UIAlertViewDelegate> {
+    UIAlertView *noPhotosAlert;
+    BOOL photoLibraryEnumeration;
+    BOOL iPhone5;
+    UITapGestureRecognizer *singleTap;
+    UITapGestureRecognizer *doubleTap;
+    UIImage *originalImage;
+    BOOL photoFromLibrary;
+    NSArray *filterArray;
+}
 
-@property (strong, nonatomic) IBOutlet UIScrollView *filterScrollView;
-@property (strong, nonatomic) IBOutlet UIImageView *filterScrollViewBackground;
-@property (strong, nonatomic) GPUImageOutput<GPUImageInput> *selectedFilter;
-@property (strong, nonatomic) NSArray *filterArray;
-@property (strong, nonatomic) UIImage *originalImage;
-@property (strong, nonatomic) UIImage *cropImage;
-@property (strong, nonatomic) UILabel *focusLabel;
-@property (strong, nonatomic) UIView *squareImageView;
-@property (strong, nonatomic) UITapGestureRecognizer *singleTap;
-@property (strong, nonatomic) UITapGestureRecognizer *doubleTap;
-@property BOOL isPreview;
-
+@property (weak, nonatomic) IBOutlet UIImageView *filterScrollViewBackground;
+@property (weak, nonatomic) IBOutlet UIImageView *backgroundTopFrame;
 - (CGPoint)convertToPointOfInterestFromViewCoordinates:(CGPoint)viewCoordinates;
-- (void)tapToAutoFocus:(UIGestureRecognizer *)gestureRecognizer;
-- (void)tapToContinouslyAutoFocus:(UIGestureRecognizer *)gestureRecognizer;
+- (void)tapToContinouslyAutoFocus:(UIGestureRecognizer *)gestureRecognizer orPoint:(CGPoint)thePoint;
+-(IBAction)libraryButtonTapped;
 @end
 
 @implementation FDCameraViewController
@@ -42,11 +41,11 @@ static void *AVCamFocusModeObserverContext = &AVCamFocusModeObserverContext;
 @synthesize captureVideoPreviewLayer;
 @synthesize isPreview = _isPreview;
 @synthesize photoPreviewImageView;
+@synthesize cropImage = _cropImage;
 
 - (NSString *)stringForFocusMode:(AVCaptureFocusMode)focusMode
 {
 	NSString *focusString = @"";
-	
 	switch (focusMode) {
 		case AVCaptureFocusModeLocked:
 			focusString = @"Locked";
@@ -58,7 +57,6 @@ static void *AVCamFocusModeObserverContext = &AVCamFocusModeObserverContext;
 			focusString = @"Focusing";
 			break;
 	}
-	
 	return focusString;
 }
 
@@ -75,22 +73,51 @@ static void *AVCamFocusModeObserverContext = &AVCamFocusModeObserverContext;
     GPUImageOutput<GPUImageInput> *sepiaFilter = [[GPUImageSepiaFilter alloc] init];
     GPUImageOutput<GPUImageInput> *grayscaleFilter = [[GPUImageGrayscaleFilter alloc] init];
     
-    self.filterArray = [NSArray arrayWithObjects:noneFilter, crispFilter, aleFilter, brightFilter, fadeFilter, meyerFilter, saucedFilter, springFilter, softEleganceFilter, sepiaFilter, grayscaleFilter, nil];
+    filterArray = [NSArray arrayWithObjects:noneFilter, crispFilter, aleFilter, brightFilter, fadeFilter, meyerFilter, saucedFilter, springFilter, softEleganceFilter, sepiaFilter, grayscaleFilter, nil];
 }
 
 - (void)viewDidLoad
 {
-    [(FDAppDelegate*)[UIApplication sharedApplication].delegate setIsTakingPhoto:YES];
-    [[UIApplication sharedApplication] setStatusBarHidden:YES withAnimation:NO];
-    self.filterScrollView.transform = CGAffineTransformMakeTranslation(320, 0);
-    [self createFilterArray];
-    self.isPreview = NO;
-    int index = 0;
-    for (GPUImageFilter *thisFilter in self.filterArray){
-        UIView *filterButtonView = [self addFilter:thisFilter withIndex:index];
-        [self.filterScrollView addSubview:filterButtonView];
-        index ++;
+    if ([UIScreen mainScreen].bounds.size.height == 568){
+        iPhone5 = YES;
+    } else {
+        iPhone5 = NO;
     }
+    [(FDAppDelegate*)[UIApplication sharedApplication].delegate setIsTakingPhoto:YES];
+    self.filterScrollView.transform = CGAffineTransformMakeTranslation(320, 0);
+    self.isPreview = NO;
+    photoFromLibrary = NO;
+    photoLibraryEnumeration = NO;
+    self.libraryButton.layer.cornerRadius = 3.0f;
+    self.libraryButton.layer.borderColor = kColorLightBlack.CGColor;
+    self.libraryButton.layer.borderWidth = 1.0f;
+    self.libraryButton.clipsToBounds = YES;
+    self.libraryButton.imageView.contentMode = UIViewContentModeScaleAspectFill;
+    [self setUpLibraryButton];    
+    
+    [self.backgroundTopFrame setBackgroundColor:[UIColor colorWithWhite:.3 alpha:1]];
+    
+    // Add a single tap gesture to focus on the point tapped, then lock focus
+    singleTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tapToContinouslyAutoFocus:orPoint:)];
+    [singleTap setDelegate:self];
+    [singleTap setNumberOfTapsRequired:1];
+    [self.view addGestureRecognizer:singleTap];
+    
+    // Add a double tap gesture to reset the focus mode to continuous auto focus
+    doubleTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tapToContinouslyAutoFocus:orPoint:)];
+    [doubleTap setDelegate:self];
+    [doubleTap setNumberOfTapsRequired:2];
+    [singleTap requireGestureRecognizerToFail:doubleTap];
+    [self.view addGestureRecognizer:doubleTap];
+    
+    [self.cancelButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+    [self.useButton setTitle:@"USE" forState:UIControlStateNormal];
+    [self.useButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+    self.useButton.clipsToBounds = YES;
+    [self.useButton addTarget:self action:@selector(useImage) forControlEvents:UIControlEventTouchUpInside];
+    [self.useButton setAlpha:0.0];
+    [self.cancelButton.titleLabel setFont:[UIFont fontWithName:kHelveticaNeueThin size:14]];
+    [self.useButton.titleLabel setFont:[UIFont fontWithName:kHelveticaNeueThin size:14]];
     
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(cleanupCameraCapture)
@@ -100,52 +127,14 @@ static void *AVCamFocusModeObserverContext = &AVCamFocusModeObserverContext;
                                              selector:@selector(setUpCamera)
                                                  name:@"StartCameraCapture"
                                                object:nil];
-    
-    // Create the focus mode UI overlay
-    [self addObserver:self forKeyPath:@"captureManager.videoInput.device.focusMode" options:NSKeyValueObservingOptionNew context:AVCamFocusModeObserverContext];
-    
-    // Add a single tap gesture to focus on the point tapped, then lock focus
-    self.singleTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tapToContinouslyAutoFocus:)];
-    [self.singleTap setDelegate:self];
-    [self.singleTap setNumberOfTapsRequired:1];
-    [self.view addGestureRecognizer:self.singleTap];
-    
-    // Add a double tap gesture to reset the focus mode to continuous auto focus
-    self.doubleTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tapToContinouslyAutoFocus:)];
-    [self.doubleTap setDelegate:self];
-    [self.doubleTap setNumberOfTapsRequired:2];
-    [self.singleTap requireGestureRecognizerToFail:self.doubleTap];
-    [self.view addGestureRecognizer:self.doubleTap];
-    
-    [self.cancelButton setTitleColor:[UIColor darkGrayColor] forState:UIControlStateNormal];
-    [self.useButton setTitle:@"Use" forState:UIControlStateNormal];
-    [self.useButton setTitleColor:[UIColor darkGrayColor] forState:UIControlStateNormal];
-    self.useButton.clipsToBounds = YES;
-    [self.useButton addTarget:self action:@selector(useImage) forControlEvents:UIControlEventTouchUpInside];
-    [self.useButton setAlpha:0.0];
-    
-    if ([UIScreen mainScreen].bounds.size.height == 568) {
-        self.squareImageView = [[UIView alloc] initWithFrame:CGRectMake(0,0,320,320)];
-    } else {
-        self.squareImageView = [[UIView alloc] initWithFrame:CGRectMake(0,27,320,320)];
-    }
-
-    [self.squareImageView setBackgroundColor:[UIColor clearColor]];
-    self.squareImageView.layer.borderWidth = 1.5f;
-    self.squareImageView.layer.borderColor = [UIColor darkGrayColor].CGColor;
-    [self.view addSubview:self.squareImageView];
-    [self setUpCamera];
-    [super viewDidLoad];
 }
 
 - (void)setUpCamera {
     NSLog(@"should be setting up the camera");
-    if ([UIScreen mainScreen].bounds.size.height == 568){
-        stillCamera = [[GPUImageStillCamera alloc] initWithSessionPreset:AVCaptureSessionPreset1920x1080 cameraPosition:AVCaptureDevicePositionBack];
-    } else {
-        stillCamera = [[GPUImageStillCamera alloc] init];
-    }
-    
+    if (!originalImage) originalImage = [[UIImage alloc] init];
+    stillCamera = [[GPUImageStillCamera alloc] initWithSessionPreset:AVCaptureSessionPresetPhoto cameraPosition:AVCaptureDevicePositionBack];
+    // Create the focus mode UI overlay
+    //[self addObserver:self forKeyPath:@"captureManager.videoInput.device.focusMode" options:NSKeyValueObservingOptionNew context:AVCamFocusModeObserverContext];
     stillCamera.outputImageOrientation = UIInterfaceOrientationPortrait;
     filter = [[GPUImageBrightnessFilter alloc] init];
     //    filter = [[GPUImageUnsharpMaskFilter alloc] init];
@@ -169,12 +158,48 @@ static void *AVCamFocusModeObserverContext = &AVCamFocusModeObserverContext;
     GPUImageView *filterView = (GPUImageView *)self.view;
     [filterView setFrame:[[UIScreen mainScreen] bounds]];
     [filter addTarget:filterView];
+    [stillCamera prepareForImageCapture];
     [stillCamera startCameraCapture];
+    //[stillCamera performSelectorInBackground:@selector(startCameraCapture) withObject:nil];
 }
 
+- (void)viewWillAppear:(BOOL)animated {
+    [[UIApplication sharedApplication] setStatusBarHidden:YES withAnimation:YES];
+    [self.navigationController setNavigationBarHidden:YES animated:YES];
+    [self.view setBackgroundColor:[UIColor colorWithWhite:.3 alpha:1]];
+    if (self.isPreview) {
+        [self.filterScrollView setHidden:NO];
+        [self.cancelButton setTitle:@"RETAKE" forState:UIControlStateNormal];
+        [self.cancelButton removeTarget:self action:@selector(cancel) forControlEvents:UIControlEventTouchUpInside];
+        [self.cancelButton addTarget:self action:@selector(retake) forControlEvents:UIControlEventTouchUpInside];
+        [self.useButton setAlpha:1.0];
+        [self.photoPreviewImageView setAlpha:1.0];
+        [singleTap setEnabled:NO];
+        [doubleTap setEnabled:NO];
+        [self.libraryButton setHidden:YES];
+        [self.takePhotoButton setAlpha:0.0];
+        photoFromLibrary = YES;
+    }
+    [super viewWillAppear:animated];
+}
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
-    [self addFiltersToView];
+    if (!self.isPreview) {
+        [self setUpCamera];
+        [self createFilterArray];
+        int index = 0;
+        for (GPUImageFilter *thisFilter in filterArray){
+            UIView *filterButtonView = [self addFilter:thisFilter withIndex:index];
+            [self.filterScrollView addSubview:filterButtonView];
+            index ++;
+        }
+        [self addFiltersToView];
+        if (iPhone5) {
+            [self tapToContinouslyAutoFocus:nil orPoint:CGPointMake(165,225)];
+        } else {
+            [self tapToContinouslyAutoFocus:nil orPoint:CGPointMake(165,190)];
+        }
+    }
 }
 
 /*- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context
@@ -187,84 +212,91 @@ static void *AVCamFocusModeObserverContext = &AVCamFocusModeObserverContext;
     }
 }*/
 
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldReceiveTouch:(UITouch *)touch
+{
+    return ! ([touch.view isKindOfClass:[UIControl class]]);
+}
+
 - (IBAction)captureStillImage:(id)sender
 {
     [UIView animateWithDuration:.25 animations:^{
         [self.takePhotoButton setAlpha:0.0];
     }];
 
-    [self.cancelButton setTitle:@"Retake" forState:UIControlStateNormal];
+    [self.cancelButton setTitle:@"RETAKE" forState:UIControlStateNormal];
     [self.cancelButton removeTarget:self action:@selector(cancel) forControlEvents:UIControlEventTouchUpInside];
     [self.cancelButton addTarget:self action:@selector(retake) forControlEvents:UIControlEventTouchUpInside];
-    
     // Capture a still image
+    
     [stillCamera capturePhotoAsImageProcessedUpToFilter:filter withCompletionHandler:^(UIImage *filteredImage, NSError *error) {
         if (!error){
-            self.isPreview = YES;
-            self.originalImage = filteredImage;
+            originalImage = filteredImage;
             CGSize bounds = CGSizeMake(320,320); // Considering image is shown in 320*320
-            CGRect rect = CGRectMake(0, -(self.view.frame.size.height/2-144), 320, 320); //rectangle area to be cropped
-            
+            CGRect rect = CGRectMake(0, -(80), 320, 320); //rectangle area to be cropped
             float widthFactor = rect.size.width * (filteredImage.size.width/bounds.width);
             float heightFactor = rect.size.height * (filteredImage.size.height/bounds.height);
             float factorX = rect.origin.x * (filteredImage.size.width/bounds.width);
             float factorY = rect.origin.y * (filteredImage.size.height/bounds.height);
             CGRect factoredRect = CGRectMake(factorX,factorY,widthFactor,heightFactor);
-            self.cropImage = [UIImage imageWithCGImage:CGImageCreateWithImageInRect([filteredImage CGImage], factoredRect)];
+            _cropImage = [UIImage imageWithCGImage:CGImageCreateWithImageInRect([filteredImage CGImage], factoredRect)];
             
-            [self.photoPreviewImageView setImage:self.cropImage];
-            [self.photoPreviewImageView setHidden:NO];
+            [self.photoPreviewImageView setImage:_cropImage];
             [UIView animateWithDuration:.25 delay:0.0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-                if ([UIScreen mainScreen].bounds.size.height == 568){
-                    [self.photoPreviewImageView setFrame:CGRectMake(0, 0, 320, 320)];
-                } else {
-                    [self.photoPreviewImageView setFrame:CGRectMake(0, 26, 320, 320)];
-                }
                 [self.useButton setAlpha:1.0];
                 [self.photoPreviewImageView setAlpha:1.0];
-                [self.squareImageView setAlpha:0.0];
-
+                [self.libraryButton setAlpha:0.0];
             }completion:^(BOOL finished) {
-                [self.singleTap setEnabled:NO];
-                [self.doubleTap setEnabled:NO];
+                [singleTap setEnabled:NO];
+                [doubleTap setEnabled:NO];
+                [self.libraryButton setHidden:YES];
+                self.isPreview = YES;
+                [stillCamera pauseCameraCapture];
             }];
         }
      }];
 }
 
 - (void)retake {
-    self.filterArray = nil;
+    if (self.isPreview) {
+        [self setUpCamera];
+    } else {
+        [stillCamera resumeCameraCapture];
+    }
+    
+    filterArray = nil;
     [self createFilterArray];
     self.isPreview = NO;
+    photoFromLibrary = NO;
+    [self.libraryButton setHidden:NO];
     [UIView animateWithDuration:.25 animations:^{
-        [self.squareImageView setAlpha:1.0];
         [self.photoPreviewImageView setAlpha:0.0];
         [self.takePhotoButton setAlpha:1.0];
         [self.useButton setAlpha:0.0];
+        [self.libraryButton setAlpha:1.0];
     }];
-    [self.singleTap setEnabled:YES];
-    [self.doubleTap setEnabled:YES];
-    self.cropImage = nil;
-    self.originalImage = nil;
-    self.photoPreviewImageView.image = nil;
-    [self.photoPreviewImageView setHidden:YES];
+    
+    [singleTap setEnabled:YES];
+    [doubleTap setEnabled:YES];
+    if (_cropImage) _cropImage = nil;
+    if (originalImage) originalImage = nil;
+    if (self.photoPreviewImageView) self.photoPreviewImageView.image = nil;
     [stillCamera removeAllTargets];
     [filter removeAllTargets];
     [filter deleteOutputTexture];
     
-    filter = [self.filterArray objectAtIndex:0];
+    filter = [filterArray objectAtIndex:0];
     [stillCamera addTarget:filter];
     [filter addTarget:(GPUImageView *)self.view];
     [filter prepareForImageCapture];
     
-    [self.cancelButton setTitle:@"Cancel" forState:UIControlStateNormal];
+    [self.cancelButton setTitle:@"BACK" forState:UIControlStateNormal];
     [self.cancelButton removeTarget:self action:@selector(retake) forControlEvents:UIControlEventTouchUpInside];
     [self.cancelButton addTarget:self action:@selector(cancel) forControlEvents:UIControlEventTouchUpInside];
 }
 
 //set up filters
 - (void) addFiltersToView{
-    [self.filterScrollView setContentSize:CGSizeMake((self.filterArray.count*66)-6,62)];
+    [self.filterScrollView setContentSize:CGSizeMake((filterArray.count*66)-6,62)];
     
     [UIView animateWithDuration:.3 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
         self.filterScrollView.transform = CGAffineTransformMakeTranslation(-20, 0);
@@ -289,24 +321,24 @@ static void *AVCamFocusModeObserverContext = &AVCamFocusModeObserverContext;
     UIView *view = [[UIView alloc] initWithFrame:CGRectMake(x*66, -100, 70, 70)];
     UIButton *filterButton = [UIButton buttonWithType:UIButtonTypeCustom];
     filterButton.layer.borderWidth = 1.0;
-    filterButton.layer.borderColor = [UIColor colorWithWhite:.9 alpha:.5].CGColor;
+    filterButton.layer.borderColor = kColorLightBlack.CGColor;
     filterButton.layer.shouldRasterize = YES;
     filterButton.layer.rasterizationScale = [UIScreen mainScreen].scale;
     UILabel *filterLabel = [[UILabel alloc] init];
-    [filterLabel setFont:[UIFont fontWithName:kAvenirMedium size:16]];
+    [filterLabel setFont:[UIFont fontWithName:kHelveticaNeueThin size:13]];
+    
     [filterLabel setBackgroundColor:[UIColor clearColor]];
     [filterLabel setTextAlignment:NSTextAlignmentCenter];
     
     [view addSubview:filterButton];
     [view addSubview:filterLabel];
-    if ([UIScreen mainScreen].bounds.size.height == 568){
-        [filterLabel setFrame:CGRectMake(0,80,60,18)];
+    [filterLabel setTextColor:[UIColor whiteColor]];
+    if (iPhone5){
+        [filterLabel setFrame:CGRectMake(-2,78,62,18)];
         [filterButton setFrame:CGRectMake(0,16,60,60)];
-        [filterLabel setTextColor:[UIColor darkGrayColor]];
     } else {
-        [filterLabel setFrame:CGRectMake(0,50,60,18)];
+        [filterLabel setFrame:CGRectMake(-2,50,62,18)];
         [filterButton setFrame:CGRectMake(0,6,60,60)];
-        [filterLabel setTextColor:[UIColor whiteColor]];
         filterLabel.shadowColor = [UIColor blackColor];
         filterLabel.shadowOffset = CGSizeMake(1,1);
     }
@@ -366,30 +398,15 @@ static void *AVCamFocusModeObserverContext = &AVCamFocusModeObserverContext;
     return view;
 }
 
-- (void) selectFilter:(id)sender {
-    UIButton *button = (UIButton *) sender;
-    for (UIView *view in self.filterScrollView.subviews){
-        for (UIButton *button in view.subviews)
-            if ([button isKindOfClass:[UIButton class]]){
-                button.layer.shadowColor = [UIColor clearColor].CGColor;
-                button.layer.shadowOffset = CGSizeMake(0,3);
-                button.layer.shadowOpacity = 0.0;
-                button.layer.shadowRadius = 0.0;
-            }
-    }
-    button.layer.shadowColor = [UIColor blackColor].CGColor;
-    button.layer.shadowOffset = CGSizeMake(0,3);
-    button.layer.shadowOpacity = .75f;
-    button.layer.shadowRadius = 10.0;
-    
+- (void) selectFilter:(UIButton*)button {
     [filter removeAllTargets];
     [stillCamera removeAllTargets];
     
     if (self.isPreview) {
-        [self.photoPreviewImageView setImage:[(GPUImageFilter*)[self.filterArray objectAtIndex:button.tag] imageByFilteringImage:self.cropImage]];
+        [self.photoPreviewImageView setImage:[(GPUImageFilter*)[filterArray objectAtIndex:button.tag] imageByFilteringImage:_cropImage]];
     } else {
         //reset GPUImage to apply newly selected filter
-        filter = [self.filterArray objectAtIndex:button.tag];
+        filter = [filterArray objectAtIndex:button.tag];
         [stillCamera addTarget:filter];
         [filter addTarget:(GPUImageView *)self.view];
         [filter prepareForImageCapture];
@@ -398,77 +415,48 @@ static void *AVCamFocusModeObserverContext = &AVCamFocusModeObserverContext;
 
 - (void)useImage {
     [FDPost.userPost setPhotoImage:self.photoPreviewImageView.image];
-    [self savePostToLibrary:self.photoPreviewImageView.image];
-    //[self savePostToLibrary:self.photoPreviewImageView.image];
-    [[UIApplication sharedApplication] setStatusBarHidden:NO withAnimation:NO];
-    [self dismissModalViewControllerAnimated:YES];
-}
-
-- (void)savePostToLibrary:(UIImage*)imageToSave {
-    NSLog(@"should be saving photo to library");
-    NSString *albumName = @"FOODIA";
-    ALAssetsLibrary *library = [[ALAssetsLibrary alloc]init];
-    [library addAssetsGroupAlbumWithName:albumName
-                                  resultBlock:^(ALAssetsGroup *group) {
-                                      
-                                  }
-                                 failureBlock:^(NSError *error) {
-                                     NSLog(@"error adding album");
-                                 }];
-    
-    __block ALAssetsGroup* groupToAddTo;
-    [library enumerateGroupsWithTypes:ALAssetsGroupAlbum
-                                usingBlock:^(ALAssetsGroup *group, BOOL *stop) {
-                                    if ([[group valueForProperty:ALAssetsGroupPropertyName] isEqualToString:albumName]) {
-                                        
-                                        groupToAddTo = group;
-                                    }
-                                }
-                              failureBlock:^(NSError* error) {
-                                  NSLog(@"failed to enumerate albums:\nError: %@", [error localizedDescription]);
-                              }];
-    
-    //ensure images are properly rotated
-    CGImageRef CGimageToSave = imageToSave.CGImage;
-    //NSMutableDictionary *metadata = [info objectForKey:UIImagePickerControllerMediaMetadata];
-    //[metadata setObject:@"1" forKey:@"Orientation"];
-    [library writeImageToSavedPhotosAlbum:CGimageToSave orientation:ALAssetOrientationUp completionBlock:^(NSURL *assetURL, NSError *error) {
-                                   if (error.code == 0) {
-                                       // try to get the asset
-                                       [library assetForURL:assetURL
-                                                     resultBlock:^(ALAsset *asset) {
-                                                         // assign the photo to the album
-                                                         [groupToAddTo addAsset:asset];
-                                                     }
-                                                    failureBlock:^(NSError* error) {
-                                                        NSLog(@"failed to retrieve image asset:\nError: %@ ", [error localizedDescription]);
-                                                    }];
-                                   }
-                                   else {
-                                       NSLog(@"saved image failed.\nerror code %i\n%@", error.code, [error localizedDescription]);
-                                   }
-                               }];
+    if (self.shouldBeEditing) {
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"UpdateNewPostVC" object:nil];
+        [self dismissViewControllerAnimated:YES completion:nil];
+    } else {
+        [self performSegueWithIdentifier:@"NewPost" sender:self];
+    }
 }
 
 - (IBAction)cancel{
-    [[UIApplication sharedApplication] setStatusBarHidden:NO withAnimation:NO];
-    [self dismissModalViewControllerAnimated:YES];
+    [[UIApplication sharedApplication] setStatusBarHidden:NO withAnimation:YES];
+    if (self.shouldBeEditing){
+        [self dismissViewControllerAnimated:YES completion:nil];
+    } else {
+        [self.navigationController popViewControllerAnimated:YES];
+    }
+}
+
+- (void)viewWillDisappear:(BOOL)animated {
+    [(FDAppDelegate*)[UIApplication sharedApplication].delegate setIsTakingPhoto:NO];
+    [self.filterScrollView setHidden:YES];
+    [[UIApplication sharedApplication] setStatusBarHidden:NO withAnimation:YES];
+    [self.navigationController setNavigationBarHidden:NO animated:YES];
+    [super viewWillDisappear:animated];
 }
 
 - (void)viewDidDisappear:(BOOL)animated {
-    NSLog(@"view did disappear");
-    [(FDAppDelegate*)[UIApplication sharedApplication].delegate setIsTakingPhoto:NO];
-    [self removeObserver:self forKeyPath:@"captureManager.videoInput.device.focusMode" context:AVCamFocusModeObserverContext];
-    self.filterArray = nil;
-    [self cleanupCameraCapture];
-    [[UIApplication sharedApplication] setStatusBarHidden:NO withAnimation:NO];
     [super viewDidDisappear:animated];
+    [self cleanupCameraCapture];
+}
+
+- (void)viewDidUnload {
+    filterArray = nil;
+    [super viewDidUnload];
 }
 
 - (void)cleanupCameraCapture {
     NSLog(@"should be cleaning up the campera capture setup");
-    [stillCamera stopCameraCapture];
-    stillCamera = nil;
+
+    if (stillCamera){
+        [stillCamera stopCameraCapture];
+        stillCamera = nil;
+    }
     if (captureManager) [captureManager stopRecording];
 }
 
@@ -555,36 +543,49 @@ static void *AVCamFocusModeObserverContext = &AVCamFocusModeObserverContext;
 }*/
 
 -(void)animateFocusSquare:(CGPoint)point {
-    if (point.y < 320){
-        UIView *squareView = [[UIView alloc] initWithFrame:CGRectMake(point.x-60,point.y-60,120,120)];
-        [squareView setBackgroundColor:[UIColor clearColor]];
-        [squareView.layer setBorderColor:[UIColor colorWithWhite:1 alpha:.7].CGColor];
-        [squareView.layer setBorderWidth:1.f];
-        [self.view addSubview:squareView];
-        [UIView animateWithDuration:.125 delay:0.0 options:UIViewAnimationOptionAllowUserInteraction animations:^{
-            [squareView setFrame:CGRectMake(point.x-40,point.y-40,80,80)];
-        } completion:^(BOOL finished) {
-            [UIView animateWithDuration:1.5 animations:^{
-                squareView.transform = CGAffineTransformMakeScale(1.1, 1.1);
-            } completion:^(BOOL finished){
-                [squareView removeFromSuperview];
-            }];
-        }];
+    if (iPhone5){
+        if (point.y < 390 && point.y > 70) {
+            [self actuallyFocus:point];
+        }
+    } else {
+        if (point.y > 26 && point.y < 346) {
+            [self actuallyFocus:point];
+        }
     }
 }
 
-// Change to continuous auto focus. The camera will constantly focus at the point choosen.
-- (void)tapToContinouslyAutoFocus:(UIGestureRecognizer *)gestureRecognizer
+-(void)actuallyFocus:(CGPoint)point {
+    UIView *squareView = [[UIView alloc] initWithFrame:CGRectMake(point.x-50,point.y-50,100,100)];
+    UIImageView *focusSquare = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"focusSquare"]];
+    [squareView addSubview:focusSquare];
+    [self.view addSubview:squareView];
+    [squareView setBackgroundColor:[UIColor clearColor]];
+    [UIView animateWithDuration:.075 delay:0.0 options:UIViewAnimationOptionAllowUserInteraction animations:^{
+        focusSquare.transform = CGAffineTransformMakeScale(.7, .7);
+    } completion:^(BOOL finished) {
+        [UIView animateWithDuration:1.5 delay:0.0 options:UIViewAnimationOptionAllowUserInteraction animations:^{
+            squareView.transform = CGAffineTransformMakeScale(1.15, 1.15);
+        } completion:^(BOOL finished){
+            [squareView removeFromSuperview];
+        }];
+    }];
+}
+
+// Change to continuous auto focus. The camera will focus at the point choosen.
+- (void)tapToContinouslyAutoFocus:(UIGestureRecognizer *)gestureRecognizer orPoint:(CGPoint)thePoint
 {
-    CGPoint tapPoint = [gestureRecognizer locationInView:self.view];
+    CGPoint tapPoint;
+    if (thePoint.x && thePoint.y) {
+        tapPoint = thePoint;
+    } else {
+        tapPoint = [gestureRecognizer locationInView:self.view];
+    }
     [self animateFocusSquare:tapPoint];
-    CGPoint convertedFocusPoint = [self convertToPointOfInterestFromViewCoordinates:tapPoint];
-    [captureManager autoFocusAtPoint:convertedFocusPoint];
+    
     AVCaptureDevice *device = stillCamera.inputCamera;
     CGPoint pointOfInterest = CGPointMake(.5f, .5f);
     CGSize frameSize = self.view.frame.size;
     pointOfInterest = CGPointMake(tapPoint.y / frameSize.height, 1.f - (tapPoint.x / frameSize.width));
-    
     if ([device isFocusPointOfInterestSupported] && [device isFocusModeSupported:AVCaptureFocusModeAutoFocus]) {
         NSError *error;
         if ([device lockForConfiguration:&error]) {
@@ -594,15 +595,67 @@ static void *AVCamFocusModeObserverContext = &AVCamFocusModeObserverContext;
             
             if([device isExposurePointOfInterestSupported] && [device isExposureModeSupported:AVCaptureExposureModeContinuousAutoExposure])
             {
-                
                 [device setExposurePointOfInterest:pointOfInterest];
                 [device setExposureMode:AVCaptureExposureModeContinuousAutoExposure];
             }
-            
             [device unlockForConfiguration];
         } else {
             NSLog(@"some sort of focus error");
         }
+    }
+}
+
+-(void)setUpLibraryButton {
+    ALAssetsLibrary *library = [[ALAssetsLibrary alloc] init];
+    
+    [library enumerateGroupsWithTypes:ALAssetsGroupSavedPhotos usingBlock:^(ALAssetsGroup *group, BOOL *stop) {
+        [group setAssetsFilter:[ALAssetsFilter allPhotos]];
+        if (![group numberOfAssets]){
+            
+        } else {
+                [group enumerateAssetsAtIndexes:[NSIndexSet indexSetWithIndex:[group numberOfAssets]-1]
+                                        options:0
+                                     usingBlock:^(ALAsset *myAsset, NSUInteger index, BOOL *innerStop) {
+                                         
+                                         // The end of the enumeration is signaled by asset == nil.
+                                         if (myAsset) {
+                                             
+                                             UIImageOrientation orientation = UIImageOrientationUp;
+                                             NSNumber* orientationValue = [myAsset valueForProperty:@"ALAssetPropertyOrientation"];
+                                             if (orientationValue != nil) {
+                                                 orientation = [orientationValue intValue];
+                                             }
+                                            [self.libraryButton setImage:[UIImage imageWithCGImage:[myAsset thumbnail] scale:1.0 orientation:UIImageOrientationUp] forState:UIControlStateNormal];
+                                         }
+                                     }];
+        }
+    }
+                             failureBlock: ^(NSError *error) {
+                                 /*[[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"But you'll need either a camera or some images in your Photo Library in order to post on FOODIA." delegate:self cancelButtonTitle:@"Okey Dokey" otherButtonTitles:nil] show];*/
+                             }];
+}
+
+-(void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
+    [alertView dismissWithClickedButtonIndex:buttonIndex animated:YES];
+    [self.navigationController popViewControllerAnimated:YES];
+}
+
+-(IBAction)libraryButtonTapped{
+    if (self.shouldBeEditing){
+        UIStoryboard *storyboard;
+        if (([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone && iPhone5)){
+            storyboard = [UIStoryboard storyboardWithName:@"iPhone5"
+                                                   bundle:nil];
+        } else {
+            storyboard = [UIStoryboard storyboardWithName:@"iPhone"
+                                                   bundle:nil];
+        }
+        FDPhotoLibraryViewController *vc = [storyboard instantiateViewControllerWithIdentifier:@"PhotoLibrary"];
+        vc.modalTransitionStyle = UIModalTransitionStyleCrossDissolve;
+        [vc setShouldBeEditing:YES];
+        [self presentViewController:vc animated:YES completion:nil];
+    } else{
+        [self performSegueWithIdentifier:@"ShowLibrary" sender:self];
     }
 }
 

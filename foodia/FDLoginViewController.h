@@ -9,6 +9,7 @@
 #import "FDAppDelegate.h"
 
 @interface FDLoginViewController : UIViewController
+@property (weak, nonatomic) IBOutlet UIView *dummyStuff;
 - (IBAction)login:(id)sender;
 - (IBAction)showEmailConnect;
 - (IBAction)cancelEmailConnect;

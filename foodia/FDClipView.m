@@ -38,6 +38,7 @@
         } else {
             [UIView animateWithDuration:.4f animations:^{[_scrollView setContentOffset:CGPointMake(-88*round,0)];}];
         }
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"HideKeyboard" object:nil];
     }
 }
 /*

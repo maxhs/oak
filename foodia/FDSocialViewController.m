@@ -42,13 +42,9 @@
     [Flurry logEvent:@"ViewingFriends" timed:YES];
     self.delegate = self;
     UILabel *navTitle = [[UILabel alloc] init];
-    navTitle.frame = CGRectMake(0,0,200,44);
-    navTitle.text = @"FRIENDS";
-    if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 6) {
-        navTitle.font = [UIFont fontWithName:kAvenirDemiBold size:21];
-    } else {
-        navTitle.font = [UIFont fontWithName:kFuturaMedium size:21];
-    }
+    navTitle.frame = CGRectMake(0,0,180,44);
+    navTitle.text = @"Friends";
+    navTitle.font = [UIFont fontWithName:kHelveticaNeueThin size:20];
     navTitle.backgroundColor = [UIColor clearColor];
     navTitle.textColor = [UIColor blackColor];
     navTitle.textAlignment = NSTextAlignmentCenter;
@@ -87,7 +83,7 @@
     [self.searchDisplayController.searchBar resignFirstResponder];
     NSString *recipient = [notification.object objectForKey:@"fbid"];
     NSMutableDictionary *postParams = [[NSMutableDictionary alloc] init];
-    /*BOOL displayedNativeDialog = [FBNativeDialogs presentShareDialogModallyFrom:self initialText:@"Download FOODIA. Spend less time with your phone and more time with your food." image:[UIImage imageNamed:@"FOODIA_crab_114x114.png"] url:[NSURL URLWithString:@"http://www.foodia.com"] handler:^(FBNativeDialogResult result, NSError *error) {
+    /*BOOL displayedNativeDialog = [FBNativeDialogs presentShareDialogModallyFrom:self initialText:@"Download FOODIA. Spend less time with your phone and more time with good food." image:[UIImage imageNamed:@"FOODIA_crab_114x114.png"] url:[NSURL URLWithString:@"http://www.foodia.com"] handler:^(FBNativeDialogResult result, NSError *error) {
 
         // Only show the error if it is not due to the dialog
         // not being supporte, i.e. code = 7, otherwise ignore

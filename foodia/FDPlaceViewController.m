@@ -10,7 +10,6 @@
 #import "FDPost.h"
 #import "Utilities.h"
 #import "FDVenueLocation.h"
-#import "FDNearbyTableViewController.h"
 #import "FDPostTableViewController.h"
 #import "MKAnnotationView+WebCache.h"
 #import <MapKit/MapKit.h>
@@ -29,7 +28,9 @@
 #import "Flurry.h"
 #import "UIButton+WebCache.h"
 
-@interface FDPlaceViewController () <CLLocationManagerDelegate, MKMapViewDelegate, MFMailComposeViewControllerDelegate, MFMessageComposeViewControllerDelegate, UIActionSheetDelegate, UIAlertViewDelegate, UITextViewDelegate>
+@interface FDPlaceViewController () <CLLocationManagerDelegate, MKMapViewDelegate, MFMailComposeViewControllerDelegate, MFMessageComposeViewControllerDelegate, UIActionSheetDelegate, UIAlertViewDelegate, UITextViewDelegate> {
+    int rowToReload;
+}
 @property (strong, nonatomic) FDVenue *place;
 @property (nonatomic, weak) IBOutlet UIButton *directionsButton;
 @property (weak, nonatomic) IBOutlet MKMapView *mapView;
@@ -43,7 +44,9 @@
 @property (strong, nonatomic) NSMutableArray *posts;
 @property (nonatomic, retain) CLLocationManager *locationManager;
 @property (weak, nonatomic) IBOutlet UITextView *hoursTextView;
+@property (weak, nonatomic) IBOutlet UIView *infoContainerView;
 @property BOOL justLiked;
+
 @end
 
 @implementation FDPlaceViewController
@@ -55,6 +58,7 @@
 {
     [super viewDidLoad];
     [Flurry logPageView];
+    [self.view setBackgroundColor:[UIColor colorWithWhite:.95 alpha:1.0]];
     [self.navigationController setNavigationBarHidden:NO animated:YES];
 	// Do any additional setup after loading the view.
     self.locationManager = [CLLocationManager new];
@@ -71,16 +75,9 @@
     //self.hoursTextView.delegate = self;
     [self.postsContainerTableView setDelegate:self];
     [self.postsContainerTableView setDataSource:self];
-    if ([[[UIDevice currentDevice] systemVersion] floatValue] < 6) {
-        [self.placeLabel setFont:[UIFont fontWithName:kFuturaMedium size:20]];
-        [self.hoursTextView setFont:[UIFont fontWithName:kFuturaMedium size:15]];
-        [self.cityStateCountry setFont:[UIFont fontWithName:kFuturaMedium size:15]];
-        [self.categoryLabel setFont:[UIFont fontWithName:kFuturaMedium size:15]];
-        [self.directionsButton.titleLabel setFont:[UIFont fontWithName:kFuturaMedium size:15]];
-        [self.foodiaPosts setFont:[UIFont fontWithName:kFuturaMedium size:15]];
-        [self.totalCheckinsLabel setFont:[UIFont fontWithName:kFuturaMedium size:15]];
-        [self.streetAddress setFont:[UIFont fontWithName:kFuturaMedium size:15]];
-    } 
+    self.postsContainerTableView.tableHeaderView = self.infoContainerView;
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(updatePostNotification:) name:@"UpdatePostNotification" object:nil];
 }
 
 - (void) viewWillAppear:(BOOL)animated {
@@ -101,11 +98,11 @@
                 }
             }
             [self.hoursTextView setText:hoursString];
-            [self.hoursTextView setFrame:CGRectMake(-4,-8,160,self.hoursTextView.contentSize.height)];
+            [self.hoursTextView setFrame:CGRectMake(-4,self.hoursTextView.frame.origin.y,320,self.hoursTextView.contentSize.height)];
         } else {
             [self.hoursTextView setText:@"(Hours unavailable)"];
             [self.hoursTextView setTextColor:[UIColor lightGrayColor]];
-            [self.hoursTextView setFrame:CGRectMake(4,-8,160,self.hoursTextView.contentSize.height)];
+            [self.hoursTextView setFrame:CGRectMake(4,self.hoursTextView.frame.origin.y,320,self.hoursTextView.contentSize.height)];
         }
         [[FDAPIClient sharedClient] getPostsForPlace:self.place success:^(id result){
             if ([(NSMutableArray *)result count]) {
@@ -129,16 +126,34 @@
     [self.view bringSubviewToFront:self.postsContainerTableView];
 }
 
+
+- (void) updatePostNotification:(NSNotification *) notification {
+    NSDictionary *userInfo = notification.userInfo;
+    if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 6.0 && self.posts.count) {
+        FDPost *postForReplacement = [userInfo objectForKey:@"post"];
+        [self.posts removeObjectAtIndex:rowToReload];
+        [self.posts insertObject:postForReplacement atIndex:rowToReload];
+        NSIndexPath *indexPathToReload;
+        indexPathToReload = [NSIndexPath indexPathForRow:rowToReload inSection:0];
+        NSArray* rowsToReload = [NSArray arrayWithObjects:indexPathToReload, nil];
+        [self.postsContainerTableView reloadRowsAtIndexPaths:rowsToReload withRowAnimation:UITableViewRowAnimationNone];
+    }
+}
+
 - (void) showDetails {
     [self.mapView removeAnnotations:self.mapView.annotations];
     [self.mapView setRegion:MKCoordinateRegionMake(self.place.coordinate, MKCoordinateSpanMake(0.1, 0.1)) animated:YES];
     [self.mapView addAnnotation:self.place];
     self.placeLabel.text = self.place.name;
-    self.streetAddress.text = self.place.location.address;
-    self.cityStateCountry.text = [NSString stringWithFormat:@"%@, %@",self.place.location.city, self.place.location.state];
+    
+    if (self.place.location.address.length) self.streetAddress.text = self.place.location.address;
+    else [self.streetAddress setHidden:YES];
+        
+    if (self.place.location.state.length) self.cityStateCountry.text = [NSString stringWithFormat:@"%@, %@",self.place.location.city, self.place.location.state];
+    else [self.cityStateCountry setHidden:YES];
     if (self.place.categories != nil){
-        self.categoryLabel.text = [NSString stringWithFormat: @"%@",[[self.place.categories valueForKey:@"name"] componentsJoinedByString:@", " ]];
-        [self.categoryLabel setFrame:CGRectMake(4,self.hoursTextView.contentSize.height-20,150,50)];
+        self.categoryTextField.text = [NSString stringWithFormat: @"%@",[[self.place.categories valueForKey:@"name"] componentsJoinedByString:@", " ]];
+        self.categoryTextField.contentVerticalAlignment = UIControlContentVerticalAlignmentTop;
     }
     //if (self.place.reservationsUrl) [self.reservationsLink setHidden:NO];
     //if (self.place.menuUrl)[self.menuLink setHidden:NO];
@@ -148,7 +163,7 @@
     }
     if (self.place.totalCheckins) self.totalCheckinsLabel.text = [NSString stringWithFormat:@"%@ checkins",self.place.totalCheckins];
     else [self.totalCheckinsLabel setHidden:YES];
-    self.foodiaPosts.text = [NSString stringWithFormat:@"Foodia posts: %d",self.posts.count];
+    self.foodiaPosts.text = [NSString stringWithFormat:@"FOODIA posts: %d",self.posts.count];
 }
 
 - (IBAction)getDirections:(id)sender {
@@ -187,6 +202,7 @@
             [button setBackgroundImage:[UIImage imageNamed:@"recBubble"] forState:UIControlStateNormal];
         }];
         [[FDAPIClient sharedClient] unlikePost:post
+                                        detail:NO
                                        success:^(FDPost *newPost) {
                                            self.justLiked = NO;
                                            [self.posts replaceObjectAtIndex:button.tag withObject:newPost];
@@ -203,6 +219,7 @@
             [button setBackgroundImage:[UIImage imageNamed:@"likeBubbleSelected"] forState:UIControlStateNormal];
         }];
         [[FDAPIClient sharedClient] likePost:post
+                                      detail:NO
                                      success:^(FDPost *newPost) {
                                          [self.posts replaceObjectAtIndex:button.tag withObject:newPost];
                                          //conditionally change the like count number
@@ -256,6 +273,9 @@
         cell = [self showLikers:cell forPost:post];
         [cell bringSubviewToFront:cell.likersScrollView];
         
+        cell.posterButton.titleLabel.text = post.user.userId;
+        [cell.posterButton addTarget:self action:@selector(showProfile:) forControlEvents:UIControlEventTouchUpInside];
+        
         cell.detailPhotoButton.tag = [post.identifier integerValue];
         [cell.detailPhotoButton addTarget:self action:@selector(didSelectRow:) forControlEvents:UIControlEventTouchUpInside];
         
@@ -275,12 +295,26 @@
         cell.likeButton.tag = indexPath.row;
         return cell;
     } else {
-        NSLog(@"no posts");
         UITableViewCell *emptyCell = [[UITableViewCell alloc]initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"EmptyCell"];
         self.postsContainerTableView.separatorStyle = UITableViewCellSeparatorStyleNone;
         emptyCell.userInteractionEnabled = NO;
         return emptyCell;
     }
+}
+
+-(void)showProfile:(UIButton*)button {
+    /*UIStoryboard *storyboard;
+    if (([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone && [UIScreen mainScreen].bounds.size.height == 568.0)){
+        storyboard = [UIStoryboard storyboardWithName:@"iPhone5"
+                                               bundle:nil];
+    } else {
+        storyboard = [UIStoryboard storyboardWithName:@"iPhone"
+                                               bundle:nil];
+    }
+    FDProfileViewController *vc = [storyboard instantiateViewControllerWithIdentifier:@"ProfileView"];
+    [vc initWithUserId:button.titleLabel.text];
+    [self.navigationController pushViewController:vc animated:YES];*/
+    [self performSegueWithIdentifier:@"ShowProfile" sender:button];
 }
 
 - (void)didSelectRow:(id)sender {
@@ -303,6 +337,10 @@
     } else if ([segue.identifier isEqualToString:@"ShowProfileFromLikers"]){
         UIButton *button = (UIButton *)sender;
         FDProfileViewController *vc = segue.destinationViewController;
+        [vc initWithUserId:button.titleLabel.text];
+    } else if ([[segue identifier] isEqualToString:@"ShowProfile"]) {
+        UIButton *button = (UIButton*)sender;
+        FDProfileViewController *vc = [segue destinationViewController];
         [vc initWithUserId:button.titleLabel.text];
     }
 }
@@ -461,22 +499,6 @@
 
 -(void)profileTappedFromLikers:(id)sender {
     [self performSegueWithIdentifier:@"ShowProfileFromLikers" sender:sender];
-}
-
--(void)showProfile:(id)sender {
-    UIButton *button = (UIButton *)sender;
-    UIStoryboard *storyboard;
-    if (([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone && [UIScreen mainScreen].bounds.size.height == 568.0)){
-        storyboard = [UIStoryboard storyboardWithName:@"iPhone5"
-                                               bundle:nil];
-    } else {
-        storyboard = [UIStoryboard storyboardWithName:@"iPhone"
-                                               bundle:nil];
-    }
-    FDProfileViewController *vc = [storyboard instantiateViewControllerWithIdentifier:@"ProfileView"];
-    [vc initWithUserId:button.titleLabel.text];
-    [self.navigationController pushViewController:vc animated:YES];
-    
 }
 
 - (void)didReceiveMemoryWarning

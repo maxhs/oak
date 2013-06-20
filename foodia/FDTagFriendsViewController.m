@@ -32,13 +32,9 @@
     }];
     
     UILabel *navTitle = [[UILabel alloc] init];
-    navTitle.frame = CGRectMake(0,0,200,44);
-    navTitle.text = @"I'M WITH";
-    if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 6) {
-        navTitle.font = [UIFont fontWithName:kAvenirMedium size:21];
-    } else {
-        navTitle.font = [UIFont fontWithName:kFuturaMedium size:21];
-    }
+    navTitle.frame = CGRectMake(0,0,180,44);
+    navTitle.text = @"I'm with";
+    navTitle.font = [UIFont fontWithName:kHelveticaNeueThin size:20];
     navTitle.backgroundColor = [UIColor clearColor];
     navTitle.textColor = [UIColor blackColor];
     navTitle.textAlignment = NSTextAlignmentCenter;
@@ -50,12 +46,7 @@
     for(UIView *subView in self.searchDisplayController.searchBar.subviews) {
         if ([subView isKindOfClass:[UITextField class]]) {
             UITextField *searchField = (UITextField *)subView;
-            if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 6) {
-                searchField.font = [UIFont fontWithName:kAvenirMedium size:15];
-            } else {
-                searchField.font = [UIFont fontWithName:kFuturaMedium size:15];
-            }
-            
+            searchField.font = [UIFont fontWithName:kHelveticaNeueThin size:15];
         }
     }
     //replace ugly background
@@ -122,12 +113,11 @@
         if ([self.taggedFriendFacebookIds containsObject:friend.fbid]) {
             [self.taggedFriendFacebookIds removeObject:friend.fbid];
         } else if ([self.taggedFriendIds containsObject:friend.userId]) {
-            [self.taggedFriendFacebookIds removeObject:friend.userId];
+            [self.taggedFriendIds removeObject:friend.userId];
         } else {
             if (friend.userId.length) {
                 [self.taggedFriendIds addObject:friend.userId];
             } else {
-                NSLog(@"friend: %@",friend.fbid);
                 [self.taggedFriendFacebookIds addObject:friend.fbid];
             }
         }
@@ -143,7 +133,6 @@
             if (friend.userId.length) {
                 [self.taggedFriendIds addObject:friend.userId];
             } else {
-                NSLog(@"friend: %@",friend.fbid);
                 [self.taggedFriendFacebookIds addObject:friend.fbid];
             }
             [self.searchDisplayController setActive:NO animated:YES];

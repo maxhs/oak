@@ -64,7 +64,7 @@
                                          self.tableView.bounds.size.height);
         EGORefreshTableHeaderView *view =
         [[EGORefreshTableHeaderView alloc] initWithFrame:refreshFrame
-                                          arrowImageName:@"blackArrow.png"
+                                          arrowImageName:@"FOODIA-refresh.png"
                                                textColor:[UIColor blackColor]];
         view.delegate = self;
         [self.tableView addSubview:view];
@@ -201,7 +201,10 @@
 
 -(void)selectPost: (id)sender {
     UIButton *button = (UIButton *) sender;
-    [self.delegate performSegueWithIdentifier:@"ShowPost" sender:[self.posts objectAtIndex:button.tag]];
+    FDPost *post = (FDPost*)[self.posts objectAtIndex:button.tag];
+    NSDictionary *userInfo = @{@"identifier":[NSString stringWithFormat:@"%@",post.identifier]};
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"RowToReloadFromMenu" object:nil userInfo:userInfo];
+    [self.delegate performSegueWithIdentifier:@"ShowPost" sender:post];
 }
 
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(FDPost *)post {
@@ -213,7 +216,6 @@
 
 - (void)revealMenu {
     [self.slidingViewController anchorTopViewTo:ECRight];
-    NSLog(@"just revealed the menu from the notification button");
     [(FDMenuViewController *)self.slidingViewController.underLeftViewController refresh];
     int badgeCount = 0;
     // Resets the badge count when the view is opened
@@ -253,7 +255,7 @@
 }
 
 - (void)didShowLastRow {
-    NSLog(@"you've hit the last row");
+    NSLog(@"You've hit the last row");
 }
 
 #pragma mark - UIScrollViewDelegate Methods

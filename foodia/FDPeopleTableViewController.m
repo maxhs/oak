@@ -81,14 +81,10 @@
     for(UIView *subView in self.searchDisplayController.searchBar.subviews) {
         if ([subView isKindOfClass:[UITextField class]]) {
             UITextField *searchField = (UITextField *)subView;
-            if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 6) {
-                searchField.font = [UIFont fontWithName:kAvenirMedium size:15];
-            } else {
-                searchField.font = [UIFont fontWithName:kFuturaMedium size:15];
-            }
+            searchField.font = [UIFont fontWithName:kHelveticaNeueThin size:15];
         }
     }
-    //replace ugly background
+    //replace ugly search background
     for (UIView *view in self.searchDisplayController.searchBar.subviews) {
         if ([view isKindOfClass:NSClassFromString(@"UISearchBarBackground")]){
             UIImageView *header = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"newFoodiaHeader.png"]];
@@ -130,14 +126,26 @@
 
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
     if ([segue.identifier isEqualToString:@"ViewProfile"]) {
-        UIButton *button = sender;
-        FDProfileViewController *vc = segue.destinationViewController;
-        if (button.titleLabel.text.length){
-            //user doesn't have a FOODIA account, so load info from Facebook if applicable
-            [vc initWithUserId:button.titleLabel.text];
+        if ([sender isKindOfClass:[UIButton class]]){
+            UIButton *button = sender;
+            FDProfileViewController *vc = segue.destinationViewController;
+            if (button.titleLabel.text.length){
+                //user doesn't have a FOODIA account, so load info from Facebook if applicable
+                [vc initWithUserId:button.titleLabel.text];
+            } else {
+                //this means the user has a FOODIA account
+                [vc initWithUserId:[NSString stringWithFormat:@"%i",button.tag]];
+            }
         } else {
-            //this means the user has a FOODIA account
-            [vc initWithUserId:[NSString stringWithFormat:@"%i",button.tag]];
+            FDUser *thisUser = (FDUser*)sender;
+            FDProfileViewController *vc = segue.destinationViewController;
+            if (thisUser.fbid){
+                //user doesn't have a FOODIA account, so load info from Facebook if applicable
+                [vc initWithUserId:thisUser.fbid];
+            } else {
+                //this means the user has a FOODIA account
+                [vc initWithUserId:thisUser.userId];
+            }
         }
     }
 }
@@ -392,14 +400,14 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    // Navigation logic may go here. Create and push another view controller.
-    /*
-     <#DetailViewController#> *detailViewController = [[<#DetailViewController#> alloc] initWithNibName:@"<#Nib name#>" bundle:nil];
-     // ...
-     // Pass the selected object to the new view controller.
-     [self.navigationController pushViewController:detailViewController animated:YES];
-     */
-    
+    if ([self isKindOfClass:[FDSocialViewController class]]){
+        if (self.searchDisplayController.isActive){
+            [self.delegate performSegueWithIdentifier:@"ViewProfile" sender:[self.filteredPeople objectAtIndex:indexPath.row]];
+        } else {
+            [self.delegate performSegueWithIdentifier:@"ViewProfile" sender:[self.people objectAtIndex:indexPath.row]];
+        }
+        
+    }
 }
 
 - (void)filterContentForSearchText:(NSString*)searchText scope:(NSString*)scope

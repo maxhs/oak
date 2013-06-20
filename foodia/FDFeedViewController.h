@@ -7,9 +7,9 @@
 //
 
 #import "FDClipView.h"
-#import "GAITrackedViewController.h"
+//#import "GAITrackedViewController.h"
 
-@interface FDFeedViewController : GAITrackedViewController {
+@interface FDFeedViewController : UIViewController {
 	IBOutlet UIScrollView	*_scrollView;
     IBOutlet UIView *clipView;
 }

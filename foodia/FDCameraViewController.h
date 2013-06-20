@@ -10,18 +10,20 @@
 #import "GPUImage.h"
 
 @interface FDCameraViewController : UIViewController <UIImagePickerControllerDelegate,UINavigationControllerDelegate> {
-    
     GPUImageStillCamera *stillCamera;
     GPUImageOutput<GPUImageInput> *filter/*, *secondFilter, *terminalFilter*/;
 }
-//@class AVCamCaptureManager, AVCamPreviewView, AVCaptureVideoPreviewLayer;
-
-@property (nonatomic,retain) AVCamCaptureManager *captureManager;
+@property (nonatomic,weak) AVCamCaptureManager *captureManager;
 @property (nonatomic, strong) IBOutlet UIImageView *photoPreviewImageView;
-@property (nonatomic,retain) AVCaptureVideoPreviewLayer *captureVideoPreviewLayer;
-@property (nonatomic,retain) IBOutlet UIButton *takePhotoButton;
-@property (nonatomic,retain) IBOutlet UIButton *cancelButton;
-@property (nonatomic,retain) IBOutlet UIButton *useButton;
+@property (strong, nonatomic) UIImage *cropImage;
+@property (nonatomic,weak) AVCaptureVideoPreviewLayer *captureVideoPreviewLayer;
+@property (nonatomic,weak) IBOutlet UIButton *takePhotoButton;
+@property (nonatomic,weak) IBOutlet UIButton *cancelButton;
+@property (nonatomic,weak) IBOutlet UIButton *useButton;
+@property (weak, nonatomic) IBOutlet UIButton *libraryButton;
+@property (weak, nonatomic) IBOutlet UIScrollView *filterScrollView;
+@property BOOL isPreview;
+@property BOOL shouldBeEditing;
 
 - (IBAction)captureStillImage:(id)sender;
 - (IBAction)cancel;

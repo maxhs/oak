@@ -96,11 +96,7 @@
     self.actionButton.layer.cornerRadius = 17.0;
     self.actionButton.layer.shouldRasterize = YES;
     self.actionButton.layer.rasterizationScale = [UIScreen mainScreen].scale;
-    if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 6) {
-        [self.actionButton.titleLabel setFont:[UIFont fontWithName:kAvenirDemiBold size:15]];
-    } else {
-        [self.actionButton.titleLabel setFont:[UIFont fontWithName:kFuturaMedium size:15]];
-    }
+    [self.actionButton.titleLabel setFont:[UIFont fontWithName:kHelveticaNeueThin size:14]];
     if (user.fbid){
         [self.profileButton setImageWithURL:[Utilities profileImageURLForFacebookID:user.fbid] forState:UIControlStateNormal];
         [UIView animateWithDuration:.25 animations:^{
@@ -114,8 +110,7 @@
             }];
         } else {
             //set from Amazon. risky...
-            NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://s3.amazonaws.com/foodia-uploads/user_%@_thumb.jpg",user.userId]];
-            [self.profileButton setImageWithURL:url forState:UIControlStateNormal];
+            [self.profileButton setImageWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://s3.amazonaws.com/foodia-uploads/user_%@_thumb.jpg",user.userId]] forState:UIControlStateNormal];
             [UIView animateWithDuration:.25 animations:^{
                 [self.profileButton setAlpha:1.0];
             }];
@@ -129,15 +124,11 @@
     self.profileButton.imageView.layer.rasterizationScale = [UIScreen mainScreen].scale;
     if (user.fbid.length){
         self.facebookId = user.fbid;
-        //[self.actionButton addTarget:self action:@selector(inviteUser) forControlEvents:UIControlEventTouchUpInside];
         [self setInviteButton];
     } else {
         [self.actionButton setTag:[user.userId integerValue]];
         [self.actionButton removeTarget:self action:@selector(inviteUser) forControlEvents:UIControlEventTouchUpInside];
         [self.actionButton addTarget:self action:@selector(buttonPressed:) forControlEvents:UIControlEventTouchUpInside];
-    }
-    if ([[[UIDevice currentDevice] systemVersion] floatValue] < 6) {
-        [self.nameLabel setFont:[UIFont fontWithName:kFuturaMedium size:16]];
     }
 }
 

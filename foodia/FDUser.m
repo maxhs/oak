@@ -33,6 +33,7 @@
     [encoder encodeObject:self.userId forKey:@"userId"];
     [encoder encodeObject:self.avatarUrl forKey:@"avatarUrl"];
     [encoder encodeObject:self.authenticationToken forKey:@"authenticationToken"];
+    [encoder encodeObject:self.philosophy forKey:@"philosophy"];
 }
 
 - (id)initWithCoder:(NSCoder *)decoder 
@@ -50,6 +51,7 @@
         self.userId = [decoder decodeObjectForKey:@"userId"];
         self.avatarUrl = [decoder decodeObjectForKey:@"avatarUrl"];
         self.authenticationToken = [decoder decodeObjectForKey:@"authenticationToken"];
+        self.philosophy = [decoder decodeObjectForKey:@"philosophy"];
     }
 
     return self;
@@ -83,6 +85,20 @@
         self.location = value;
     } else if([key isEqualToString:@"occupation"]) {
         self.occupation = value;
+    } else if([key isEqualToString:@"push_smile"]) {
+        self.pushSmile = [value boolValue];
+    } else if([key isEqualToString:@"push_feature"]) {
+        self.pushFeature = [value boolValue];
+    } else if([key isEqualToString:@"push_follow"]) {
+        self.pushFollow = [value boolValue];
+    } else if([key isEqualToString:@"push_comment"]) {
+        self.pushComment = [value boolValue];
+    } else if([key isEqualToString:@"push_geofence"]) {
+        self.pushGeofence = [value boolValue];
+    }  else if([key isEqualToString:@"email_notifications"]) {
+        self.emailNotifications = [value boolValue];
+    }  else if([key isEqualToString:@"philosophy"]) {
+        self.philosophy = value;
     }
 }
 

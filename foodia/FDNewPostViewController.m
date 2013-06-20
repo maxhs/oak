@@ -27,15 +27,22 @@
 #import "UIButton+WebCache.h"
 #import "GPUImage.h"
 #import "FDCameraViewController.h"
+#import "FDFoodiaTag.h"
+#import "FDPostViewController.h"
 
 NSString *const kPlaceholderAddPostCommentPrompt = @"I'M THINKING...";
 
-@interface FDNewPostViewController () <UITextViewDelegate, UIActionSheetDelegate, UIImagePickerControllerDelegate, CLLocationManagerDelegate, UINavigationControllerDelegate, UIAlertViewDelegate, UIWebViewDelegate, UIScrollViewDelegate>
+@interface FDNewPostViewController () <UITextViewDelegate, UITextFieldDelegate, UIActionSheetDelegate, UIImagePickerControllerDelegate, CLLocationManagerDelegate, UINavigationControllerDelegate, UIAlertViewDelegate, UIWebViewDelegate, UIScrollViewDelegate, UITableViewDataSource, UITableViewDelegate> {
+    BOOL iPhone5;
+    int previousTagOriginX;
+    int previousTagButtonSize;
+    int tagScrollViewContentSize;
+}
 @property (weak, nonatomic) IBOutlet UITextView *captionTextView;
 @property (weak, nonatomic) IBOutlet UIButton *takePhotoButton;
 @property (weak, nonatomic) IBOutlet UIImageView *photoBackgroundView;
 @property (weak, nonatomic) IBOutlet UIButton *friendsButton;
-@property (weak, nonatomic) IBOutlet UIButton *recButton;
+@property (weak, nonatomic) IBOutlet UIButton *tagButton;
 @property (weak, nonatomic) IBOutlet UIButton *foodiaObjectButton;
 @property (weak, nonatomic) IBOutlet UIButton *locationButton;
 @property (nonatomic, strong) CLLocationManager *locationManager;
@@ -47,21 +54,18 @@ NSString *const kPlaceholderAddPostCommentPrompt = @"I'M THINKING...";
 @property (nonatomic, readwrite, retain) UIWebView *webView;
 @property (strong, atomic) ALAssetsLibrary *library;
 @property UIImageOrientation *imageOrientationWhenAddedToScreen;
-@property (strong, nonatomic) UIScrollView *filterScrollView;
-@property (strong, nonatomic) GPUImageFilter *selectedFilter;
-@property (strong, nonatomic) NSArray *filterArray;
 @property (strong, nonatomic) UIImagePickerController *picker;
 @property (strong, nonatomic) UIButton *cameraButton;
-@property (strong, nonatomic) UIImage *capturedScreen;
-@property (strong, nonatomic) UIImageView *filteredImageView;
-@property (strong, nonatomic) UIButton *cancelButton;
-@property BOOL isEditing;
+@property (strong, nonatomic) NSMutableArray *tagArray;
+@property (strong, nonatomic) NSMutableArray *searchResults;
+@property (weak, nonatomic) IBOutlet UITableView *searchResultsTableView;
+@property (strong, nonatomic) UIBarButtonItem *rightBarButton;
+@property (weak, nonatomic) IBOutlet UILabel *tagTitleLabel;
 
 - (IBAction)editPhoto:(id)sender;
 - (IBAction)addPhoto:(id)sender;
 - (IBAction)submitPost:(id)sender;
 - (IBAction)editCategory:(id)sender;
-
 @end
 
 @implementation FDNewPostViewController
@@ -74,9 +78,7 @@ NSString *const kPlaceholderAddPostCommentPrompt = @"I'M THINKING...";
 @synthesize webView = _webView;
 @synthesize library;
 @synthesize imageOrientationWhenAddedToScreen;
-@synthesize isEditing = _isEditing;
-@synthesize selectedFilter = _selectedFilter;
-@synthesize filteredImageView;
+@synthesize isEditingPost = _isEditingPost;
 
 static NSDictionary *categoryImages = nil;
 
@@ -97,20 +99,8 @@ static NSDictionary *categoryImages = nil;
 {
     [super viewDidLoad];
     [Flurry logEvent:@"Add post menu" timed:YES];
-    if ([self.navigationItem.rightBarButtonItem.title isEqualToString:@"SAVE"]){
-        self.isEditing = YES;
-        [self.deleteButton setHidden:NO];
-        [self.facebookButton setHidden:YES];
-        [self.foursquareButton setHidden:YES];
-        [self.twitterButton setHidden:YES];
-        [self.instagramButton setHidden:YES];
-    } else {
-        self.isEditing = NO;
-        self.navigationItem.backBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"POST" style:UIBarButtonItemStyleBordered target:nil action:nil];
-        if ([[[UIDevice currentDevice] systemVersion] floatValue] < 6) {
-            [self.navigationItem.backBarButtonItem setTitleTextAttributes:@{UITextAttributeFont:[UIFont fontWithName:kFuturaMedium size:16], UITextAttributeTextColor:[UIColor blackColor]} forState:UIControlStateNormal];
-        }
-    }
+    [self.view setBackgroundColor:[UIColor colorWithWhite:.95 alpha:1.0]];
+    self.rightBarButton = self.navigationItem.rightBarButtonItem;
     
     self.photoButton.imageView.contentMode = UIViewContentModeScaleAspectFill;
     self.photoButton.imageView.clipsToBounds = YES;
@@ -129,25 +119,41 @@ static NSDictionary *categoryImages = nil;
     [[NSUserDefaults standardUserDefaults] setBool:NO
                                             forKey:kDefaultsFoursquareActive];
     [self updateCrossPostButtons];
+    
+    if ([self.navigationItem.rightBarButtonItem.title isEqualToString:@"SAVE"]) _isEditingPost = YES;
+    else _isEditingPost = NO;
+    
     self.library = [[ALAssetsLibrary alloc]init];
     
-    if ([[[UIDevice currentDevice] systemVersion] floatValue] < 6) {
-        [self.locationButton.titleLabel setFont:[UIFont fontWithName:kFuturaMedium size:16]];
-        [self.friendsButton.titleLabel setFont:[UIFont fontWithName:kFuturaMedium size:16]];
-        [self.foodiaObjectButton.titleLabel setFont:[UIFont fontWithName:kFuturaMedium size:16]];
-        [self.recButton.titleLabel setFont:[UIFont fontWithName:kFuturaMedium size:16]];
-        [self.captionTextView setFont:[UIFont fontWithName:kFuturaMedium size:16]];
-        [self.addPhotoLabel setFont:[UIFont fontWithName:kFuturaMedium size:16]];
-        [self.locationLabel setFont:[UIFont fontWithName:kFuturaMedium size:16]];
-        [self.foodiaObjectLabel setFont:[UIFont fontWithName:kFuturaMedium size:16]];
-        [self.deleteButton.titleLabel setFont:[UIFont fontWithName:kFuturaMedium size:16]];
-        [self.navigationItem.rightBarButtonItem setTitleTextAttributes:@{UITextAttributeFont:[UIFont fontWithName:kFuturaMedium size:16], UITextAttributeTextColor:[UIColor blackColor]} forState:UIControlStateNormal];
-        [self.navigationController.navigationItem.backBarButtonItem setTitleTextAttributes:@{UITextAttributeFont:[UIFont fontWithName:kFuturaMedium size:16], UITextAttributeTextColor:[UIColor blackColor]} forState:UIControlStateNormal];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(showPostInfo) name:@"UpdateNewPostVC" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(willShowKeyboard:) name:UIKeyboardWillShowNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(willHideKeyboard) name:UIKeyboardWillHideNotification object:nil];
+    
+    if ([UIScreen mainScreen].bounds.size.height == 568){
+        iPhone5 = YES;
+    } else {
+        iPhone5 = NO;
     }
 }
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
+    if ([self.navigationItem.rightBarButtonItem.title isEqualToString:@"SAVE"] || _isEditingPost){
+        [self.deleteButton setHidden:NO];
+        [self.facebookButton setHidden:YES];
+        [self.foursquareButton setHidden:YES];
+        [self.twitterButton setHidden:YES];
+        [self.instagramButton setHidden:YES];
+        if (FDPost.userPost.isPrivate || self.post.isPrivate){
+            [self.lockButton setImage:[UIImage imageNamed:@"locked"] forState:UIControlStateNormal];
+        } else {
+            [self.lockButton setImage:[UIImage imageNamed:@"unlocked"] forState:UIControlStateNormal];
+        }
+    } else {
+        _isEditingPost = NO;
+        self.navigationItem.backBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"POST" style:UIBarButtonItemStyleBordered target:nil action:nil];
+    }
+    
     if (FDPost.userPost.locationName) {
         [self venueChosen];
         /*[self.mapView removeAnnotations:self.mapView.annotations];
@@ -158,33 +164,57 @@ static NSDictionary *categoryImages = nil;
     }
     if (![[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookAccessToken] && [[[UIDevice currentDevice] systemVersion] floatValue] < 6) {
         [self.facebookButton setHidden:YES];
-        self.twitterButton.transform = CGAffineTransformMakeTranslation(-29, 0);
-        self.instagramButton.transform = CGAffineTransformMakeTranslation(-29, 0);
-        self.foursquareButton.transform = CGAffineTransformMakeTranslation(-29, 0);
+        self.twitterButton.transform = CGAffineTransformMakeTranslation(-48, 0);
+        self.instagramButton.transform = CGAffineTransformMakeTranslation(-48, 0);
+        self.foursquareButton.transform = CGAffineTransformMakeTranslation(-48, 0);
     }
+    [[UIApplication sharedApplication] setStatusBarHidden:NO withAnimation:UIStatusBarAnimationSlide];
     [self.navigationController setNavigationBarHidden:NO animated:YES];
     [self showPostInfo];
 }
 
-/*- (void)findingLocation {
-    self.confirmLocationImageView.hidden = YES;
-    [self.noLocationActivityIndicatorView startAnimating];
+- (void)loadTagArray{
+    if (FDPost.userPost.tagArray.count){
+        self.tagArray = FDPost.userPost.tagArray;
+        previousTagOriginX = 3;
+        previousTagButtonSize = 0;
+        tagScrollViewContentSize = 0;
+        [self.tagScrollView.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
+        for (FDFoodiaTag *tag in self.tagArray){
+            UIButton *tagButton = [UIButton buttonWithType:UIButtonTypeCustom];
+            [tagButton addTarget:self action:@selector(tagSegue) forControlEvents:UIControlEventTouchUpInside];
+            [tagButton setTitle:[NSString stringWithFormat:@"#%@",tag.name] forState:UIControlStateNormal];
+            [tagButton setBackgroundColor:[UIColor colorWithWhite:.95 alpha:1]];
+            tagButton.layer.shadowColor = [UIColor lightGrayColor].CGColor;
+            tagButton.layer.shadowRadius = 3.f;
+            tagButton.layer.shadowOffset = CGSizeMake(0,0);
+            tagButton.layer.shadowOpacity = .2f;
+            tagButton.layer.borderColor = [UIColor colorWithWhite:.90 alpha:1].CGColor;
+            tagButton.layer.borderWidth = 1.0f;
+            tagButton.layer.cornerRadius = 17.0f;
+            [tagButton.titleLabel setTextAlignment:NSTextAlignmentCenter];
+            CGSize stringSize = [tagButton.titleLabel.text sizeWithFont:[UIFont fontWithName:kHelveticaNeueThin size:15]];
+            [tagButton.titleLabel setFont:[UIFont fontWithName:kHelveticaNeueThin size:15]];
+            [tagButton setTitleColor:[UIColor darkGrayColor] forState:UIControlStateNormal];
+            [tagButton setFrame:CGRectMake(previousTagOriginX+previousTagButtonSize,4,stringSize.width+20,34)];
+            previousTagButtonSize = tagButton.frame.size.width + 5;
+            tagScrollViewContentSize += previousTagButtonSize;
+            previousTagOriginX = tagButton.frame.origin.x;
+            [self.tagScrollView addSubview:tagButton];
+        }
+        [self.tagScrollView setContentSize:CGSizeMake(tagScrollViewContentSize,42)];
+        [self rearrangeButton:self.tagButton andView:self.tagScrollView];
+    } else {
+        [self disArrangeButton:self.tagButton andView:self.tagScrollView];
+    }
 }
 
-- (void)locationFound {
-    self.locationContainerView.hidden = YES;
-    [self.noLocationActivityIndicatorView stopAnimating];
-    self.confirmLocationImageView.hidden = NO;
+- (void)tagSegue {
+    [self performSegueWithIdentifier:@"ShowTagPicker" sender:self];
 }
 
-- (void)locationFailed {
-    self.locationContainerView.hidden = YES;
-    [self.noLocationActivityIndicatorView stopAnimating];
-}
-*/
 - (void)venueChosen {
-    //self.locationContainerView.hidden = NO;
-    self.locationLabel.text = [FDPost.userPost.locationName uppercaseString];
+    self.locationLabel.text = FDPost.userPost.locationName;
 }
 
 - (void)viewWillDisappear:(BOOL)animated {
@@ -204,7 +234,7 @@ static NSDictionary *categoryImages = nil;
         [vc initWithUserId:button.titleLabel.text];
     } else if ([segue.identifier isEqualToString:@"editCategory"]) {
         FDPostCategoryViewController *vc = [segue destinationViewController];
-        [vc setIsEditing:YES];
+        [vc setIsEditingPost:YES];
         [vc setThePost:FDPost.userPost];
     }
 }
@@ -257,9 +287,11 @@ static NSDictionary *categoryImages = nil;
     }
     if (self.photoButton.imageView.image) [self.photoBackgroundView setAlpha:1.0];
     
-    //self.photoButton.hidden = !self.post.photoImage;
-    [self.foodiaObjectButton setTitle:[NSString stringWithFormat:@"I'M %@", self.post.category.uppercaseString] forState:UIControlStateNormal];
-    //self.categoryImageView.image = [FDNewPostViewController imageForCategory:self.post.category];
+    if (self.post.category){
+        [self.foodiaObjectButton setTitle:[NSString stringWithFormat:@"I'M %@", self.post.category.uppercaseString] forState:UIControlStateNormal];
+    } else {
+        [self.foodiaObjectButton setTitle:@"I'M..." forState:UIControlStateNormal];
+    }
     
     //location section
     if (FDPost.userPost.locationName.length > 0){
@@ -270,10 +302,10 @@ static NSDictionary *categoryImages = nil;
     
     //food object section
     if (self.post.foodiaObject.length > 0){
-        self.foodiaObjectLabel.text = self.post.foodiaObject.uppercaseString;
+        self.foodiaObjectLabel.text = self.post.foodiaObject;
         [self rearrangeButton:self.foodiaObjectButton andView:self.foodiaObjectLabel];
     } else {
-        self.foodiaObjectLabel.text = FDPost.userPost.foodiaObject.uppercaseString;
+        self.foodiaObjectLabel.text = FDPost.userPost.foodiaObject;
         [self disArrangeButton:self.foodiaObjectButton andView:self.foodiaObjectLabel];
     }
     
@@ -295,22 +327,17 @@ static NSDictionary *categoryImages = nil;
             
             if (friend.fbid.length && [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookAccessToken]){
                 [friendButton setImageWithURL:[Utilities profileImageURLForFacebookID:friend.fbid] forState:UIControlStateNormal];
-                friendButton.titleLabel.text = friend.fbid;
+                //friendButton.titleLabel.text = @"0";
                 [self animateOn:friendButton];
             } else if (friend.facebookId.length && [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookAccessToken]){
                 [friendButton setImageWithURL:[Utilities profileImageURLForFacebookID:friend.facebookId] forState:UIControlStateNormal];
-                friendButton.titleLabel.text = friend.facebookId;
+                friendButton.titleLabel.text = friend.userId;
                 [self animateOn:friendButton];
             } else {
                 NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://s3.amazonaws.com/foodia-uploads/user_%@_thumb.jpg",friend.userId]];
                 [friendButton setImageWithURL:url forState:UIControlStateNormal];
-                
-                /*[[FDAPIClient sharedClient] getProfilePic:friend.userId success:^(NSURL *url) {
-                    [friendButton setImageWithURL:url forState:UIControlStateNormal];
-                    [self animateOn:friendButton];
-                    [[SDImageCache sharedImageCache] storeImage:friendButton.imageView.image forKey:friend.userId];
-                } failure:^(NSError *error) {}];*/
                 friendButton.titleLabel.text = friend.userId;
+                [self animateOn:friendButton];
             }
             friendButton.titleLabel.hidden = YES;
             friendButton.imageView.layer.cornerRadius = 17.0;
@@ -323,14 +350,19 @@ static NSDictionary *categoryImages = nil;
             index++;
         }
         [self.friendsScrollView setContentSize:CGSizeMake(((space*(index+1))+(imageSize*(index+1))),34)];
+    } else {
+        [self.friendsScrollView.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
+        [self disArrangeButton:self.friendsButton andView:self.friendsScrollView];
     }
     
-    if ([self.navigationItem.rightBarButtonItem.title isEqualToString:@"POST"]) {
-        //recommend section
+    //load the tag array
+    [self loadTagArray];
+    
+        /*//recommend section
         int index2 = 0;
         
         if (self.post.recommendedTo.count > 0){
-            [self rearrangeButton:self.recButton andView:self.recScrollView];
+            [self rearrangeButton:self.tagButton andView:self.recScrollView];
             [self.recScrollView.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
             self.recScrollView.showsHorizontalScrollIndicator=NO;
             
@@ -344,16 +376,15 @@ static NSDictionary *categoryImages = nil;
                 if (recipient.fbid.length && [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookAccessToken]) {
                     [recommendeeButton setImageWithURL:[Utilities profileImageURLForFacebookID:recipient.fbid] forState:UIControlStateNormal];
                     [self animateOn:recommendeeButton];
-                    recommendeeButton.titleLabel.text = recipient.fbid;
+                    //recommendeeButton.titleLabel.text = recipient.fbid;
                 } else if (recipient.facebookId.length && [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookAccessToken]) {
                     [recommendeeButton setImageWithURL:[Utilities profileImageURLForFacebookID:recipient.facebookId] forState:UIControlStateNormal];
                     [self animateOn:recommendeeButton];
-                    recommendeeButton.titleLabel.text = recipient.facebookId;
+                    recommendeeButton.titleLabel.text = recipient.userId;
                 } else {
-                    [[FDAPIClient sharedClient] getProfilePic:recipient.userId success:^(NSURL *url) {
-                        [recommendeeButton setImageWithURL:url forState:UIControlStateNormal];
-                        [self animateOn:recommendeeButton];
-                    } failure:^(NSError *error) {}];
+                    NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://s3.amazonaws.com/foodia-uploads/user_%@_thumb.jpg",recipient.userId]];
+                    [recommendeeButton setImageWithURL:url forState:UIControlStateNormal];
+                    [self animateOn:recommendeeButton];
                     recommendeeButton.titleLabel.text = recipient.userId;
                 }
                 recommendeeButton.titleLabel.hidden = YES;
@@ -368,9 +399,10 @@ static NSDictionary *categoryImages = nil;
                 index2++;
             }
             [self.recScrollView setContentSize:CGSizeMake(((space*(index2+1))+(imageSize*(index2+1))),34)];
-        }
-        
-    } else [self.recButton setHidden:YES];
+        } else {
+            [self disArrangeButton:self.tagButton andView:self.recScrollView];
+            [self.recScrollView.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
+        }*/
 }
 
 -(void)animateOn:(UIButton*)button{
@@ -384,7 +416,7 @@ static NSDictionary *categoryImages = nil;
 - (void)rearrangeButton:(UIButton*)button andView:(UIView*)view  {
     
     [UIView animateWithDuration:.3 delay:.25 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-        [button setFrame:CGRectMake(4,button.frame.origin.y,button.frame.size.width, button.frame.size.height)];
+        button.transform = CGAffineTransformMakeTranslation(-100, 0);
         [view setAlpha:1.0];
     } completion:^(BOOL finished) {
         
@@ -393,11 +425,95 @@ static NSDictionary *categoryImages = nil;
 
 - (void)disArrangeButton:(UIButton*)button andView:(UIView*)view  {
     [UIView animateWithDuration:.3 delay:.25 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-        [button setFrame:CGRectMake(100,button.frame.origin.y,button.frame.size.width, button.frame.size.height)];
+        button.transform = CGAffineTransformIdentity;
         [view setAlpha:0.0];
     } completion:^(BOOL finished) {
         
     }];
+}
+
+#pragma mark - Table view data source
+
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
+{
+    return 1;
+}
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
+{
+    return self.searchResults.count;
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    static NSString *CellIdentifier = @"TagCell";
+    UITableViewCell *cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CellIdentifier];
+    UIView *cellbg = [[UIView alloc] init];
+    [cellbg setBackgroundColor:kColorLightBlack];
+    cell.selectedBackgroundView = cellbg;
+    [cell.textLabel setFont:[UIFont fontWithName:kHelveticaNeueThin size:16]];
+    [cell.textLabel setText:[self.searchResults objectAtIndex:indexPath.row]];
+    return cell;
+}
+
+#pragma mark - UITextFieldDelegate Methods
+
+- (void)willShowKeyboard:(NSNotification *)notification {
+    self.searchResultsTableView.scrollEnabled = YES;
+    [self.facebookButton setHidden:YES];
+    [self.instagramButton setHidden:YES];
+    [self.twitterButton setHidden:YES];
+    [self.foursquareButton setHidden:YES];
+    [self.lockButton setHidden:YES];
+    [self.tagTitleLabel setHidden:NO];
+    UIBarButtonItem *cancelButton = [[UIBarButtonItem alloc] initWithTitle:@"CANCEL" style:UIBarButtonItemStyleBordered target:self action:@selector(doneEditing)];
+    [[self navigationItem] setRightBarButtonItem:cancelButton];
+    
+   /* if (FDPost.userPost.foodiaObject.length) {
+        [self.tagTitleLabel setText:[NSString stringWithFormat:@"Select a tag for %@",FDPost.userPost.foodiaObject]];
+    }
+    
+    NSDictionary* info = [notification userInfo];
+    CGSize kbSize = [[info objectForKey:UIKeyboardFrameBeginUserInfoKey] CGRectValue].size;
+    UIEdgeInsets contentInsets;
+    if (iPhone5){
+        contentInsets = UIEdgeInsetsMake(0.0, 0.0, kbSize.height+140.0, 0.0);
+    } else {
+        contentInsets = UIEdgeInsetsMake(0.0, 0.0, kbSize.height+205.0, 0.0);
+    }
+    self.searchResultsTableView.contentInset = contentInsets;
+    //self.tableView.scrollIndicatorInsets = contentInsets;
+    
+    // If active text field is hidden by keyboard, scroll it so it's visible
+    CGRect aRect = self.view.frame;
+     aRect.size.height -= kbSize.height;
+     if (!CGRectContainsPoint(aRect, self.tagButton.frame.origin) ) {
+     CGPoint scrollPoint = CGPointMake(0.0, 140.0);
+     [self.searchResultsTableView setContentOffset:scrollPoint animated:YES];
+     }*/
+}
+
+- (void)willHideKeyboard {
+    [self.searchResultsTableView setContentOffset:CGPointZero animated:YES];
+    [self.searchResultsTableView setScrollEnabled:NO];
+    [self.facebookButton setHidden:NO];
+    [self.instagramButton setHidden:NO];
+    [self.twitterButton setHidden:NO];
+    [self.foursquareButton setHidden:NO];
+    [self.lockButton setHidden:NO];
+    [self.tagTitleLabel setHidden:YES];
+    [self.searchResults removeAllObjects];
+    if (_isEditingPost) {
+        UIBarButtonItem *saveButton = [[UIBarButtonItem alloc] initWithTitle:@"SAVE" style:UIBarButtonItemStyleBordered target:self action:@selector(submitPost:)];
+        [[self navigationItem] setRightBarButtonItem:saveButton];
+    } else {
+        UIBarButtonItem *postButton = [[UIBarButtonItem alloc] initWithTitle:@"POST" style:UIBarButtonItemStyleBordered target:self action:@selector(submitPost:)];
+        [[self navigationItem] setRightBarButtonItem:postButton];
+    }
+}
+
+-(void)doneEditing {
+    [[self view] endEditing:YES];
 }
 
 #pragma mark - UITextViewDelegate Methods
@@ -413,7 +529,6 @@ static NSDictionary *categoryImages = nil;
     self.navigationItem.leftBarButtonItem.enabled = YES;
     return YES;
 }
-
 
 - (void)textViewDidBeginEditing:(UITextView *)textView
 {
@@ -432,12 +547,7 @@ static NSDictionary *categoryImages = nil;
     if ([textView.text isEqualToString:@""]) {
         textView.text = kPlaceholderAddPostCommentPrompt;
         textView.textColor = [UIColor lightGrayColor];
-        if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 6) {
-            textView.font = [UIFont fontWithName:kAvenirMedium size:16];
-        } else {
-            textView.font = [UIFont fontWithName:kFuturaMedium size:16];
-        }
-        
+        textView.font = [UIFont fontWithName:kHelveticaNeueThin size:16];
     } else {
         FDPost.userPost.caption = textView.text;
     }
@@ -463,7 +573,7 @@ static NSDictionary *categoryImages = nil;
                                                   delegate:self
                                          cancelButtonTitle:@"Cancel"
                                     destructiveButtonTitle:[FDPost.userPost photoImage] ? @"Remove Photo" : nil
-                                         otherButtonTitles:@"Choose Existing Photo", @"Take Photo", nil];
+                                         otherButtonTitles:![FDPost.userPost photoImage] ? @"Take Photo" : nil, nil];
         [actionSheet showInView:self.view];
     } else if([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypePhotoLibrary]) {
         
@@ -485,10 +595,10 @@ static NSDictionary *categoryImages = nil;
                 [self removePhoto];
             else {
                 if([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypePhotoLibrary])
-                    [self choosePhoto];
+                    [self takePhoto];
             }
             break;
-        case 1: // new photo
+        /*case 1: // new photo
             if ([FDPost.userPost photoImage]) {
                 if([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypePhotoLibrary])
                     [self choosePhoto];
@@ -496,9 +606,9 @@ static NSDictionary *categoryImages = nil;
                 if([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera])
                     [self takePhoto];
             }
-            break;
-        case 2:
-            [actionSheet dismissWithClickedButtonIndex:2 animated:YES];
+            break;*/
+        case 1:
+            [actionSheet dismissWithClickedButtonIndex:1 animated:YES];
         default:
             break;
     }
@@ -514,256 +624,25 @@ static NSDictionary *categoryImages = nil;
 }
 
 - (void)takePhoto {
-    /*self.picker = [[UIImagePickerController alloc] init];
-    
-    [self.picker setSourceType:UIImagePickerControllerSourceTypeCamera];
-    [self.picker setDelegate:self];
-    [self.picker setAllowsEditing:YES];
-    
-    self.cameraButton = [UIButton buttonWithType:UIButtonTypeCustom];
-    [self.cameraButton setBackgroundImage:[UIImage imageNamed:@"camera"] forState:UIControlStateNormal];
-    [self.cameraButton addTarget:self action:@selector(capturePhoto) forControlEvents:UIControlEventTouchUpInside];
-    self.cancelButton = [UIButton buttonWithType:UIButtonTypeCustom];
-    [self.cancelButton addTarget:self action:@selector(imagePickerControllerDidCancel:) forControlEvents:UIControlEventTouchUpInside];
-    
-    //set up filters
-    GPUImageFilter *amatorkaFilter = [[GPUImageBrightFilter alloc] init];
-    GPUImageFilter *missFilter = [[GPUImageMeyerFilter alloc] init];
-    GPUImageFilter *tiltFilter = [[GPUImageTiltShiftFilter alloc] init];
-    GPUImageFilter *fadeFilter = [[GPUImageVignetteFilter alloc] init];
-    GPUImageFilter *softEleganceFilter = [[GPUImageSoftEleganceFilter alloc] init];
-    GPUImageFilter *sepiaFilter = [[GPUImageSepiaFilter alloc] init];
-    //GPUImageFilter *toonFilter = [[GPUImageToonFilter alloc] init];
-    GPUImageFilter *openingFilter = [[GPUImageOpeningFilter alloc] init];
-    //GPUImageFilter *sketchFilter = [[GPUImageSketchFilter alloc] init];
-    GPUImageFilter *grayscaleFilter = [[GPUImageGrayscaleFilter alloc] init];
-
-    self.filterArray = [NSArray arrayWithObjects:amatorkaFilter, missFilter, tiltFilter, fadeFilter, softEleganceFilter, sepiaFilter, openingFilter, grayscaleFilter, nil];
-    
-    self.filterScrollView = [[UIScrollView alloc] init];
-    [self.filterScrollView addSubview:self.cameraButton];
-    [self.filterScrollView addSubview:self.cancelButton];
-    
-    if ([UIScreen mainScreen].bounds.size.height == 568){
-        [self.filterScrollView setFrame:CGRectMake(0, 568, 320, 96)];
-        [self.cameraButton setFrame:CGRectMake(116, 8,80,80)];
-        [self.cancelButton setFrame:CGRectMake(20,32,62,36)];
+    if ([self.navigationItem.rightBarButtonItem.title isEqualToString:@"SAVE"]){
+        FDCameraViewController *vc;
+        if (([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone && [UIScreen mainScreen].bounds.size.height == 568.0)){
+            UIStoryboard *storyboard5 = [UIStoryboard storyboardWithName:@"iPhone5" bundle:nil];
+            vc = [storyboard5 instantiateViewControllerWithIdentifier:@"Camera"];
+        } else {
+            UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"iPhone" bundle:nil];
+            vc = [storyboard instantiateViewControllerWithIdentifier:@"Camera"];
+        }
+        vc.modalTransitionStyle = UIModalTransitionStyleFlipHorizontal;
+        [vc setShouldBeEditing:YES];
+        [self presentViewController:vc animated:YES completion:nil];
     } else {
-        [self.filterScrollView setFrame:CGRectMake(0, 480, 320, 96)];
-        [self.cameraButton setFrame:CGRectMake(134, 0,50,50)];
-        [self.cancelButton setFrame:CGRectMake(12,10,58,30)];
+        [self.navigationController popViewControllerAnimated:YES];
     }
-    [self.filterScrollView setContentSize:CGSizeMake((self.filterArray.count*66 + 66)-6,76)];
-    [self.filterScrollView setBackgroundColor:[UIColor colorWithPatternImage:[UIImage imageNamed:@"customPhotoButtonBackground"]]];
-    self.filterScrollView.showsHorizontalScrollIndicator = NO;
-    [self.cancelButton setTitle:@"Cancel" forState:UIControlStateNormal];
-    [self.cancelButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
-    [self.cancelButton setBackgroundImage:[UIImage imageNamed:@"customPhotoButtonBackground"] forState:UIControlStateNormal];
-    self.cancelButton.layer.cornerRadius = 9.f;
-    self.cancelButton.layer.borderColor = [UIColor blackColor].CGColor;
-    self.cancelButton.layer.borderWidth = 1;
-    self.cancelButton.clipsToBounds = YES;
-    [self.cancelButton.titleLabel setFont:[UIFont fontWithName:kAvenirDemiBold size:14]];
-    [self.view.window addSubview:self.filterScrollView];
-    [UIView animateWithDuration:.15 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-        if ([UIScreen mainScreen].bounds.size.height == 568){
-            self.filterScrollView.transform = CGAffineTransformMakeTranslation(0, -95);
-        } else {
-            self.filterScrollView.transform = CGAffineTransformMakeTranslation(0, -51);
-            
-        }
-    } completion:^(BOOL finished) {
-        
-    }];
-    [self presentViewController:self.picker animated:YES completion:nil];*/
-    [self performSegueWithIdentifier:@"TakePhoto" sender:self];
-    
-}
-
-- (void)capturePhoto{
-    [self.picker takePicture];
-    [self.cancelButton setHidden:YES];
-    [self.cameraButton setHidden:YES];
-    [self setUpFilters];
-}
-
-- (void)setUpFilters {
-    UIView *noneButtonView = [self addFilter:nil withIndex:0];
-    [self.filterScrollView addSubview:noneButtonView];
-    int index = 1;
-    for (GPUImageFilter *filter in self.filterArray){
-        UIView *filterButtonView = [self addFilter:filter withIndex:index];
-        [self.filterScrollView addSubview:filterButtonView];
-        index ++;
-    }
-    [UIView animateWithDuration:.25 delay:.5 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-        if ([UIScreen mainScreen].bounds.size.height == 568){
-            [self.filterScrollView setFrame:CGRectMake(0, 396, 320, 82)];
-            [self.view.window addSubview:self.cancelButton];
-            [self.cancelButton setBounds:CGRectMake(20,400,60,34)];
-        } else {
-            [self.filterScrollView setFrame:CGRectMake(0, 374, 320, 60)];
-            [self.filterScrollView setContentSize:CGSizeMake((self.filterArray.count*66 + 66)-6,60)];
-            
-        }
-    } completion:^(BOOL finished){
-        int index = 0;
-        [self.filterScrollView setBackgroundColor:[UIColor colorWithWhite:.21 alpha:1]];
-        for (UIView *view in self.filterScrollView.subviews) {
-            [UIView animateWithDuration:.1 delay:.05*index options:UIViewAnimationOptionCurveEaseInOut animations:^{
-                view.transform = CGAffineTransformMakeTranslation(0, -100);
-            } completion:^(BOOL finished) {
-            }];
-            index ++;
-            
-        }
-        UIGraphicsBeginImageContextWithOptions(self.picker.view.layer.frame.size,NO, 0.0f);
-        [self.picker.view.layer renderInContext:UIGraphicsGetCurrentContext()];
-        self.capturedScreen = UIGraphicsGetImageFromCurrentImageContext();
-        UIGraphicsEndImageContext();
-    }];
-
 }
 
 - (void)imagePickerControllerDidCancel:(UIImagePickerController *)picker {
     [super dismissViewControllerAnimated:YES completion:nil];
-    
-    [UIView animateWithDuration:.15 animations:^{
-        [self.filterScrollView setAlpha:0.0];
-        self.filteredImageView.transform = CGAffineTransformMakeTranslation(0, 600);
-    } completion:^(BOOL finished) {
-        [self.filterScrollView removeFromSuperview];
-        [self.filteredImageView removeFromSuperview];
-        self.filteredImageView = nil;
-    }];
-}
-
-- (UIView*)addFilter:(GPUImageFilter*)filter withIndex:(int)x {
-    UIView *view = [[UIView alloc] initWithFrame:CGRectMake(x*66, 100, 70, 70)];
-    UIButton *filterButton = [UIButton buttonWithType:UIButtonTypeCustom];
-    [filterButton setBackgroundImage:[filter imageByFilteringImage:[UIImage imageNamed:@"grapes.jpg"]] forState:UIControlStateNormal];
-
-    filterButton.layer.borderWidth = 1.0;
-    filterButton.layer.borderColor = [UIColor darkGrayColor].CGColor;
-    filterButton.layer.shouldRasterize = YES;
-    filterButton.layer.rasterizationScale = [UIScreen mainScreen].scale;
-    UILabel *filterLabel = [[UILabel alloc] init];
-    [filterLabel setFont:[UIFont fontWithName:kAvenirMedium size:15]];
-    [filterLabel setBackgroundColor:[UIColor clearColor]];
-    [filterLabel setTextColor:[UIColor whiteColor]];
-    [filterLabel setTextAlignment:NSTextAlignmentCenter];
-    
-    [view addSubview:filterButton];
-    [view addSubview:filterLabel];
-    if ([UIScreen mainScreen].bounds.size.height == 568){
-        [filterLabel setFrame:CGRectMake(0,64,60,18)];
-        [filterButton setFrame:CGRectMake(0,3,60,60)];
-    } else {
-        [filterLabel setFrame:CGRectMake(0,46,60,18)];
-        [filterButton setFrame:CGRectMake(0,0,60,60)];
-    }
-    
-    switch (x) {
-        case 0:
-            [filterLabel setText:@"NONE"];
-            [filterButton setBackgroundImage:[UIImage imageNamed:@"grapes.jpg"] forState:UIControlStateNormal];
-            break;
-        case 1:
-            [filterLabel setText:@"MEYER"];
-            [filterButton setBackgroundImage:[UIImage imageNamed:@"meyer.jpg"] forState:UIControlStateNormal];
-            break;
-        case 2:
-            [filterLabel setText:@"PASTEL"];
-            [filterButton setBackgroundImage:[UIImage imageNamed:@"pastel.jpg"] forState:UIControlStateNormal];
-            break;
-        case 3:
-            [filterLabel setText:@"TILT"];
-            [filterButton setBackgroundImage:[UIImage imageNamed:@"tilt.jpg"] forState:UIControlStateNormal];
-            break;
-        case 4:
-            [filterLabel setText:@"FADE"];
-            [filterButton setBackgroundImage:[UIImage imageNamed:@"fade.jpg"] forState:UIControlStateNormal];
-            break;
-        case 5:
-            [filterLabel setText:@"SOFT"];
-            [filterButton setBackgroundImage:[UIImage imageNamed:@"meyer.jpg"] forState:UIControlStateNormal];
-            break;
-        case 6:
-            [filterLabel setText:@"HONEY"];
-            [filterButton setBackgroundImage:[UIImage imageNamed:@"honey.jpg"] forState:UIControlStateNormal];
-            break;
-        /*case 7:
-            [filterLabel setText:@"JELLO"];
-            [filterButton setBackgroundImage:[UIImage imageNamed:@"jello.jpg"] forState:UIControlStateNormal];
-            break;*/
-        case 7:
-            [filterLabel setText:@"OIL"];
-            [filterButton setBackgroundImage:[UIImage imageNamed:@"oil.jpg"] forState:UIControlStateNormal];
-            break;
-        /*case 9:
-            [filterLabel setText:@"FOAM"];
-            [filterButton setBackgroundImage:[UIImage imageNamed:@"foam.jpg"] forState:UIControlStateNormal];
-            break;*/
-        case 8:
-            [filterLabel setText:@"B&W"];
-            [filterButton setBackgroundImage:[UIImage imageNamed:@"b&w.jpg"] forState:UIControlStateNormal];
-            break;
-        default:
-            break;
-    }
-    filterButton.imageView.layer.cornerRadius = 3.0;
-    [filterButton.imageView setBackgroundColor:[UIColor clearColor]];
-    [filterButton.imageView.layer setBackgroundColor:[UIColor colorWithWhite:.21 alpha:1].CGColor];
-    [filterButton addTarget:self action:@selector(selectFilter:) forControlEvents:UIControlEventTouchUpInside];
-    [filterButton setTag:x];
-    [filterButton.titleLabel setHidden:YES];
-    
-
-    return view;
-}
-
-- (void) selectFilter:(id)sender {
-    UIButton *button = (UIButton *) sender;
-    for (UIView *view in self.filterScrollView.subviews){
-        for (UIButton *button in view.subviews)
-            if ([button isKindOfClass:[UIButton class]]){
-                button.layer.shadowColor = [UIColor clearColor].CGColor;
-                button.layer.shadowOffset = CGSizeMake(0,0);
-                button.layer.shadowOpacity = 0.0;
-                button.layer.shadowRadius = 0.0;
-            }
-    }
-    button.layer.shadowColor = [UIColor whiteColor].CGColor;
-    button.layer.shadowOffset = CGSizeMake(0,3);
-    button.layer.shadowOpacity = 5.0;
-    button.layer.shadowRadius = 7.5;
-    int index = button.tag-1;
-    if (index < 0){
-        self.selectedFilter = nil;
-    } else {
-        self.selectedFilter = [self.filterArray objectAtIndex:index];
-        NSLog(@"selected filter: %@",self.selectedFilter);
-    }
-    
-    CGRect rect;
-    if ([UIScreen mainScreen].bounds.size.height == 568){
-        rect = CGRectMake(0,152,640,640);
-    } else {
-        rect = CGRectMake(0,108,640,640);
-    }
-    CGImageRef imageRef = CGImageCreateWithImageInRect([self.capturedScreen CGImage], rect);
-    if (self.filteredImageView == nil){
-        self.filteredImageView = [[UIImageView alloc] initWithImage:[self.selectedFilter imageByFilteringImage:[UIImage imageWithCGImage:imageRef]]];
-    } else {
-        //[self.filteredImageView setImage:[self.selectedFilter imageByFilteringImage:[UIImage imageWithCGImage:imageRef]]];
-        [self.filteredImageView setImage:[self.selectedFilter imageByFilteringImage:[UIImage imageNamed:@"grapes.jpg"]]];
-    }
-    if ([UIScreen mainScreen].bounds.size.height == 568){
-        [self.filteredImageView setFrame:CGRectMake(0, 76, 320, 320)];
-    } else  {
-        [self.filteredImageView setFrame:CGRectMake(0, 54, 320, 320)];
-    }
-    [self.picker.view.window addSubview:self.filteredImageView];
 }
 
 /*- (void)loadTumblrApi {
@@ -796,6 +675,12 @@ static NSDictionary *categoryImages = nil;
 }
 
 #pragma mark - cross post buttons
+
+- (IBAction)togglePrivate {
+    [[NSUserDefaults standardUserDefaults] setBool:![[NSUserDefaults standardUserDefaults] boolForKey:kDefaultsPrivatePost]
+                                            forKey:kDefaultsPrivatePost];
+    [self updateCrossPostButtons];
+}
 
 - (IBAction)toggleInstagram:(id)sender {
     [[NSUserDefaults standardUserDefaults] setBool:![[NSUserDefaults standardUserDefaults] boolForKey:kDefaultsInstagramActive]
@@ -835,6 +720,24 @@ static NSDictionary *categoryImages = nil;
 }
 
 - (void)updateCrossPostButtons {
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:kDefaultsPrivatePost]) {
+        [self.lockButton setImage:[UIImage imageNamed:@"locked"] forState:UIControlStateNormal];
+        [self.facebookButton setEnabled:NO];
+        [self.twitterButton setEnabled:NO];
+        [self.instagramButton setEnabled:NO];
+        [self.foursquareButton setEnabled:NO];
+        [[NSUserDefaults standardUserDefaults] setBool:NO forKey:kDefaultsFacebookActive];
+        [[NSUserDefaults standardUserDefaults] setBool:NO forKey:kDefaultsFoursquareActive];
+        [[NSUserDefaults standardUserDefaults] setBool:NO forKey:kDefaultsInstagramActive];
+        [[NSUserDefaults standardUserDefaults] setBool:NO forKey:kDefaultsTwitterActive];
+    } else {
+        [self.lockButton setImage:[UIImage imageNamed:@"unlocked"] forState:UIControlStateNormal];
+        [self.facebookButton setEnabled:YES];
+        [self.twitterButton setEnabled:YES];
+        [self.instagramButton setEnabled:YES];
+        [self.foursquareButton setEnabled:YES];
+        
+    }
     if ([[NSUserDefaults standardUserDefaults] boolForKey:kDefaultsTwitterActive]) {
         [self.twitterButton setImage:[UIImage imageNamed:@"twitter.png"] forState:UIControlStateNormal];
     } else {
@@ -868,7 +771,14 @@ static NSDictionary *categoryImages = nil;
     self.postButtonItem.enabled = NO;
     self.navigationItem.leftBarButtonItem.enabled = NO;
     self.navigationItem.rightBarButtonItem.enabled = NO;
-
+    
+    //adjust for private posts
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:kDefaultsPrivatePost]) {
+        FDPost.userPost.isPrivate = YES;
+    } else {
+        FDPost.userPost.isPrivate = NO;
+    }
+    
     [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
     if ([self.postButtonItem.title isEqualToString:@"POST"]){
         
@@ -876,7 +786,6 @@ static NSDictionary *categoryImages = nil;
         if (![[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookAccessToken] && [[[UIDevice currentDevice] systemVersion] floatValue] >= 6) {
             [[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"OpenGraph"];
         }
-        
         [[FDAPIClient sharedClient] submitPost:FDPost.userPost success:^(id result) {
             [[NSUserDefaults standardUserDefaults] setBool:YES forKey:kJustPosted];
 
@@ -904,20 +813,23 @@ static NSDictionary *categoryImages = nil;
             [[NSNotificationCenter defaultCenter] postNotificationName:@"RefreshFeed" object:nil];
             
         } failure:^(NSError *error) {
-             self.postButtonItem.enabled = YES;
-             self.navigationItem.leftBarButtonItem.enabled = YES;
+             //self.postButtonItem.enabled = YES;
+             //self.navigationItem.leftBarButtonItem.enabled = YES;
             [((FDAppDelegate *)[UIApplication sharedApplication].delegate) hideLoadingOverlay];
-            [[[UIAlertView alloc] initWithTitle:@"Uh-oh" message:@"We couldn't send your post just yet, but we'll try again real soon!" delegate:self cancelButtonTitle:@"Okey Dokey" otherButtonTitles:nil] show];
-            NSLog(@"post submission failed! %@", error.description);
+            if ([error.localizedDescription isEqualToString:@"The request timed out."]){
+                [[NSNotificationCenter defaultCenter] postNotificationName:@"NewPostTimedOut" object:nil];
+            }
         }];
         
         [self.navigationController dismissViewControllerAnimated:YES completion:nil];
         
     } else {
         [[FDAPIClient sharedClient] editPost:FDPost.userPost success:^(id result) {
-            //success editing post. now go back to the original feedview instead
+            //success editing post. now go back to the post
             [[NSUserDefaults standardUserDefaults] setBool:YES forKey:kJustPosted];
             [((FDAppDelegate *)[UIApplication sharedApplication].delegate) hideLoadingOverlay];
+            FDPostViewController *destinationVC = (FDPostViewController*)[self.navigationController.viewControllers objectAtIndex:self.navigationController.viewControllers.count-2];
+            [destinationVC setShouldReframe:YES];
             [[NSNotificationCenter defaultCenter] postNotificationName:@"RefreshFeed" object:nil];
             [self.navigationController popViewControllerAnimated:YES];
         } failure:^(NSError *error) {
@@ -932,22 +844,8 @@ static NSDictionary *categoryImages = nil;
 }
 
 - (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info {
-    
-    [UIView animateWithDuration:.15 animations:^{
-        self.filterScrollView.transform = CGAffineTransformMakeTranslation(0, 600);
-        self.filteredImageView.transform = CGAffineTransformMakeTranslation(0, 600);
-    } completion:^(BOOL finished) {
-        [self.filterScrollView removeFromSuperview];
-        self.filterScrollView = nil;
-        [self.filteredImageView removeFromSuperview];
-    }];
-    self.filteredImageView = nil;
-    UIImage *image = [[UIImage alloc] init];
-    if (self.selectedFilter != nil) {
-        image = [self.selectedFilter imageByFilteringImage:[info objectForKey:UIImagePickerControllerEditedImage]];
-    } else {
-        image = [info objectForKey:UIImagePickerControllerEditedImage];
-    }
+
+    UIImage *image = [info objectForKey:UIImagePickerControllerEditedImage];
     FDPost.userPost.photoImage = image;
     [picker dismissViewControllerAnimated:YES completion:nil];
     NSString *albumName = @"FOODIA";
@@ -997,9 +895,7 @@ static NSDictionary *categoryImages = nil;
 }
 
 - (IBAction)editCategory:(id)sender {
-    if (self.isEditing == YES) {
-        [self performSegueWithIdentifier:@"editCategory" sender:self];
-    } else [self.navigationController popViewControllerAnimated:YES];
+    [self performSegueWithIdentifier:@"editCategory" sender:self];
 }
 
 - (void)viewDidUnload {
@@ -1014,15 +910,12 @@ static NSDictionary *categoryImages = nil;
             [[NSNotificationCenter defaultCenter] postNotificationName:@"RefreshFeed" object:nil];
             [self.navigationController popToRootViewControllerAnimated:YES];
         }failure:^(NSError *error) {
-            NSLog(@"error");
+            NSLog(@"Error deleting this post: %@",error.description);
             [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"We weren't able to delete your post right now. Please try again soon." delegate:self cancelButtonTitle:@"Okay" otherButtonTitles: nil] show];
         }];
     } else if ([[alertView buttonTitleAtIndex:buttonIndex] isEqualToString:@"You're welcome"]) {
-        NSLog(@"clicked you're welcome");
         [self.navigationController dismissViewControllerAnimated:YES completion:nil];
-    } else if ([[alertView buttonTitleAtIndex:buttonIndex] isEqualToString:@"Okey Dokey"]) {
-        [self.navigationController dismissViewControllerAnimated:YES completion:nil];
-    } else self.navigationItem.rightBarButtonItem.enabled = YES;
+    }
 }
 
 -(void)profileTappedFromNewPost:(id)sender {
@@ -1046,9 +939,6 @@ static NSDictionary *categoryImages = nil;
         UIBarButtonItem *cancel = [[UIBarButtonItem alloc]initWithBarButtonSystemItem:UIBarButtonSystemItemCancel target:self action:@selector(cancelWebview:)];
         [self.navigationItem setLeftBarButtonItem:cancel animated:YES];
         [self.navigationItem.leftBarButtonItem setTitle:@"CANCEL"];
-        if ([[[UIDevice currentDevice] systemVersion] floatValue] < 6) {
-            [self.navigationItem.leftBarButtonItem setTitleTextAttributes:@{UITextAttributeFont:[UIFont fontWithName:kFuturaMedium size:16], UITextAttributeTextColor:[UIColor blackColor]} forState:UIControlStateNormal];
-        }
         [self.view addSubview:self.webView];
         [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
     }
@@ -1064,9 +954,13 @@ static NSDictionary *categoryImages = nil;
 }
 
 - (void)cancelWebview:(id)sender {
+    NSLog(@"cancel webview");
     [self.webView removeFromSuperview];
     self.navigationItem.leftBarButtonItem = nil;
     [self.navigationItem setHidesBackButton:NO animated:YES];
+    [self.navigationItem.rightBarButtonItem setEnabled:YES];
+    [[NSUserDefaults standardUserDefaults] setBool:NO forKey:kDefaultsFoursquareActive];
+    [self updateCrossPostButtons];
 }
 
 - (void)webViewDidFinishLoad:(UIWebView *)webView {
@@ -1077,11 +971,10 @@ static NSDictionary *categoryImages = nil;
         NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
         [defaults setObject:accessToken forKey:@"foursquare_access_token"];
         [defaults synchronize];
-        //[self dismissModalViewControllerAnimated:YES];
         [self.webView removeFromSuperview];
-        [self.navigationItem.rightBarButtonItem setEnabled:YES];
         self.navigationItem.leftBarButtonItem = nil;
         [self.navigationItem setHidesBackButton:NO animated:YES];
+        [self.navigationItem.rightBarButtonItem setEnabled:YES];
     }
 }
 

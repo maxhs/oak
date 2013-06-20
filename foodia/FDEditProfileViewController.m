@@ -13,14 +13,24 @@
 #import "UIButton+WebCache.h"
 #import "Utilities.h"
 #import "Flurry.h"
+#define kFoodPhilosophyPlaceholder @"Your food philosophy"
 
-@interface FDEditProfileViewController () <UIImagePickerControllerDelegate, UIActionSheetDelegate, UIAlertViewDelegate, UINavigationControllerDelegate>
+@interface FDEditProfileViewController () <UIImagePickerControllerDelegate, UIActionSheetDelegate, UIAlertViewDelegate, UINavigationControllerDelegate, UITextViewDelegate> {
+    UIEdgeInsets originalInset;
+}
 @property (weak, nonatomic) IBOutlet UIButton *userPhoto;
 @property (weak, nonatomic) IBOutlet UILabel *photoPrompt;
 @property (weak, nonatomic) IBOutlet UIButton *saveProfileButton;
+@property (weak, nonatomic) IBOutlet UINavigationBar *navBar;
+@property (weak, nonatomic) IBOutlet UIBarButtonItem *cancelButton;
+@property (weak, nonatomic) IBOutlet UIBarButtonItem *backButton;
+@property (weak, nonatomic) IBOutlet UITextView *philosophyTextView;
+@property (weak, nonatomic) IBOutlet UITableView *tableView;
 -(void)loadDetails;
 -(IBAction)submitDetails;
 -(IBAction)editPhoto;
+-(IBAction)cancel;
+-(IBAction)back;
 @end
 
 @implementation FDEditProfileViewController
@@ -39,25 +49,47 @@
     [super viewDidLoad];
     [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
     [Flurry logEvent:@"Editing profile"];
+    UILabel *navTitle = [[UILabel alloc] init];
+    navTitle.frame = CGRectMake(0,0,180,44);
+    navTitle.text = @"Edit my profile";
+    navTitle.font = [UIFont fontWithName:kHelveticaNeueThin size:20];
+    navTitle.backgroundColor = [UIColor clearColor];
+    navTitle.textColor = [UIColor blackColor];
+    navTitle.textAlignment = NSTextAlignmentCenter;
+    
+    // Set label as titleView
+    self.navigationItem.titleView = navTitle;
+    UIImageView *backgroundView = [[UIImageView alloc] init];
+    [backgroundView setBackgroundColor:[UIColor whiteColor]];
+    self.tableView.backgroundView = backgroundView;
+    
     [self loadDetails];
     self.userPhoto.imageView.layer.cornerRadius = 5.0f;
     [self.userPhoto.imageView setBackgroundColor:[UIColor clearColor]];
     [self.userPhoto.imageView.layer setBackgroundColor:[UIColor whiteColor].CGColor];
     self.userPhoto.imageView.layer.shouldRasterize = YES;
     self.userPhoto.imageView.layer.rasterizationScale = [UIScreen mainScreen].scale;
+    
+    self.philosophyTextView.layer.borderColor = [UIColor colorWithWhite:.5 alpha:.4].CGColor;
+    self.philosophyTextView.layer.borderWidth = .5f;
+    self.philosophyTextView.layer.cornerRadius = 5.0f;
+    self.philosophyTextView.clipsToBounds = YES;
+
     self.saveProfileButton.layer.shadowColor = [UIColor blackColor].CGColor;
     self.saveProfileButton.layer.shadowOffset = CGSizeMake(0,0);
     self.saveProfileButton.layer.shadowOpacity = .2;
     self.saveProfileButton.layer.shadowRadius = 3.0;
-	// Do any additional setup after loading the view.
-    
-    if ([[[UIDevice currentDevice] systemVersion] floatValue] < 6) {
-        [self.passwordTextField setFont:[UIFont fontWithName:kFuturaMedium size:15]];
-        [self.nameTextField setFont:[UIFont fontWithName:kFuturaMedium size:15]];
-        [self.locationTextField setFont:[UIFont fontWithName:kFuturaMedium size:15]];
-        [self.saveProfileButton.titleLabel setFont:[UIFont fontWithName:kFuturaMedium size:15]];
+    if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookAccessToken]) {
+        [self.passwordBackground setHidden:YES];
+        [self.passwordTextField setHidden:YES];
+        [self.userPhoto setEnabled:NO];
+        [self.nameTextField setEnabled:NO];
+        [self.nameTextField setTextColor:[UIColor lightGrayColor]];
     }
-    
+
+    originalInset = self.tableView.contentInset;
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(willShowKeyboard:) name:UIKeyboardWillShowNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(willHideKeyboard) name:UIKeyboardWillHideNotification object:nil];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -67,20 +99,63 @@
     if ([self.presentingViewController isKindOfClass:[FDLoginViewController class]]) {
         [self.passwordTextField setHidden:YES];
         [self.passwordBackground setHidden:YES];
+        [self.navBar setHidden:YES];
+        self.cancelButton = nil;
     }
 }
 
-- (void)textFieldDidBeginEditing:(UITextField *)textField {
-    [UIView animateWithDuration:.25 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-        self.view.transform = CGAffineTransformMakeTranslation(0, -40);
+#pragma mark - TableViewDelegate Methods
+
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
+    return 0;
+}
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    return 0;
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+    return nil;
+}
+
+- (void)willShowKeyboard:(NSNotification *)notification {
+    UIBarButtonItem *cancelButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel target:self action:@selector(doneEditing)];
+    [cancelButton setTitle:@"CANCEL"];
+    [[self navigationItem] setRightBarButtonItem:cancelButton];
+    
+    NSDictionary* info = [notification userInfo];
+    CGSize kbSize = [[info objectForKey:UIKeyboardFrameBeginUserInfoKey] CGRectValue].size;
+    UIEdgeInsets contentInsets;
+    if ([UIScreen mainScreen].bounds.size.height == 568){
+        contentInsets = UIEdgeInsetsMake(0.0, 0.0, kbSize.height+185.0, 0.0);
+    } else {
+        contentInsets = UIEdgeInsetsMake(0.0, 0.0, kbSize.height+105.0, 0.0);
+    }
+    [UIView animateWithDuration:.25 animations:^{
+        self.tableView.contentInset = contentInsets;
+        self.tableView.scrollIndicatorInsets = contentInsets;
     } completion:^(BOOL finished) {
         
     }];
+    
+    // If active text field is hidden by keyboard, scroll it so it's visible
+    CGRect aRect = self.view.frame;
+    aRect.size.height -= kbSize.height;
+    if (self.passwordTextField.isFirstResponder){
+        if (!CGRectContainsPoint(aRect, self.passwordTextField.frame.origin) ) {
+            CGPoint scrollPoint = CGPointMake(0.0, 160.0);
+            [self.tableView setContentOffset:scrollPoint animated:YES];
+        }
+    }
 }
 
-- (void)textFieldDidEndEditing:(UITextField *)textField {
-    [self.view endEditing:YES];
-    
+- (void)willHideKeyboard {
+    [self.tableView setScrollEnabled:YES];
+    [UIView animateWithDuration:.25 animations:^{
+        [self.tableView setContentOffset:CGPointZero];
+    } completion:^(BOOL finished) {
+        self.tableView.contentInset = originalInset;
+    }];
 }
 
 - (BOOL)textFieldShouldReturn:(UITextField *)textField {
@@ -95,15 +170,27 @@
     return NO;
 }
 
+- (void)textViewDidBeginEditing:(UITextView *)textView {
+    if ([textView.text isEqualToString:kFoodPhilosophyPlaceholder]){
+        [textView setTextColor:[UIColor blackColor]];
+        [textView setText:@""];
+    }
+}
+
+- (void)textViewDidEndEditing:(UITextView *)textView {
+    if (textView.text.length == 0){
+        [textView setTextColor:[UIColor lightGrayColor]];
+        [textView setText:kFoodPhilosophyPlaceholder];
+    }
+}
+
 - (void)loadDetails {
     [[FDAPIClient sharedClient] getProfileDetails:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] success:^(id result) {
         if ([[result objectForKey:@"facebook_id"] length] && [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookAccessToken]){
             [self.userPhoto setImageWithURL:[Utilities profileImageURLForFacebookID:[result objectForKey:@"facebook_id"]] forState:UIControlStateNormal];
-            [self.userPhoto setUserInteractionEnabled:NO];
             [self.userPhoto setEnabled:NO];
             [self.photoPrompt setHidden:YES];
         } else if ([result objectForKey:@"avatar_url"] != [NSNull null]) {
-            NSLog(@"avatar: %@",[result objectForKey:@"avatar_url"]);
             [self.userPhoto setImageWithURL:[NSURL URLWithString:[result objectForKey:@"avatar_url"]] forState:UIControlStateNormal];
         }
         if ([result objectForKey:@"name"] != [NSNull null]){
@@ -111,6 +198,10 @@
         }
         if ([result objectForKey:@"location"]  != [NSNull null]){
             [self.locationTextField setText:[result objectForKey:@"location"]];
+        }
+        if ([[result objectForKey:@"philosophy"] length]){
+            [self.philosophyTextView setText:[result objectForKey:@"philosophy"]];
+            [self.philosophyTextView setTextColor:[UIColor blackColor]];
         }
         [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
     } failure:^(NSError *error) {
@@ -128,36 +219,35 @@
                                                     name:self.nameTextField.text
                                                 location:self.locationTextField.text
                                                userPhoto:self.userPhoto.imageView.image
+                                              philosophy:self.philosophyTextView.text
                                                 password:self.passwordTextField.text
                                                  success:^(FDUser *theUser) {
                                                      
             [[NSUserDefaults standardUserDefaults] setObject:theUser.authenticationToken forKey:kUserDefaultsAuthenticationToken];
             [[NSUserDefaults standardUserDefaults] setObject:theUser.avatarUrl forKey:kUserDefaultsAvatarUrl];
             [[NSUserDefaults standardUserDefaults] setObject:theUser.password forKey:kUserDefaultsPassword];
-            
+            [[NSUserDefaults standardUserDefaults] setObject:theUser.name forKey:kUserDefaultsUserName];
+            [[NSUserDefaults standardUserDefaults] setObject:theUser.email forKey:kUserDefaultsEmail];
                                                      
             if ([self.presentingViewController isKindOfClass:[FDLoginViewController class]]){
-                if (([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone && [UIScreen mainScreen].bounds.size.height == 568.0)){
-                    UIStoryboard *storyboard5 = [UIStoryboard storyboardWithName:@"iPhone5" bundle:nil];
-                    FDSlidingViewController *vc = [storyboard5 instantiateViewControllerWithIdentifier:@"SlidingView"];
-                    [self presentViewController:vc animated:YES completion:nil];
-                } else {
-                    UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"iPhone" bundle:nil];
-                    FDSlidingViewController *vc = [storyboard instantiateViewControllerWithIdentifier:@"SlidingView"];
-                    [self presentViewController:vc animated:YES completion:nil];
-                }
+                [self dismissViewControllerAnimated:YES completion:^{
+                    [[NSNotificationCenter defaultCenter] postNotificationName:@"LoginNewEmailUser" object:nil];
+                    [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
+                }];
             } else {
-                NSLog(@"should be modally dismissing");
-                [self dismissModalViewControllerAnimated:YES];
+                [[NSNotificationCenter defaultCenter] postNotificationName:@"RefreshPhilosophy" object:nil];
+                [self dismissViewControllerAnimated:YES completion:^{
+                    [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
+                }];
             }
-
+            
         } failure:^(NSError *error) {
             [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
             [[[UIAlertView alloc] initWithTitle:@"Uh-oh" message:@"Please make sure you've included all fields, including your password." delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
             NSLog(@"error updating profile details: %@",error.description);
         }];
     } else {
-        [[[UIAlertView alloc] initWithTitle:@"Uh-oh" message:@"Please make sure you've included your name as well as photo. Look sharp now." delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+        [[[UIAlertView alloc] initWithTitle:@"Uh-oh" message:@"Please make sure you've included your name as well as a photo. Look sharp now." delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     }
 }
 
@@ -202,10 +292,8 @@
         case 2:
             if([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera])
                 [self takePhoto];
-            break;
-        case 3:
-            [actionSheet dismissWithClickedButtonIndex:2 animated:YES];
         default:
+            [actionSheet dismissWithClickedButtonIndex:2 animated:YES];
             break;
     }
 }
@@ -219,7 +307,6 @@
 }
 
 - (void)takePhoto {
-    NSLog(@"should be taking photo");
     UIImagePickerController *vc = [[UIImagePickerController alloc] init];
     [vc setSourceType:UIImagePickerControllerSourceTypeCamera];
     [vc setDelegate:self];
@@ -236,6 +323,14 @@
 
 -(void)removePhoto {
     [self.userPhoto setImage:nil forState:UIControlStateNormal];
+}
+
+-(IBAction)back {
+    [self dismissViewControllerAnimated:YES completion:nil];
+}
+
+-(IBAction)cancel {
+    [self.view endEditing:YES];
 }
 
 - (void)didReceiveMemoryWarning

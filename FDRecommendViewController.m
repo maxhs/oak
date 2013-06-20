@@ -35,9 +35,8 @@
     self.recommendeeList = [NSMutableArray array];
     UILabel *navTitle = [[UILabel alloc] init];
     navTitle.frame = CGRectMake(0,0,320,44);
-    navTitle.text = @"RECOMMENDING";
-    
-    navTitle.font = [UIFont fontWithName:kAvenirMedium size:20];
+    navTitle.text = @"Recommending";
+    navTitle.font = [UIFont fontWithName:kHelveticaNeueThin size:20];
     navTitle.backgroundColor = [UIColor clearColor];
     navTitle.textColor = [UIColor blackColor];
     navTitle.textAlignment = NSTextAlignmentCenter;
@@ -48,7 +47,7 @@
     for(UIView *subView in self.searchDisplayController.searchBar.subviews) {
         if ([subView isKindOfClass:[UITextField class]]) {
             UITextField *searchField = (UITextField *)subView;
-            searchField.font = [UIFont fontWithName:kAvenirMedium size:15];
+            searchField.font = [UIFont fontWithName:kHelveticaNeueThin size:15];
         }
     }
     

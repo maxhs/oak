@@ -37,7 +37,6 @@
 
 - (void)configureForComment:(FDComment *)comment {
     self.cellComment = comment;
-    //CGSize bodySize = [comment.body sizeWithFont:[UIFont fontWithName:kAvenirMedium size:16] constrainedToSize:CGSizeMake(207, 100000)];
     self.nameLabel.text = comment.user.name;
     self.bodyLabel.text = [NSString stringWithFormat:@"\"%@\"", comment.body];
     CGRect frame = self.bodyLabel.frame;
@@ -48,17 +47,11 @@
     if (comment.commentId){
         [self.editButton setHidden:NO];
         [self.editButton setTag:[comment.commentId integerValue]];
-        self.editButton.layer.cornerRadius = 14.0f;
+        self.editButton.layer.cornerRadius = 12.0f;
         self.editButton.layer.borderColor = [UIColor colorWithWhite:.1 alpha:.1].CGColor;
         self.editButton.layer.borderWidth = 1.0f;
     } else {
         [self.editButton setHidden:YES];
-    }
-    if ([[[UIDevice currentDevice] systemVersion] floatValue] < 6) {
-        [self.bodyLabel setFont:[UIFont fontWithName:kFuturaMedium size:15.0]];
-        [self.timeLabel setFont:[UIFont fontWithName:kFuturaMedium size:14.0]];
-        [self.nameLabel setFont:[UIFont fontWithName:kFuturaMedium size:15.0]];
-        [self.editButton.titleLabel setFont:[UIFont fontWithName:kFuturaMedium size:15.0]];
     }
     
     if (![comment.user.userId isEqualToString:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]]) [self.editButton setHidden:YES];
@@ -74,7 +67,7 @@
 }
 
 + (CGFloat)heightForComment:(FDComment *)comment {
-    CGSize bodySize = [comment.body sizeWithFont:[UIFont fontWithName:kAvenirMedium size:16] constrainedToSize:CGSizeMake(207, 100000)];
+    CGSize bodySize = [comment.body sizeWithFont:[UIFont fontWithName:kHelveticaNeueThin size:16] constrainedToSize:CGSizeMake(207, 100000)];
     return MAX(33 + bodySize.height + 5.f, 60.f);
 }
 

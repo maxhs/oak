@@ -28,5 +28,4 @@
     [self.view addGestureRecognizer:self.slidingViewController.panGesture];
 }
 
-
 @end

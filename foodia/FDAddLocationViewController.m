@@ -14,15 +14,17 @@
 #import "FDVenue.h"
 #import "FDVenueLocation.h"
 
-@interface FDAddLocationViewController () <UITableViewDataSource, UITableViewDelegate, CLLocationManagerDelegate, MKMapViewDelegate, UISearchBarDelegate>
+@interface FDAddLocationViewController () <UITableViewDataSource, UITableViewDelegate, CLLocationManagerDelegate, MKMapViewDelegate, UISearchBarDelegate> {
+    CLLocationManager *locationManager;
+}
 @property (weak, nonatomic) IBOutlet MKMapView *mapView;
 @property (weak, nonatomic) IBOutlet UISearchBar *searchBar;
 @property (weak, nonatomic) IBOutlet UITableView *tableView;
 @property (weak, nonatomic) IBOutlet UIView *tableContainerView;
 @property (weak, nonatomic) IBOutlet UIImageView *foursquareLogoView;
 @property (nonatomic, retain) NSArray *venues;
-@property (nonatomic, retain) CLLocationManager *locationManager;
 - (IBAction)removeLocation:(id)sender;
+- (IBAction)selectHome;
 @end
 
 @implementation FDAddLocationViewController
@@ -30,16 +32,29 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    self.locationManager = [CLLocationManager new];
-    self.locationManager.desiredAccuracy = kCLLocationAccuracyHundredMeters;
-    self.locationManager.delegate = self;
-    
+    locationManager = [CLLocationManager new];
+    locationManager.desiredAccuracy = kCLLocationAccuracyHundredMeters;
+    locationManager.delegate = self;
+    UIImageView *titleView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"poweredByFoursquare_gray"]];
+    if ([[[UIDevice currentDevice] systemVersion] floatValue] < 6) {
+        [titleView setFrame:CGRectMake(80,10,100,24)];
+    } else {
+        [titleView setFrame:CGRectMake(80,0,100,44)];
+    }
+    self.navigationItem.titleView = titleView;
     //replace ugly background
     for (UIView *view in self.searchBar.subviews) {
         if ([view isKindOfClass:NSClassFromString(@"UISearchBarBackground")]){
             UIImageView *header = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"newFoodiaHeader.png"]];
             [view addSubview:header];
             break;
+        }
+    }
+    
+    for(UIView *subView in self.searchBar.subviews) {
+        if ([subView isKindOfClass:[UITextField class]]) {
+            UITextField *searchField = (UITextField *)subView;
+            searchField.font = [UIFont fontWithName:kHelveticaNeueThin size:14];
         }
     }
 }
@@ -49,8 +64,6 @@
     if (([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone && [UIScreen mainScreen].bounds.size.height == 568.0)){
         self.mapView.frame = CGRectMake(0,0,320,200);
         self.tableContainerView.frame = CGRectMake(0,200,320,304);
-    } else {
-        
     }
     // there are three possibilities when this view appears:
     
@@ -69,12 +82,11 @@
         [self showVenuesOnMap];
         [self updateVenuesForLocation:FDPost.userPost.location];
         
-
     // 3: the post doesn't even have coordinates yet
     //
     // in this case, start looking for the gps coordinates
     } else {
-        [self.locationManager startUpdatingLocation];
+        [locationManager startUpdatingLocation];
     }
 }
 
@@ -99,7 +111,7 @@
 - (IBAction)refreshMap:(id)sender {
     self.searchBar.text = nil;
     [[FDFoursquareAPIClient sharedClient] forgetVenues];
-    [self.locationManager startUpdatingLocation];
+    [locationManager startUpdatingLocation];
 }
 
 - (void)updateVenuesForLocation:(CLLocation *)location {
@@ -172,6 +184,10 @@
     [self.navigationController popViewControllerAnimated:YES];
 }
 
+- (IBAction)selectHome {
+    [self selectCustomLocationWithName:kHome];
+}
+
 - (IBAction)removeLocation:(id)sender {
     if (FDPost.userPost.venue != nil){
         FDPost.userPost.venue = nil;
@@ -199,6 +215,7 @@
 - (void)searchBarTextDidBeginEditing:(UISearchBar *)searchBar {
     [TestFlight passCheckpoint:@"Add Location checkpoint"];
     [self.navigationController setNavigationBarHidden:YES animated:YES];
+    [[UIApplication sharedApplication] setStatusBarHidden:YES withAnimation:UIStatusBarAnimationSlide];
     [self.searchBar setShowsCancelButton:YES animated:YES];
     for (id subview in searchBar.subviews) {
         if ([subview respondsToSelector:@selector(setTitle:)]) {
@@ -208,9 +225,9 @@
     [UIView animateWithDuration:0.25 animations:^{
         self.foursquareLogoView.alpha = 0.0;
         if (([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone && [UIScreen mainScreen].bounds.size.height == 568.0)){
-            self.tableContainerView.frame = CGRectMake(0, 0, 320, 548);
+            self.tableContainerView.frame = CGRectMake(0, 0, 320, 568);
         } else {
-            self.tableContainerView.frame = CGRectMake(0, 0, 320, 460);
+            self.tableContainerView.frame = CGRectMake(0, 0, 320, 480);
         }
     }];
 }
@@ -220,6 +237,7 @@
 }
 
 - (void)searchBarCancelButtonClicked:(UISearchBar *)searchBar {
+    [[UIApplication sharedApplication] setStatusBarHidden:NO withAnimation:UIStatusBarAnimationSlide];
     [self.navigationController setNavigationBarHidden:NO animated:YES];
     [self.searchBar setShowsCancelButton:NO animated:YES];
     [UIView animateWithDuration:0.25 animations:^{

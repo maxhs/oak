@@ -36,18 +36,18 @@
 }
 
 + (NSURL *)profileImageURLForFacebookID:(NSString *)fbid {
-    NSString *URLString = [NSString stringWithFormat:@"https://graph.facebook.com/%@/picture?width=120&height=120&access_token=%@", fbid, [self accessToken]];
+    NSString *URLString = [NSString stringWithFormat:@"https://graph.facebook.com/%@/picture?width=152&height=152&access_token=%@", fbid, [self accessToken]];
     return [NSURL URLWithString:URLString];
 }
 
 + (NSString *)profileImagePathForUserId:(NSString *)uid {
-    NSString *URLString = [NSString stringWithFormat:@"https://graph.facebook.com/%@/picture?width=120&height=120&access_token=%@", uid, [self accessToken]];
+    NSString *URLString = [NSString stringWithFormat:@"https://graph.facebook.com/%@/picture?width=152&height=152&access_token=%@", uid, [self accessToken]];
     return URLString;
 }
 
 + (NSURL *)profileImageURLForCurrentUser {
     if ([self userId] && [self accessToken]){
-        NSString *URLString = [NSString stringWithFormat:@"https://graph.facebook.com/%@/picture?width=120&height=120&access_token=%@", [self userId], [self accessToken]];
+        NSString *URLString = [NSString stringWithFormat:@"https://graph.facebook.com/%@/picture?width=152&height=152&access_token=%@", [self userId], [self accessToken]];
         return [NSURL URLWithString:URLString];
     } else {
         return [NSURL URLWithString:[self avatarUrl]];

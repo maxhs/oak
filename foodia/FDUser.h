@@ -28,6 +28,13 @@
 @property (nonatomic, strong) NSString * occupation;
 @property (nonatomic, strong) NSString * avatarUrl;
 @property (nonatomic, strong) NSString * authenticationToken;
+@property (nonatomic, strong) NSString * philosophy;
+@property (nonatomic) BOOL pushSmile;
+@property (nonatomic) BOOL pushFollow;
+@property (nonatomic) BOOL pushGeofence;
+@property (nonatomic) BOOL pushComment;
+@property (nonatomic) BOOL pushFeature;
+@property (nonatomic) BOOL emailNotifications;
 
 - (void)encodeWithCoder:(NSCoder *)encoder;
 - (id)initWithCoder:(NSCoder *)decoder;

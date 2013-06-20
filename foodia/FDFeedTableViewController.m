@@ -88,7 +88,7 @@
                 [self reloadData];
             }];
         } else {*/
-    
+    if (self.posts.count == 0) [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
     self.feedRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getInitialFeedPostsSuccess:^(NSArray *posts) {
             /*for(int i=0;i<[posts count];i++) {
                 [FDCache cachePost:[posts objectAtIndex:i]];

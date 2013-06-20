@@ -57,9 +57,7 @@
 }
 
 - (void)refresh {
-    [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
     [Flurry logEvent:@"Viewing featured grid" timed:YES];
-
     // if we already have some posts in the feed, get the feed since the last post
     if (self.posts.count) {
         self.feedRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getFeaturedPostsSincePost:[self.posts objectAtIndex:0] success:^(NSMutableArray *newPosts) {

@@ -10,6 +10,7 @@
 #import "FDUser.h"
 #import "FDComment.h"
 #import "FDAPIClient.h"
+#import "FDFoodiaTag.h"
 
 @implementation FDPost
 
@@ -54,6 +55,10 @@ static FDPost *userPost;
 }
 - (NSURL *)featuredImageURL {
         NSString *tempString = [self.featuredImageUrlString stringByReplacingOccurrencesOfString:@"s3.amazonaws.com/foodia-uploads" withString:@"d39yp5dq001uwq.cloudfront.net"];
+    return [NSURL URLWithString:tempString];
+}
+- (NSURL *)originalImageURL {
+    NSString *tempString = [[self.detailImageUrlString stringByReplacingOccurrencesOfString:@"s3.amazonaws.com/foodia-uploads" withString:@"d39yp5dq001uwq.cloudfront.net"] stringByReplacingOccurrencesOfString:@"medium" withString:@"original"];
     return [NSURL URLWithString:tempString];
 }
 - (CLLocation *)location {
@@ -169,6 +174,12 @@ static FDPost *userPost;
         FDUser *user = [[FDUser alloc] initWithDictionary:value];
         [self setUser:user];
     
+    //private
+    if ([key isEqualToString:@"private"]) {
+        NSLog(@"private value: %@",value);
+        self.isPrivate = [value boolValue];
+    }
+        
     // set with friends
     } else if ([key isEqualToString:@"withFriends"]) {
         NSArray *dictionaries = (NSArray *)value;
@@ -180,7 +191,17 @@ static FDPost *userPost;
             }
             [self setWithFriends:set];
         }
-        
+    } else if ([key isEqualToString:@"foodiaTags"]) {
+        NSArray *dictionaries = (NSArray *)value;
+        if (dictionaries){
+            NSMutableArray *tags = [NSMutableArray arrayWithCapacity:dictionaries.count];
+            for (NSDictionary *tagDictionary in dictionaries) {
+                FDFoodiaTag *tag = [[FDFoodiaTag alloc] initWithDictionary:tagDictionary];
+                [tags addObject:tag];
+            }
+            [self setTagArray:tags];
+        }
+    
     // set comments
     } else if ([key isEqualToString:@"comments"]) {
         NSArray *dictionaries = (NSArray *)value;
@@ -195,6 +216,8 @@ static FDPost *userPost;
         }
     } else if([key isEqualToString:@"commentCount"]) {
         self.commentCount = value;
+    } else if([key isEqualToString:@"location_name"]) {
+        self.locationName = value;
     } else if([key isEqualToString:@"isfeatured"]) {
         self.featured = value;
     } else {
@@ -249,6 +272,7 @@ static FDPost *userPost;
     [encoder encodeObject:self.withFriends forKey:@"withFriends"];
     [encoder encodeObject:self.likers forKey:@"likers"];
     [encoder encodeObject:self.viewers forKey:@"viewers"];
+    [encoder encodeObject:self.tagArray forKey:@"tagArray"];
     [encoder encodeObject:self.recommendedTo forKey:@"recommendedTo"];
     [encoder encodeObject:self.recommendedEpochTime forKey:@"recommendedEpochTime"];
     [encoder encodeObject:self.og forKey:@"og"];
@@ -284,6 +308,7 @@ static FDPost *userPost;
         self.withFriends = [decoder decodeObjectForKey:@"withFriends"];
         self.likers = [decoder decodeObjectForKey:@"likers"];
         self.viewers = [decoder decodeObjectForKey:@"viewers"];
+        self.tagArray = [decoder decodeObjectForKey:@"tagArray"];
         self.recommendedEpochTime = [decoder decodeObjectForKey:@"recommendedEpochTime"];
         self.recommendedTo = [decoder decodeObjectForKey:@"recommendedTo"];
         self.og = [decoder decodeObjectForKey:@"og"];

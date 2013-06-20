@@ -10,6 +10,6 @@
 
 @interface FDPostCategoryViewController : UIViewController
 @property (nonatomic, strong) UIImage *dummyImage;
-@property BOOL isEditing;
+@property BOOL isEditingPost;
 @property (strong, nonatomic) FDPost *thePost;
 @end

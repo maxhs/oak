@@ -9,6 +9,7 @@
 #import "FDPost.h"
 
 @interface FDNewPostViewController : UIViewController
+@property BOOL isEditingPost;
 @property (weak, nonatomic) IBOutlet UIButton *photoButton;
 @property (weak, nonatomic) IBOutlet UIBarButtonItem *postButtonItem;
 @property (weak, nonatomic) IBOutlet UIImageView *posterImageView;
@@ -16,10 +17,11 @@
 @property (weak, nonatomic) IBOutlet UIButton *foursquareButton;
 @property (weak, nonatomic) IBOutlet UIButton *twitterButton;
 @property (weak, nonatomic) IBOutlet UIButton *instagramButton;
+@property (weak, nonatomic) IBOutlet UIButton *lockButton;
 @property (weak, nonatomic) IBOutlet UIScrollView *friendsScrollView;
-@property (weak, nonatomic) IBOutlet UIScrollView *recScrollView;
+@property (weak, nonatomic) IBOutlet UIScrollView *tagScrollView;
 @property (weak, nonatomic) FDPost *post;
 @property (nonatomic, retain) UIDocumentInteractionController *documentInteractionController;
 -(IBAction)toggleFacebook;
-
+-(IBAction)togglePrivate;
 @end

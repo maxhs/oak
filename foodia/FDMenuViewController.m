@@ -27,8 +27,9 @@
 #import "Utilities.h"
 #import "Flurry.h"
 #import "UIButton+WebCache.h"
+#import "UIImageView+WebCache.h"
 
-@interface FDMenuViewController () <MFMailComposeViewControllerDelegate>
+@interface FDMenuViewController ()
 @property (nonatomic, strong) NSArray *activityItems;
 @property (weak, nonatomic) UIView *titleView;
 @property (weak, nonatomic) UILabel *activityLabel;
@@ -41,27 +42,27 @@
 {
     [super viewDidLoad];
     [Flurry logEvent:@"ViewingMenu" timed:YES];
-    //[self refresh];
     [self.slidingViewController setAnchorRightRevealAmount:272.0f];
     self.slidingViewController.underLeftWidthLayout = ECFullWidth;
     self.tableView.separatorColor = [UIColor colorWithWhite:.1 alpha:.1];
     self.tableView.backgroundColor = [UIColor whiteColor];
     self.tableView.backgroundView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"feedTypeMenuBackground4@2x.png"]];
-    //self.tableView.backgroundView.transform = CGAffineTransformMakeRotation(M_PI);
     self.tableView.delegate = self;
     self.tableView.dataSource = self;
     self.tableView.scrollEnabled = YES;
-    [self shrink];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(shrink) name:@"ShrinkMenuView" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(grow) name:@"GrowMenuView" object:nil];
+}
 
+- (void)viewDidAppear:(BOOL)animated {
+    [super viewDidAppear:animated];
+    [self shrink];
 }
 
 - (void) grow {
-
     if (self.tableView.alpha != 1.0){
-        [UIView animateWithDuration:.3 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-            //self.tableView.transform = CGAffineTransformMakeScale(0.90f, 0.90f);
+        [UIView animateWithDuration:.35 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+            //self.slidingViewController.underLeftViewController.view.transform = CGAffineTransformIdentity;
             //[self.slidingViewController.topViewController.view setAlpha:0.25];
             [self.tableView setAlpha:1.0];
         } completion:^(BOOL finished) {
@@ -72,9 +73,9 @@
 
 - (void) shrink {
     if (self.tableView.alpha != 0.0) {
-        [UIView animateWithDuration:.3 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        [UIView animateWithDuration:.35 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
             //[self.slidingViewController.topViewController.view setAlpha:1.0];
-            //self.tableView.transform = CGAffineTransformMakeScale(0.80f, 0.80f);
+            //self.slidingViewController.underLeftViewController.view.transform = CGAffineTransformMakeScale(0.90, 0.90);
             [self.tableView setAlpha:0.0];
         } completion:^(BOOL finished) {
         
@@ -123,20 +124,15 @@
                     cell.textLabel.text = @"MY PROFILE";
                     break;
                 case 2:
-                    cell.textLabel.text = @"FRIENDS";
-                break;
-                case 3:
-                    cell.textLabel.text = @"FEEDBACK";
-                break;
-                case 4:
-                    cell.textLabel.text = @"LOG OUT";
+                    cell.textLabel.text = @"DIGEST";
                     break;
+                case 3:
+                    cell.textLabel.text = @"FRIENDS";
+                    break;
+                case 4:
+                    cell.textLabel.text = @"SETTINGS";
                 default:
                 break;
-        }
-        
-        if ([[[UIDevice currentDevice] systemVersion] floatValue] < 6) {
-            [cell.textLabel setFont:[UIFont fontWithName:kFuturaMedium size:20.0]];
         }
         
         return cell;
@@ -151,20 +147,11 @@
         [profileButton setFrame:CGRectMake(5,4,40,40)];
         
         //set image
-        /*NSString *notificationUserId = notification.fromUserId;
-        if ([[SDImageCache sharedImageCache] imageFromMemoryCacheForKey:notificationUserId]) {
-            [profileButton setImage:[[SDImageCache sharedImageCache] imageFromMemoryCacheForKey:notificationUserId] forState:UIControlStateNormal];
-        } else */if (notification.fromUserFbid.length && [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookAccessToken]) {
-            [profileButton setImageWithURL:[Utilities profileImageURLForFacebookID:notification.fromUserFbid]forState:UIControlStateNormal];
+        if (notification.fromUserFbid.length && [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookAccessToken]) {
+            [profileButton setImageWithURL:[Utilities profileImageURLForFacebookID:notification.fromUserFbid] forState:UIControlStateNormal];
         } else {
             //set from Amazon. risky...
-            NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://s3.amazonaws.com/foodia-uploads/user_%@_thumb.jpg",notification.fromUserId]];
-            [profileButton setImageWithURL:url forState:UIControlStateNormal];
-            /*[[FDAPIClient sharedClient] getProfilePic:notification.fromUserId success:^(NSURL *result) {
-                [profileButton setImageWithURL:result forState:UIControlStateNormal];
-                NSLog(@"url for avatar: %@", result);
-            } failure:^(NSError *error) {}];*/
-            //[[SDImageCache sharedImageCache] storeImage:profileButton.imageView.image forKey:notificationUserId];
+            [profileButton setImageWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://s3.amazonaws.com/foodia-uploads/user_%@_thumb.jpg",notification.fromUserId]] forState:UIControlStateNormal];
         }
 
         profileButton.imageView.layer.cornerRadius = 20.0;
@@ -175,7 +162,7 @@
         profileButton.imageView.layer.rasterizationScale = [UIScreen mainScreen].scale;
         UILabel *messageLabel = [[UILabel alloc] initWithFrame:CGRectMake(50,4,180,40)];
         [messageLabel setTextColor:[UIColor darkGrayColor]];
-
+        [messageLabel setFont:[UIFont fontWithName:kHelveticaNeueThin size:14]];
         messageLabel.numberOfLines = 2;
         messageLabel.backgroundColor = [UIColor clearColor];
         [messageLabel setText:notification.message];
@@ -187,14 +174,7 @@
         timeLabel.textAlignment = NSTextAlignmentRight;
         timeLabel.backgroundColor = [UIColor clearColor];
         timeLabel.highlightedTextColor = [UIColor whiteColor];
-        
-        if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 6) {
-            [messageLabel setFont:[UIFont fontWithName:kAvenirMedium size:14]];
-            [timeLabel setFont:[UIFont fontWithName:kAvenirMedium size:14]];
-        } else {
-            [messageLabel setFont:[UIFont fontWithName:kFuturaMedium size:16]];
-            [timeLabel setFont:[UIFont fontWithName:kFuturaMedium size:16]];
-        }
+        [timeLabel setFont:[UIFont fontWithName:kHelveticaNeueThin size:13]];
         
         if([notification.postedAt timeIntervalSinceNow] > 0) {
             timeLabel.text = @"0s";
@@ -219,6 +199,17 @@
     else return 50.0f;
 }
 
+- (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
+    if (section == 0) return 20;
+    else return 0;
+}
+
+- (UIView*)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
+    UIView *headerView = [[UIView alloc] init];
+    [headerView setBackgroundColor:[UIColor clearColor]];
+    return headerView;
+}
+
 #pragma mark - Table view delegate
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
@@ -227,6 +218,8 @@
     if (indexPath.section == 1) {
         FDNotification *notification = [self.notifications objectAtIndex:indexPath.row];
         if (notification.targetPostId != nil) {
+            NSDictionary *userInfo = @{@"identifier":[NSString stringWithFormat:@"%@", notification.targetPostId]};
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"RowToReloadFromMenu" object:nil userInfo:userInfo];
             [self showPost:[NSString stringWithFormat:@"%@",notification.targetPostId]];
         } else if (notification.targetUserId != nil) {
             [self showProfile:[NSString stringWithFormat:@"%@", notification.targetUserId]];
@@ -241,22 +234,13 @@
             [self showTopViewControllerWithIdentifier:@"ProfileNavigation"];
             break;
         case 2:
-            [self showTopViewControllerWithIdentifier:@"SocialNavigation"];
+            [self showTopViewControllerWithIdentifier:@"FoodNavigation"];
             break;
         case 3:
-            [self leaveFeedback:nil];
+            [self showTopViewControllerWithIdentifier:@"SocialNavigation"];
             break;
         case 4:
-        {
-            [FDCache clearCache];
-            [FBSession.activeSession closeAndClearTokenInformation];
-            [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
-            [NSUserDefaults resetStandardUserDefaults];
-            [NSUserDefaults standardUserDefaults];
-            NSString *domainName = [[NSBundle mainBundle] bundleIdentifier];
-            [[NSUserDefaults standardUserDefaults] removePersistentDomainForName:domainName];
-            [self.slidingViewController dismissViewControllerAnimated:YES completion:nil];
-        }
+            [self showTopViewControllerWithIdentifier:@"SettingsNavigation"];
             break;
         default:
             break;
@@ -274,17 +258,28 @@
         UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"iPhone" bundle:nil];
         newTopViewController = [storyboard instantiateViewControllerWithIdentifier:identifier];
     }
-    
-    [self.slidingViewController anchorTopViewOffScreenTo:ECRight animations:nil onComplete:^{
-        CGRect frame = self.slidingViewController.topViewController.view.frame;
-        self.slidingViewController.topViewController = newTopViewController;
-        self.slidingViewController.topViewController.view.frame = frame;
-        [self.slidingViewController resetTopView];
-    }];
+    if ([identifier isEqualToString:@"ProfileNavigation"]){
+        [(FDProfileNavigationController*)newTopViewController setUserId:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]];
+    }
+    /*if ([[[UIDevice currentDevice] systemVersion] floatValue] < 6) {
+        [self.slidingViewController anchorTopViewOffScreenTo:ECRight animations:nil onComplete:^{
+        NSLog(@"self.slidingvc: %@", self.slidingViewController.topViewController);
+            [self presentViewController:newTopViewController animated:YES completion:nil];
+            [self.slidingViewController resetTopView];
+        }];
+    } else {*/
+        [self.slidingViewController anchorTopViewOffScreenTo:ECRight animations:nil onComplete:^{
+            CGRect frame = self.slidingViewController.topViewController.view.frame;
+            self.slidingViewController.topViewController = newTopViewController;
+            self.slidingViewController.topViewController.view.frame = frame;
+            [self.slidingViewController resetTopView];
+        }];
+    //}
 }
 
 - (void)showProfile:(id)sender{
     FDProfileViewController *newTopViewController = [[FDProfileViewController alloc] init];
+    
     //tests whether the device has a 4-inch display for the above view controllers
     if (([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone && [UIScreen mainScreen].bounds.size.height == 568.0)){
         UIStoryboard *storyboard5 = [UIStoryboard storyboardWithName:@"iPhone5" bundle:nil];
@@ -322,28 +317,6 @@
     [self.slidingViewController anchorTopViewOffScreenTo:ECRight animations:nil onComplete:^{
         [self.slidingViewController resetTopView];
     }];
-}
-#pragma mark - MFMailComposeViewControllerDelegate Methods
-
-- (void)leaveFeedback:(id)sender {
-    if ([MFMailComposeViewController canSendMail]) {
-        MFMailComposeViewController* controller = [[MFMailComposeViewController alloc] init];
-        controller.navigationBar.barStyle = UIBarStyleBlack;
-        controller.mailComposeDelegate = self;
-        [controller setSubject:@"FOODIA Feedback"];
-        [controller setToRecipients:[NSArray arrayWithObjects:@"feedback@foodia.org", nil]];
-        if (controller) [self presentViewController:controller animated:YES completion:nil];
-    } else {
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Thanks" message:@"Please send feedback to feedback@foodia.org" delegate:self cancelButtonTitle:@"" otherButtonTitles:nil];
-        [alert show];
-    }
-}
-- (void)mailComposeController:(MFMailComposeViewController*)controller
-          didFinishWithResult:(MFMailComposeResult)result
-                        error:(NSError*)error;
-{
-    if (result == MFMailComposeResultSent) {}
-    [self dismissViewControllerAnimated:YES completion:nil];
 }
 
 - (void)refresh

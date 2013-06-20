@@ -19,12 +19,6 @@
 #import "FDCache.h"
 #import <iAd/ADBannerView.h>
 
-#define METERS_TO_FEET  3.2808399
-#define METERS_TO_MILES 0.000621371192
-#define METERS_CUTOFF   1000
-#define FEET_CUTOFF     3281
-#define FEET_IN_MILES   5280
-
 @interface FDRecommendedTableViewController () <CLLocationManagerDelegate, UITableViewDataSource, UITableViewDelegate, ADBannerViewDelegate>
 @property BOOL editMode;
 @property (strong, nonatomic) UIView *editContainerView;
@@ -36,7 +30,7 @@
 @property (weak, nonatomic) AFJSONRequestOperation *holdRequestOperation;
 @property BOOL showingDistance;
 @property BOOL showingRank;
-
+@property BOOL isRefreshing;
 @property (nonatomic, retain) ADBannerView *adBannerView;
 @property (nonatomic) BOOL adBannerViewIsVisible;
 @end
@@ -45,6 +39,7 @@
 
 @synthesize holdRequestOperation;
 @synthesize shouldShowKeepers = _shouldShowKeepers;
+@synthesize isRefreshing = _isRefreshing;
 @synthesize editMode = _editMode;
 @synthesize editContainerView;
 @synthesize locationManager;
@@ -56,29 +51,28 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
     [Flurry logPageView];
     [self.refreshHeaderView setHidden:YES];
-    
+    self.isRefreshing = NO;
+    self.showingDistance = NO;
     //location manager stuff
     self.locationManager = [[CLLocationManager alloc] init];
     self.locationManager.desiredAccuracy = kCLLocationAccuracyBest;
     self.locationManager.delegate = self;
-    [self.locationManager startUpdatingLocation];
     
     //set up editcontainer stuff
     self.editContainerView = [[UIView alloc] initWithFrame:CGRectMake(0,-44,320,44)];
     [self.editContainerView setBackgroundColor:[UIColor colorWithPatternImage:[UIImage imageNamed:@"newFoodiaHeader"]]];
     
     self.sortByDistanceButton = [UIButton buttonWithType:UIButtonTypeCustom];
-    [self.sortByDistanceButton setFrame:CGRectMake(222, 7, 88, 34)];
-    [self.sortByDistanceButton setTitle:@"DISTANCE" forState:UIControlStateNormal];
+    [self.sortByDistanceButton setFrame:CGRectMake(170, 2, 140, 44)];
+    [self.sortByDistanceButton setTitle:@"Distance" forState:UIControlStateNormal];
+    [self.sortByDistanceButton setBackgroundImage:[UIImage imageNamed:@"commentBubble"] forState:UIControlStateNormal];
     [self.sortByDistanceButton.titleLabel setTextColor:[UIColor darkGrayColor]];
     self.sortByDistanceButton.layer.cornerRadius = 17.0;
     self.sortByDistanceButton.clipsToBounds = YES;
     [self.editContainerView addSubview:self.sortByDistanceButton];
 
-    
     self.rankButton = [UIButton buttonWithType:UIButtonTypeCustom];
     [self.rankButton setFrame:CGRectMake(116, 7, 88, 34)];
     [self.rankButton setTitle:@"MY RANK" forState:UIControlStateNormal];
@@ -89,8 +83,9 @@
     [self.editContainerView addSubview:self.rankButton];
     
     self.sortByPopularityButton = [UIButton buttonWithType:UIButtonTypeCustom];
-    [self.sortByPopularityButton setTitle:@"POPULAR" forState:UIControlStateNormal];
-    [self.sortByPopularityButton setFrame:CGRectMake(10, 7, 88, 34)];
+    [self.sortByPopularityButton setTitle:@"Popularity" forState:UIControlStateNormal];
+    [self.sortByPopularityButton setFrame:CGRectMake(10, 2, 140, 44)];
+    [self.sortByPopularityButton setBackgroundImage:[UIImage imageNamed:@"commentBubble"] forState:UIControlStateNormal];
     [self.sortByPopularityButton.titleLabel setTextColor:[UIColor darkGrayColor]];
     self.sortByPopularityButton.layer.cornerRadius = 17.0;
     self.sortByPopularityButton.clipsToBounds = YES;
@@ -110,15 +105,9 @@
     self.tableView.dataSource = self;
     self.tableView.delegate = self;
 
-    if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 6) {
-        [self.sortByPopularityButton.titleLabel setFont:[UIFont fontWithName:kAvenirMedium size:16]];
-        [self.rankButton.titleLabel setFont:[UIFont fontWithName:kAvenirMedium size:16]];
-        [self.sortByDistanceButton.titleLabel setFont:[UIFont fontWithName:kAvenirMedium size:16]];
-    } else {
-        [self.sortByPopularityButton.titleLabel setFont:[UIFont fontWithName:kFuturaMedium size:16]];
-        [self.rankButton.titleLabel setFont:[UIFont fontWithName:kFuturaMedium size:16]];
-        [self.sortByDistanceButton.titleLabel setFont:[UIFont fontWithName:kFuturaMedium size:16]];
-    }
+    [self.sortByPopularityButton.titleLabel setFont:[UIFont fontWithName:kHelveticaNeueThin size:14]];
+    [self.rankButton.titleLabel setFont:[UIFont fontWithName:kHelveticaNeueThin size:14]];
+    [self.sortByDistanceButton.titleLabel setFont:[UIFont fontWithName:kHelveticaNeueThin size:14]];
 
     /*[[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(updatePostNotification:)
@@ -140,13 +129,10 @@
     self.navigationItem.rightBarButtonItem = searchBarButton;*/
 }
 
-//- (void) activateSearch {
-//    [self.navigationController setNavigationBarHidden:YES animated:YES];
-//}
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
-    self.showingDistance = NO;
+    [self.locationManager startUpdatingLocation];
     [UIView animateWithDuration:.25 animations:^{
         [self.editContainerView setAlpha:1.0];
     }];
@@ -166,21 +152,22 @@
     [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
     self.showingRank = NO;
     self.showingDistance = YES;
-    [self resetButtonColors];
-    [self.sortByDistanceButton setBackgroundColor:kColorLightBlack];
-    [self.sortByDistanceButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     [self refresh:NO andDistance:self.currentLocation];
+    [self resetButtonColors];
+    [self.sortByDistanceButton setBackgroundImage:[UIImage imageNamed:@"commentBubbleSelected"] forState:UIControlStateNormal];
+    [self.sortByDistanceButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    
 }
 
 - (void)sortRecByPopularity {
-    NSLog(@"should be sorting by popualrity");
     [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
     self.showingRank = NO;
     self.showingDistance = NO;
-    [self resetButtonColors];
-    [self.sortByPopularityButton setBackgroundColor:kColorLightBlack];
-    [self.sortByPopularityButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     [self refresh:YES andDistance:nil];
+    [self resetButtonColors];
+    [self.sortByPopularityButton setBackgroundImage:[UIImage imageNamed:@"commentBubbleSelected"] forState:UIControlStateNormal];
+    [self.sortByPopularityButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    
 }
 
 - (void) locationManager:(CLLocationManager *)manager didFailWithError:(NSError *)error {
@@ -193,7 +180,7 @@
     [self.locationManager stopUpdatingLocation];
 }
 
-- (void)loadFromCache {
+/*- (void)loadFromCache {
     //self.posts = [FDCache getCachedRankedPosts];
     [self.posts removeAllObjects];
     if (self.posts.count != 0){
@@ -203,13 +190,13 @@
             if (keepers.count != self.posts.count){
                 self.posts = [[keepers arrayByAddingObjectsFromArray:self.posts] mutableCopy];
                 NSLog(@"self.posts count after: %d", self.posts.count);
-                /*NSMutableArray *indexPathsForAddedPosts = [NSMutableArray arrayWithCapacity:rankedResult.count];
+                NSMutableArray *indexPathsForAddedPosts = [NSMutableArray arrayWithCapacity:rankedResult.count];
                 for (FDPost *post in rankedResult) {
                     NSIndexPath *path = [NSIndexPath indexPathForRow:[self.posts indexOfObject:post] inSection:0];
                     [indexPathsForAddedPosts addObject:path];
                 }
                 [self.tableView insertRowsAtIndexPaths:indexPathsForAddedPosts
-                                      withRowAnimation:UITableViewRowAnimationAutomatic];*/
+                                      withRowAnimation:UITableViewRowAnimationAutomatic];
                 self.showingRank = YES;
             }
             [self reloadData];
@@ -235,7 +222,7 @@
             [self reloadData];
         }];
     }
-}
+}*/
 
 - (void)saveCache {
     NSLog(@"saving the ranked posts");
@@ -246,11 +233,7 @@
 {
     if (self.posts.count == 0) {
         UITableViewCell *cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"EmptyCell"];
-        if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 6) {
-            [cell.textLabel setFont:[UIFont fontWithName:kAvenirMedium size:16]];
-        } else {
-            [cell.textLabel setFont:[UIFont fontWithName:kFuturaMedium size:16]];
-        }
+        [cell.textLabel setFont:[UIFont fontWithName:kHelveticaNeueThin size:15]];
 
         [cell.textLabel setTextColor:[UIColor lightGrayColor]];
         [cell.textLabel setTextAlignment:NSTextAlignmentCenter];
@@ -335,6 +318,17 @@
     }
 }
 
+- (void)tableView:(UITableView *)tableView didEndDisplayingCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath {
+    if ([cell isKindOfClass:[FDPostCell class]]){
+        FDPostCell *thisCell = (FDPostCell*)cell;
+        [UIView animateWithDuration:.25 animations:^{
+            [thisCell.photoBackground setAlpha:0.0];
+            [thisCell.photoImageView setAlpha:0.0];
+            [thisCell.posterButton setAlpha:0.0];
+        }];
+    }
+}
+
 -(BOOL) tableView:(UITableView *)tableView shouldIndentWhileEditingRowAtIndexPath:(NSIndexPath *)indexPath {
     return NO;
 }
@@ -370,14 +364,13 @@
 - (void)resetButtonColors {
     [self.tableView setEditing:NO animated:YES];
     [UIView animateWithDuration:.2 animations:^{
-        [self.sortByPopularityButton setBackgroundColor:[UIColor clearColor]];
-        [self.sortByDistanceButton setBackgroundColor:[UIColor clearColor]];
+        [self.sortByPopularityButton setBackgroundImage:[UIImage imageNamed:@"commentBubble"] forState:UIControlStateNormal];
+        [self.sortByDistanceButton setBackgroundImage:[UIImage imageNamed:@"commentBubble"] forState:UIControlStateNormal];
         [self.rankButton setBackgroundColor:[UIColor clearColor]];
         [self.sortByPopularityButton setTitleColor:[UIColor darkGrayColor] forState:UIControlStateNormal];
         [self.sortByDistanceButton setTitleColor:[UIColor darkGrayColor] forState:UIControlStateNormal];
         [self.rankButton setTitleColor:[UIColor darkGrayColor] forState:UIControlStateNormal];
     }];
-
 }
 
 - (NSString *)stringWithDistance:(double)distance {
@@ -418,15 +411,33 @@
     /*if (_showingRank){
         [self loadFromCache];
     } else {*/
+    if (!location) self.showingDistance = NO;
         if (!self.shouldShowKeepers){
             [Flurry logEvent:@"Loading initial recommended posts" timed:YES];
-            self.feedRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getRecommendedPostsByPopularity:popularity distance:location Success:^(NSMutableArray *posts) {
+            self.feedRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getRecommendedPostsByPopularity:popularity distance:location Success:^(NSArray *posts) {
                 if (posts.count == 0){
                     [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
                     return;
                 } else {
                     [self.posts removeAllObjects];
-                    self.posts = posts;
+                    self.posts = [posts mutableCopy];
+                    
+                    [self reloadData];
+                    self.feedRequestOperation = nil;
+                }
+            } failure:^(NSError *error) {
+                self.feedRequestOperation = nil;
+                [self reloadData];
+            }];
+        } else {
+            [Flurry logEvent:@"Loading initial keepers posts" timed:YES];
+            self.feedRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getHeldPosts:^(NSArray *posts) {
+                if (posts.count == 0){
+                    [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
+                    return;
+                } else {
+                    [self.posts removeAllObjects];
+                    self.posts = [posts mutableCopy];
                     [self reloadData];
                     self.feedRequestOperation = nil;
                 }
@@ -463,7 +474,7 @@
     self.showingDistance = NO;
     [self resetButtonColors];
     UIButton *button = (UIButton*)sender;
-    [button setBackgroundColor:kColorLightBlack];
+    [button setBackgroundImage:[UIImage imageNamed:@"commentBubbleSelected"] forState:UIControlStateNormal];
     [button setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
     self.holdRequestOperation = [[FDAPIClient sharedClient] getHeldPostsByPopularity:^(NSArray *result) {
@@ -493,7 +504,7 @@
     self.showingDistance = YES;
     [self resetButtonColors];
     UIButton *button = (UIButton*)sender;
-    [button setBackgroundColor:kColorLightBlack];
+    [button setBackgroundImage:[UIImage imageNamed:@"commentBubbleSelected"] forState:UIControlStateNormal];
     [button setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
     self.holdRequestOperation = [[FDAPIClient sharedClient] getHeldPostsFromLocation:self.currentLocation success:^(NSArray *result) {

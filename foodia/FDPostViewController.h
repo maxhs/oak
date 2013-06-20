@@ -8,12 +8,14 @@
 
 @interface FDPostViewController : UIViewController
 @property (weak, nonatomic) IBOutlet UIScrollView *likersScrollView;
+@property (weak, nonatomic) IBOutlet UIScrollView *tagsScrollView;
 @property (strong, nonatomic) UITextView *addComment;
 @property (nonatomic, strong) NSString *postIdentifier;
 @property BOOL shouldShowComment;
-- (IBAction)likeButtonTapped;
+@property BOOL shouldReframe;
+- (IBAction)tapToLike;
 - (IBAction)recommend;
 - (IBAction)expandImage:(id)sender;
-- (void)showPostDetails;
-- (IBAction)showPlace;
+- (void)refresh;
+- (IBAction)showPlace:(UIButton*)button;
 @end

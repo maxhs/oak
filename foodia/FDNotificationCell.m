@@ -48,9 +48,6 @@
     } else {
         NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://s3.amazonaws.com/foodia-uploads/user_%@_thumb.jpg",notification.fromUserId]];
         [self.profileImageView setImageWithURL:url];
-        /*[[FDAPIClient sharedClient] getProfilePic:notification.fromUserId success:^(id result) {
-            [self.profileImageView setImageWithURL:result];
-        } failure:^(NSError *error) {}];*/
     }
 }
 

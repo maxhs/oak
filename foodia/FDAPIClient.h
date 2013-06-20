@@ -8,6 +8,7 @@
 
 #import "AFNetworking.h"
 #import "FDVenue.h"
+#import "FDUser.h"
 #import <CoreLocation/CoreLocation.h>
 
 @class FDPost;
@@ -19,6 +20,8 @@ typedef void(^RequestSuccess)(id result);
 
 @property (nonatomic, copy) NSData *deviceToken;
 @property (nonatomic, copy) NSString *password;
+@property (nonatomic, strong) AFJSONRequestOperation *postOp;
+@property (nonatomic, strong) AFJSONRequestOperation *editPostOp;
 
 + (FDAPIClient *)sharedClient;
 
@@ -42,6 +45,7 @@ typedef void(^RequestSuccess)(id result);
                                             name:(NSString *)name
                                         location:(NSString *)location
                                        userPhoto:(UIImage *)userImage
+                                      philosophy:(NSString *)philosophy
                                         password:(NSString*)password
                                          success:(RequestSuccess)success
                                          failure:(RequestFailure)failure;
@@ -61,6 +65,24 @@ typedef void(^RequestSuccess)(id result);
 - (AFHTTPRequestOperation *)getInitialFeedPostsSuccess:(RequestSuccess)success
                                                failure:(RequestFailure)failure;
 
+- (AFHTTPRequestOperation *)getPostsFromTimePeriod:(NSString *)uid
+                                           success:(RequestSuccess)success
+                                           failure:(RequestFailure)failure;
+
+// get tag stuff
+- (AFJSONRequestOperation *)getTagsForTimePeriod:(NSString *)timePeriod
+                                         success:(RequestSuccess)success
+                                         failure:(RequestFailure)failure;
+- (AFJSONRequestOperation *)getPostsForTag:(NSString *)tagName
+                                   success:(RequestSuccess)success
+                                   failure:(RequestFailure)failure;
+- (AFJSONRequestOperation *)getUserPostsForTag:(NSString *)tagName
+                                       success:(RequestSuccess)success
+                                       failure:(RequestFailure)failure;
+- (AFJSONRequestOperation *)getTagsForFoodiaObject:(NSString *)foodiaObject
+                                           success:(RequestSuccess)success
+                                           failure:(RequestFailure)failure;
+
 // get a profile feed
 - (AFHTTPRequestOperation *)getFeedForProfile:(NSString *)uid
                                       success:(RequestSuccess)success
@@ -69,6 +91,13 @@ typedef void(^RequestSuccess)(id result);
 - (AFHTTPRequestOperation *)getMapForProfile:(NSString *)uid
                                      success:(RequestSuccess)success
                                      failure:(RequestFailure)failure;
+
+// get user settings
+- (AFJSONRequestOperation *)getUserSettingsSuccess:(RequestSuccess)success
+                                           failure:(RequestFailure)failure;
+- (AFJSONRequestOperation *)updateUserSettings:(FDUser*)user
+                                       success:(RequestSuccess)success
+                                       failure:(RequestFailure)failure;
 
 //hold a post, and get the held feed
 - (AFHTTPRequestOperation *)holdPost:(NSString*)postIdentifier;
@@ -102,9 +131,14 @@ typedef void(^RequestSuccess)(id result);
 
 // gets a profile feed for a specific category
 - (AFHTTPRequestOperation *)getProfileFeedForCategory:(NSString *)category
+                                        andTimePeriod:(NSString *)timePeriod
                                            forProfile:(NSString *)uid
                                               success:(RequestSuccess)success
                                               failure:(RequestFailure)failure;
+
+- (AFHTTPRequestOperation *)getCategoryCountsForTime:(NSString *)timePeriod
+                                             success:(RequestSuccess)success
+                                             failure:(RequestFailure)failure;
 
 // get a profile
 - (AFJSONRequestOperation *)getProfileDetails:(NSString *)uid
@@ -158,6 +192,13 @@ typedef void(^RequestSuccess)(id result);
 - (AFHTTPRequestOperation *)getPostsForQuery:(NSString*)query
                                      Success:(RequestSuccess)success
                                      failure:(RequestFailure)failure;
+- (AFHTTPRequestOperation *)getPopularPostsForQuery:(NSString*)query
+                                            Success:(RequestSuccess)success
+                                            failure:(RequestFailure)failure;
+- (AFHTTPRequestOperation *)getDistancePostsForQuery:(NSString*)query
+                                        withLocation:(CLLocation*)currentLocation
+                                             Success:(RequestSuccess)success
+                                             failure:(RequestFailure)failure;
 
 - (AFJSONRequestOperation *)getCategoryImageURLsWithSuccess:(RequestSuccess)success
                                                     failure:(RequestFailure)failure;
@@ -165,12 +206,17 @@ typedef void(^RequestSuccess)(id result);
 - (AFJSONRequestOperation *)getUsersForQuery:(NSString *)query
                                      success:(RequestSuccess)success
                                      failure:(RequestFailure)failure;
-    
+
+//object and tag searches
 - (AFJSONRequestOperation *)getSearchResultsForObjectCategory:(NSString *)category
                                                         query:(NSString *)query
                                                       success:(RequestSuccess)success
                                                       failure:(RequestFailure)failure;
+- (AFJSONRequestOperation *)getSearchResultsForTagQuery:(NSString *)query
+                                                success:(RequestSuccess)success
+                                                failure:(RequestFailure)failure;
 
+//get venues
 - (AFJSONRequestOperation *)getVenuesForUser:(NSString *)userId
                                      success:(RequestSuccess)success
                                      failure:(RequestFailure)failure;
@@ -186,6 +232,10 @@ typedef void(^RequestSuccess)(id result);
                                success:(RequestSuccess)success
                                failure:(RequestFailure)failure;
 
+- (AFJSONRequestOperation *)quickPost:(FDPost *)post
+                               success:(RequestSuccess)success
+                               failure:(RequestFailure)failure;
+
 - (AFJSONRequestOperation *)editPost:(FDPost *)post
                                success:(RequestSuccess)success
                                failure:(RequestFailure)failure;
@@ -195,10 +245,12 @@ typedef void(^RequestSuccess)(id result);
                              failure:(RequestFailure)failure;
 
 - (AFJSONRequestOperation *)likePost:(FDPost *)post
+                              detail:(BOOL)detail
                              success:(RequestSuccess)success
                              failure:(RequestFailure)failure;
 
 - (AFJSONRequestOperation *)unlikePost:(FDPost *)post
+                                detail:(BOOL)detail
                                success:(RequestSuccess)success
                                failure:(RequestFailure)failure;
 

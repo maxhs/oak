@@ -7,14 +7,12 @@
 //
 
 #import "FDPostTableViewController.h"
-#import "FDNearbyTableViewController.h"
 #import "FDUser.h"
 #import "FDPostCell.h"
 #import "AFNetworking.h"
 #import "ECSlidingViewController.h"
 #import "FDPostViewController.h"
 #import "FDAppDelegate.h"
-#import "FDPostNearbyCell.h"
 #import "FDPlaceViewController.h"
 #import "FDProfileViewController.h"
 #import "FDMenuViewController.h"
@@ -26,7 +24,9 @@
 #import "UIButton+WebCache.h"
 #import "FDFeedViewController.h"
 
-@interface FDPostTableViewController () <UIActionSheetDelegate, MFMailComposeViewControllerDelegate, MFMessageComposeViewControllerDelegate>
+@interface FDPostTableViewController () <UIActionSheetDelegate, MFMailComposeViewControllerDelegate, MFMessageComposeViewControllerDelegate> {
+    int rowToReload;
+}
 
 @property (nonatomic) BOOL isRefreshing;
 @property (nonatomic,strong) AFJSONRequestOperation *postRequestOperation;
@@ -59,16 +59,13 @@
 }
 
 - (void)viewDidLoad {
-    [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
     self.tableView.showsVerticalScrollIndicator = NO;
     didLoadFromCache = false;
     [super viewDidLoad];
     isRefreshing_ = NO;
     self.tableView.rowHeight = [FDPostCell cellHeight];
     self.canLoadAdditionalPosts = YES;
-    self.swipedCells = [NSMutableArray array];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(swipedCells:) name:@"CellOpened" object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(swipedCells:) name:@"CellClosed" object:nil];
+    
     // set up the pull-to-refresh header
     if (refreshHeaderView_ == nil) {
         
@@ -78,7 +75,7 @@
                                          self.tableView.bounds.size.height);
         EGORefreshTableHeaderView *view =
         [[EGORefreshTableHeaderView alloc] initWithFrame:refreshFrame
-                                          arrowImageName:@"blackArrow.png"
+                                          arrowImageName:@"FOODIA-refresh.png"
                                                textColor:[UIColor blackColor]];
         view.delegate = self;
         [self.tableView addSubview:view];
@@ -86,7 +83,24 @@
         self.tableView.separatorColor = [UIColor colorWithWhite:0.9 alpha:1.0];
         self.tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
     }
+    self.swipedCells = [NSMutableArray array];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(swipedCells:) name:@"CellOpened" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(swipedCells:) name:@"CellClosed" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(refresh) name:@"RefreshFeed" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(updatePostNotification:) name:@"UpdatePostNotification" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(setRowToReload:) name:@"RowToReloadFromMenu" object:nil];
+}
+
+- (void)setRowToReload:(NSNotification*) notification {
+    NSString *postIdentifier = [notification.userInfo objectForKey:@"identifier"];
+    for (FDPost *post in self.posts){
+        if ([[NSString stringWithFormat:@"%@", post.identifier] isEqualToString:postIdentifier]){
+            rowToReload = [self.posts indexOfObject:post];
+            break;
+        }
+    }
+    //post wasn't in this posts array, so make rowToReload inactive
+    rowToReload = kRowToReloadInactive;
 }
 
 - (void)swipedCells:(NSNotification*)notification {
@@ -139,15 +153,16 @@
 // like or unlike the post
 - (void)likeButtonTapped:(UIButton *)button {
     FDPost *post = [self.posts objectAtIndex:button.tag];
+    [self.swipedCells addObject:post.identifier];
     if ([post isLikedByUser]) {
         [UIView animateWithDuration:.35 animations:^{
             [button setBackgroundImage:[UIImage imageNamed:@"recBubble"] forState:UIControlStateNormal];
         }];
         [[FDAPIClient sharedClient] unlikePost:post
+                                        detail:NO
                                        success:^(FDPost *newPost) {
                                            self.justLiked = NO;
                                            [self.posts replaceObjectAtIndex:button.tag withObject:newPost];
-
                                            if (self.tableView.numberOfSections < 2) {
                                                NSIndexPath *path = [NSIndexPath indexPathForRow:button.tag inSection:0];
                                                [self.tableView reloadRowsAtIndexPaths:[NSArray arrayWithObject:path] withRowAnimation:UITableViewRowAnimationFade];
@@ -169,9 +184,9 @@
             [button setBackgroundImage:[UIImage imageNamed:@"likeBubbleSelected"] forState:UIControlStateNormal];
         }];
         [[FDAPIClient sharedClient] likePost:post
+                                      detail:NO
                                      success:^(FDPost *newPost) {
                                          [self.posts replaceObjectAtIndex:button.tag withObject:newPost];
-                                         
                                          //conditionally change the like count number
                                          int t = [newPost.likeCount intValue] + 1;
                                          if (!self.justLiked) [newPost setLikeCount:[[NSNumber alloc] initWithInt:t]];
@@ -180,10 +195,7 @@
                                          if (self.tableView.numberOfSections == 1) {
                                              NSIndexPath *path = [NSIndexPath indexPathForRow:button.tag inSection:0];
                                              [self.tableView reloadRowsAtIndexPaths:[NSArray arrayWithObject:path] withRowAnimation:UITableViewRowAnimationFade];
-                                         } /*else if (self.tableView.numberOfSections == 2) {
-                                             NSIndexPath *path = [NSIndexPath indexPathForRow:button.tag inSection:1];
-                                             [self.tableView reloadRowsAtIndexPaths:[NSArray arrayWithObject:path] withRowAnimation:UITableViewRowAnimationFade];
-                                         }*/ else {
+                                         } else {
                                              NSIndexPath *path = [NSIndexPath indexPathForRow:button.tag inSection:1];
                                              [self.tableView reloadRowsAtIndexPaths:[NSArray arrayWithObject:path] withRowAnimation:UITableViewRowAnimationFade];
                                          }
@@ -292,29 +304,12 @@
         }
         if (self.posts.count < 20) [cell setHidden:YES];
         return cell;
-        /*NSLog(@"end cell section");
-            static NSString *FeedEndCellIdenfitier = @"FeedEndCellIdenfitier";
-            UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:FeedEndCellIdenfitier];
-            if (cell == nil) {
-                NSArray *nib = [[NSBundle mainBundle] loadNibNamed:@"FeedEndCell" owner:self options:nil];
-                cell = (FDPostCell *)[nib objectAtIndex:0];
-        }
-        [cell.contentView setHidden:YES];
-        if(self.fewPosts = FALSE){
-            NSLog(@"fewPosts is true from postTable");
-            [((UIButton *)[cell viewWithTag:1]) addTarget:self action:@selector(showFeaturedPosts) forControlEvents:UIControlEventTouchUpInside];
-            [((UIButton *)[cell viewWithTag:2]) addTarget:self action:@selector(showSocial) forControlEvents:UIControlEventTouchUpInside];
-            cell.selectionStyle = UITableViewCellSelectionStyleNone;
-            [cell setHidden:NO];
-        }
-        return cell;*/
     }
 }
 
 - (void)tableView:(UITableView *)tableView didEndDisplayingCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath {
-    if ([cell isKindOfClass:[FDPostCell class]]){
+    if ([cell isKindOfClass:[FDPostCell class]] && !self.isRefreshing){
         FDPostCell *thisCell = (FDPostCell*)cell;
-        //[thisCell.scrollView setContentOffset:CGPointMake(0,0) animated:NO];
         [UIView animateWithDuration:.25 animations:^{
             [thisCell.photoBackground setAlpha:0.0];
             [thisCell.photoImageView setAlpha:0.0];
@@ -335,7 +330,12 @@
         NSIndexPath *path = [NSIndexPath indexPathForRow:button.tag inSection:1];
         [self.tableView reloadRowsAtIndexPaths:[NSArray arrayWithObject:path] withRowAnimation:UITableViewRowAnimationFade];
     }
-    FDCustomSheet *actionSheet = [[FDCustomSheet alloc] initWithTitle:nil delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:@"Recommend on FOODIA",@"Recommend via Facebook",@"Send a Text", @"Send an Email", nil];
+    FDCustomSheet *actionSheet;
+    if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookAccessToken]){
+        actionSheet = [[FDCustomSheet alloc] initWithTitle:nil delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:@"Recommend on FOODIA",@"Recommend via Facebook",@"Send a Text", @"Send an Email", nil];
+    } else {
+        actionSheet = [[FDCustomSheet alloc] initWithTitle:nil delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:@"Recommend on FOODIA",@"Send a Text", @"Send an Email", nil];
+    }
     [actionSheet setFoodiaObject:post.foodiaObject];
     [actionSheet setPost:post];
     [actionSheet setButtonTag:button.tag];
@@ -355,11 +355,11 @@
     FDRecommendViewController *vc = [storyboard instantiateViewControllerWithIdentifier:@"RecommendView"];
     [vc setPost:actionSheet.post];
     
-    if (buttonIndex == 0) {
+    if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Recommend on FOODIA"]) {
         //Recommending via FOODIA only
         [vc setPostingToFacebook:NO];
         [self.navigationController pushViewController:vc animated:YES];
-    } else if (buttonIndex == 1) {
+    } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Recommend via Facebook"]) {
         //Recommending via Facebook
         [vc setPostingToFacebook:YES];
         if ([FBSession.activeSession.permissions
@@ -382,7 +382,7 @@
                     indexOfObject:@"publish_actions"] != NSNotFound) {
             [self.navigationController pushViewController:vc animated:YES];
         }
-    } else if(buttonIndex == 2) {
+    } else if([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Send a Text"]) {
         //Recommending via text
         MFMessageComposeViewController *viewController = [[MFMessageComposeViewController alloc] init];
         if ([MFMessageComposeViewController canSendText]){
@@ -391,7 +391,7 @@
             [viewController setBody:textBody];
             [self.delegate presentModalViewController:viewController animated:YES];
         }
-    } else if(buttonIndex == 3) {
+    } else if([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Send an Email"]) {
         //Recommending via mail
         if ([MFMailComposeViewController canSendMail]) {
             MFMailComposeViewController* controller = [[MFMailComposeViewController alloc] init];
@@ -499,8 +499,7 @@
     [self.delegate performSegueWithIdentifier:@"ShowProfileFromComment" sender:sender];
 }
 
--(void)showProfile:(id)sender {
-    UIButton *button = (UIButton *)sender;
+-(void)showProfile:(UIButton*)button {
     UIStoryboard *storyboard;
     if (([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone && [UIScreen mainScreen].bounds.size.height == 568.0)){
         storyboard = [UIStoryboard storyboardWithName:@"iPhone5"
@@ -512,10 +511,9 @@
     FDProfileViewController *vc = [storyboard instantiateViewControllerWithIdentifier:@"ProfileView"];
     [vc initWithUserId:button.titleLabel.text];
     [self.navigationController pushViewController:vc animated:YES];
-
 }
 
--(void)showSocial {
+/*-(void)showSocial {
     [[NSNotificationCenter defaultCenter]
      postNotificationName:@"ShowSocial"
      object:self];
@@ -529,20 +527,23 @@
     [[NSNotificationCenter defaultCenter]
      postNotificationName:@"ShowActivity"
      object:self];
-}
-
-/*-(void)refreshPostWithId:(NSString *)postId withIndexPathRow:(NSInteger)indexPathRow {
-    self.postRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getDetailsForPostWithIdentifier:postId success:^(FDPost *post) {
-    
-    } failure:^(NSError *error) {
-    
-    }];
-    [self.postRequestOperation start];
 }*/
 
 - (void) updatePostNotification:(NSNotification *) notification {
-    /*NSDictionary *userInfo = notification.userInfo;
-    [self setIsLikedByUsers:[userInfo objectForKey:@"likers"] withLikeCount:[((NSNumber *)[userInfo objectForKey:@"likeCount"]) integerValue] forPostWithId:(NSString *)[userInfo objectForKey:@"postId"]];*/
+    if (rowToReload != kRowToReloadInactive){
+        NSDictionary *userInfo = notification.userInfo;
+        FDPost *postForReplacement = [userInfo objectForKey:@"post"];
+        [self.posts removeObjectAtIndex:rowToReload];
+        [self.posts insertObject:postForReplacement atIndex:rowToReload];
+        NSIndexPath *indexPathToReload;
+        if (self.tableView.numberOfSections > 1){
+            indexPathToReload = [NSIndexPath indexPathForRow:rowToReload inSection:1];
+        } else {
+            indexPathToReload = [NSIndexPath indexPathForRow:rowToReload inSection:0];
+        }
+        NSArray* rowsToReload = [NSArray arrayWithObjects:indexPathToReload, nil];
+        [self.tableView reloadRowsAtIndexPaths:rowsToReload withRowAnimation:UITableViewRowAnimationNone];
+    }
 }
 
 -(void)setIsLikedByUsers:(NSDictionary *)newLikers withLikeCount:(NSInteger)newLikeCount forPostWithId:(NSString *)postId {
@@ -561,14 +562,18 @@
     FDFeedViewController *vc = self.delegate;
     [vc setGoToComment:YES];
     UIButton *button = (UIButton*)sender;
-    [self.delegate postTableViewController:self didSelectPost:[self.posts objectAtIndex:button.tag]];
+    FDPost *post = [self.posts objectAtIndex:button.tag];
+    [self.delegate postTableViewController:self didSelectPost:post];
+    rowToReload = [self.posts indexOfObject:post];
 }
 
 - (void)didSelectRow:(id)sender {
     UIButton *button = (UIButton*)sender;
     FDFeedViewController *vc = self.delegate;
     [vc setGoToComment:NO];
-    [self.delegate postTableViewController:self didSelectPost:[self.posts objectAtIndex:button.tag]];
+    FDPost *post = [self.posts objectAtIndex:button.tag];
+    [self.delegate postTableViewController:self didSelectPost:post];
+    rowToReload = [self.posts indexOfObject:post];
 }
 
 #pragma mark - Table view delegate
@@ -593,9 +598,9 @@
 #pragma mark - private methods
 
 - (void)reloadData {
-    self.isRefreshing = NO;
     [self.refreshHeaderView egoRefreshScrollViewDataSourceDidFinishedLoading:self.tableView];
     [self.tableView reloadData];
+    self.isRefreshing = NO;
 }
 
 - (void)didShowLastRow {
@@ -642,13 +647,13 @@
     self.notificationRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getActivityCountSuccess:^(NSString *notifications) {
         self.notificationsPending = [notifications integerValue];
         self.notificationRequestOperation = nil;
-        [self.tableView reloadData];
+        //[self.tableView reloadData];
+        [self refresh];
     } failure:^(NSError *error) {
         self.notificationRequestOperation = nil;
         NSLog(@"Refreshing Failed");
     }];
-    [self.tableView reloadData];
-    [self refresh];
+    //
 }
 
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView {

@@ -21,7 +21,7 @@
     if (![self.slidingViewController.underLeftViewController isKindOfClass:[FDMenuViewController class]]) {
         self.slidingViewController.underLeftViewController  = [self.storyboard instantiateViewControllerWithIdentifier:@"Menu"];
     }
-    
+    [(FDProfileViewController*)[self.viewControllers objectAtIndex:0] setUserId:self.userId];
     self.slidingViewController.underRightViewController = nil;
     self.slidingViewController.anchorLeftPeekAmount     = 0;
     self.slidingViewController.anchorLeftRevealAmount   = 0;

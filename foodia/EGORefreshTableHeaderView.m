@@ -69,15 +69,10 @@
 		[self addSubview:label];
 		_statusLabel=label;
 		//[label release];
-		
-        if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 6) {
-            label.font = [UIFont fontWithName:kAvenirMedium size:16];
-        } else {
-            label.font = [UIFont fontWithName:kFuturaMedium size:16];
-        }
+        label.font = [UIFont fontWithName:kHelveticaNeueThin size:15];
         
 		CALayer *layer = [CALayer layer];
-		layer.frame = CGRectMake(25.0f, frame.size.height - 65.0f, 30.0f, 55.0f);
+		layer.frame = CGRectMake(9.5f, frame.size.height - 65.0f, 30.0f, 55.0f);
 		layer.contentsGravity = kCAGravityResizeAspect;
 		layer.contents = (id)[UIImage imageNamed:arrow].CGImage;
 		
@@ -91,11 +86,10 @@
 		_arrowImage=layer;
 		
 		UIActivityIndicatorView *view = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
-		view.frame = CGRectMake(25.0f, frame.size.height - 38.0f, 20.0f, 20.0f);
+		view.frame = CGRectMake(frame.size.width-36.0f, frame.size.height - 38.0f, 20.0f, 20.0f);
 		[self addSubview:view];
 		_activityView = view;
 		//[view release];
-		
 		
 		[self setState:EGOOPullRefreshNormal];
 		
@@ -126,12 +120,7 @@
 		_lastUpdatedLabel.text = [NSString stringWithFormat:@"Last Updated: %@", [dateFormatter stringFromDate:date]];
 		[[NSUserDefaults standardUserDefaults] setObject:_lastUpdatedLabel.text forKey:@"EGORefreshTableView_LastRefresh"];
 		[[NSUserDefaults standardUserDefaults] synchronize];
-        if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 6) {
-            _lastUpdatedLabel.font = [UIFont fontWithName:kAvenirMedium size:16];
-            
-        } else {
-            _lastUpdatedLabel.font = [UIFont fontWithName:kFuturaMedium size:16];
-        }
+        _lastUpdatedLabel.font = [UIFont fontWithName:kHelveticaNeueThin size:15];
         
 	} else {
 		
@@ -174,14 +163,15 @@
 			
 			break;
 		case EGOOPullRefreshLoading:
-			
+        {
 			_statusLabel.text = NSLocalizedString(@"Loading...", @"Loading Status");
 			[_activityView startAnimating];
 			[CATransaction begin];
-			[CATransaction setValue:(id)kCFBooleanTrue forKey:kCATransactionDisableActions]; 
-			_arrowImage.hidden = YES;
+            _arrowImage.transform = _arrowImage.transform = CATransform3DMakeRotation((M_PI / 180.0) * -360.0f, 0.0f, 0.0f, 1.0f);
+			[CATransaction setValue:(id)kCFBooleanTrue forKey:kCATransactionDisableActions];
+			//_arrowImage.hidden = YES;
 			[CATransaction commit];
-			
+        }
 			break;
 		default:
 			break;

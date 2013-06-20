@@ -41,12 +41,14 @@
 @property (nonatomic, retain) NSNumber * featuredEpochTime;
 @property (nonatomic, retain) NSDictionary    * likers;
 @property (nonatomic, retain) NSDictionary    * viewers;
+@property (nonatomic, retain) NSMutableArray    * tagArray;
 @property (nonatomic, retain) NSSet    * comments;
 @property (nonatomic, retain) FDVenue  * venue;
 @property (nonatomic, retain) NSString *FDVenueId;
 @property (nonatomic, strong) UIImage  * photoImage;
 @property (nonatomic, retain) CLLocation  * location;
 @property (nonatomic) BOOL  * customVenue;
+@property BOOL isPrivate;
 @property (nonatomic, retain) NSNumber *postId;
 @property (nonatomic, retain) NSString *og;
 + (FDPost *)userPost;
@@ -58,6 +60,7 @@
 - (NSURL *)feedImageURL;
 - (NSURL *)detailImageURL;
 - (NSURL *)featuredImageURL;
+- (NSURL *)originalImageURL;
 - (void)setLocation:(CLLocation *)location;
 - (void)setVenue:(FDVenue *)venue;
 - (BOOL)hasPhoto;

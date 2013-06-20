@@ -19,7 +19,8 @@
 #import <MessageUI/MessageUI.h>
 #import <Accounts/Accounts.h>
 #import "Constants.h"
-#import "GAI.h"
+//#import "GAI.h"
+
 #define kFlurryAPIKey @"W5U7NXYMMQ8RJQR7WI9A"
 
 @interface FDAppDelegate ()
@@ -37,24 +38,26 @@
     //Yay FOODIA!
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
     [self customizeAppearance];
-    
     self.facebook.sessionDelegate = self;
+    [[UIApplication sharedApplication] registerForRemoteNotificationTypes:(UIRemoteNotificationTypeAlert | UIRemoteNotificationTypeBadge | UIRemoteNotificationTypeSound)];
     [self performSetup];
+    
     NSSetUncaughtExceptionHandler(&uncaughtExceptionHandler);
+    
     [Flurry startSession:kFlurryAPIKey];
-    //[TestFlight takeOff:(@"13a30f1fa03141084d0983b4e6f3e04f_NjQ4NDkyMDEyLTAyLTI0IDE1OjExOjM4LjE1Mjg3Mg")];
+    [TestFlight takeOff:(@"f9051d47-57e0-410d-b6a1-c6166e2066b7")];
+    
     //[MagicalRecord setupCoreDataStackWithStoreNamed:@"FoodiaV2.sqlite"];
-    [FDCache clearCache];
-    // Optional: automatically send uncaught exceptions to Google Analytics.
+    //[FDCache clearCache];
+    
+    /*// Optional: automatically send uncaught exceptions to Google Analytics.
     [GAI sharedInstance].trackUncaughtExceptions = YES;
     // Optional: set Google Analytics dispatch interval to e.g. 20 seconds.
     //[GAI sharedInstance].dispatchInterval = 20;
     // Optional: set debug to YES for extra debugging information.
     [GAI sharedInstance].debug = YES;
     // Create tracker instance.
-    id<GAITracker> tracker = [[GAI sharedInstance] trackerWithTrackingId:@"UA-40164626-1"];
-    
-    [[UIApplication sharedApplication] registerForRemoteNotificationTypes:(UIRemoteNotificationTypeAlert | UIRemoteNotificationTypeBadge | UIRemoteNotificationTypeSound)];
+    id<GAITracker> tracker = [[GAI sharedInstance] trackerWithTrackingId:@"UA-40164626-1"];*/
     
     return YES;
 }
@@ -79,7 +82,7 @@ void uncaughtExceptionHandler(NSException *exception) {
 - (void)application:(UIApplication*)application didFailToRegisterForRemoteNotificationsWithError:(NSError*)error
 {
     [Flurry logEvent:@"Rejected Remote Notifications"];
-    NSLog(@"failed to register for remote notificaitons");
+    NSLog(@"Failed to register for remote notifications.");
 }
 
 - (void)performSetup {
@@ -130,20 +133,22 @@ void uncaughtExceptionHandler(NSException *exception) {
     if (cancelled){
         NSLog(@"user cancelled login process");
     } else {
+        [[FBSession activeSession] closeAndClearTokenInformation];
         NSLog(@"didn't login for some reason");
     }
 }
 
 - (void)fbDidLogin {
-    NSLog(@"user logged in");
+    
 }
 
 - (void)fbDidLogout {
-    NSLog(@"user logged out");
+    [[FBSession activeSession] closeAndClearTokenInformation];
 }
 
 - (void)fbSessionInvalidated {
-    NSLog(@"session was invalidated");
+    NSLog(@"fb session was invalidated");
+    [[FBSession activeSession] closeAndClearTokenInformation];
 }
 
 -(void)fbResync
@@ -153,7 +158,6 @@ void uncaughtExceptionHandler(NSException *exception) {
     if ((accountStore = [[ACAccountStore alloc] init]) && (accountTypeFB = [accountStore accountTypeWithAccountTypeIdentifier:ACAccountTypeIdentifierFacebook] ) ){
         
         NSArray *fbAccounts = [accountStore accountsWithAccountType:accountTypeFB];
-        NSLog(@"fbAccounts: %@",fbAccounts);
         id account;
         if (fbAccounts && [fbAccounts count] > 0 && (account = [fbAccounts objectAtIndex:0])){
             
@@ -186,7 +190,7 @@ void uncaughtExceptionHandler(NSException *exception) {
             break;
         case FBSessionStateClosed:
         case FBSessionStateClosedLoginFailed:
-            [FBSession.activeSession closeAndClearTokenInformation];
+            [session closeAndClearTokenInformation];
             [self fbResync];
             break;
         default:
@@ -275,8 +279,8 @@ void uncaughtExceptionHandler(NSException *exception) {
             }];
         }];
         [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"Loading"];
-        //always remove loading indicator after 10.0 seconds. 
-        [self performSelector:@selector(hideLoadingOverlay) withObject:nil afterDelay:10.0];
+        //always remove loading indicator after 20.0 seconds. 
+        [self performSelector:@selector(hideLoadingOverlay) withObject:nil afterDelay:20.0];
     }
 }
 
@@ -308,6 +312,13 @@ void uncaughtExceptionHandler(NSException *exception) {
 {
     // Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.
     // Use this method to pause ongoing tasks, disable timers, and throttle down OpenGL ES frame rates. Games should use this method to pause the game.
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:kIsPosting]) {
+        NSLog(@"Canceling an existing post request operation");
+        [(AFJSONRequestOperation*)[[FDAPIClient sharedClient] postOp] cancel];
+    } else if ([[NSUserDefaults standardUserDefaults] boolForKey:kIsEditingPost]) {
+        NSLog(@"Canceling an existing edit post request operation");
+        [(AFJSONRequestOperation*)[[FDAPIClient sharedClient] editPostOp] cancel];
+    }
     if (self.isTakingPhoto) [[NSNotificationCenter defaultCenter] postNotificationName:@"CleanupCameraCapture" object:nil];
 }
 
@@ -315,12 +326,33 @@ void uncaughtExceptionHandler(NSException *exception) {
 {
     // Use this method to release shared resources, save user data, invalidate timers, and store enough application state information to restore your application to its current state in case it is terminated later. 
     // If your application supports background execution, this method is called instead of applicationWillTerminate: when the user quits.
+    /*UIApplication*    app = [UIApplication sharedApplication];
+    
+    __block UIBackgroundTaskIdentifier bgTask = [app beginBackgroundTaskWithExpirationHandler:^{
+        [app endBackgroundTask:bgTask];
+        bgTask = UIBackgroundTaskInvalid;
+    }];
+    
+    // Start the long-running task and return immediately.
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        
+        // Do the work associated with the task.
+        NSLog(@"Submitting a post request operation on the background thread");
+        if ([[NSUserDefaults standardUserDefaults] boolForKey:kIsPosting] && FDPost.userPost) {
+            [[FDAPIClient sharedClient] submitPost:FDPost.userPost success:^(id result) {
+                [[NSNotificationCenter defaultCenter] postNotificationName:@"RefreshFeed" object:nil];
+            } failure:^(NSError *error) {
+                NSLog(@"error from restarting post: %@",error.description);
+            }];
+        }
+        [app endBackgroundTask:bgTask];
+        bgTask = UIBackgroundTaskInvalid;
+    });*/
 }
 
 - (void)applicationWillEnterForeground:(UIApplication *)application
 {
     // Called as part of the transition from the background to the inactive state; here you can undo many of the changes made on entering the background.
-
 }
 
 - (void)applicationDidBecomeActive:(UIApplication *)application
@@ -330,7 +362,21 @@ void uncaughtExceptionHandler(NSException *exception) {
     //UIViewController * mycontroller = [[(UINavigationController*)root viewControllers] objectAtIndex:0];
     if (self.isTakingPhoto){
         [[NSNotificationCenter defaultCenter] postNotificationName:@"StartCameraCapture" object:nil];
-        NSLog(@"user is taking a photo");
+    }
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:kIsPosting] && FDPost.userPost) {
+        NSLog(@"Restarting a pending post request operation");
+        [[FDAPIClient sharedClient] submitPost:FDPost.userPost success:^(id result) {
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"RefreshFeed" object:nil];
+        } failure:^(NSError *error) {
+            [[NSUserDefaults standardUserDefaults] setBool:NO forKey:kIsPosting];
+        }];
+    } else if ([[NSUserDefaults standardUserDefaults] boolForKey:kIsEditingPost] && FDPost.userPost) {
+        NSLog(@"Restarting a pending edit post request operation");
+        [[FDAPIClient sharedClient] editPost:FDPost.userPost success:^(id result) {
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"RefreshFeed" object:nil];
+        } failure:^(NSError *error) {
+            [[NSUserDefaults standardUserDefaults] setBool:NO forKey:kIsEditingPost];
+        }];
     }
     [FBSession.activeSession handleDidBecomeActive];
 }
@@ -353,37 +399,35 @@ void uncaughtExceptionHandler(NSException *exception) {
 #pragma mark - Private Methods
 
 - (void)customizeAppearance {
-    [[UINavigationBar appearance] setBackgroundImage:[UIImage imageNamed:@"newFoodiaHeader.png"] forBarMetrics:UIBarMetricsDefault];
-    [[UIToolbar appearance] setBackgroundImage:[UIImage imageNamed:@"newFoodiaHeader.png"] forToolbarPosition:UIToolbarPositionAny barMetrics:UIBarMetricsDefault];
-    [[UINavigationBar appearance] setTitleTextAttributes: [NSDictionary dictionaryWithObjectsAndKeys: [UIColor blackColor], UITextAttributeTextColor, [UIFont fontWithName:kAvenirMedium size:21], UITextAttributeFont, [UIColor clearColor], UITextAttributeTextShadowColor, nil]];
+    [[UINavigationBar appearance] setBackgroundImage:[UIImage imageNamed:@"newFoodiaHeader"] forBarMetrics:UIBarMetricsDefault];
+    [[UIToolbar appearance] setBackgroundImage:[UIImage imageNamed:@"newFoodiaHeader"] forToolbarPosition:UIToolbarPositionAny barMetrics:UIBarMetricsDefault];
+    [[UINavigationBar appearance] setTitleTextAttributes: [NSDictionary dictionaryWithObjectsAndKeys: [UIColor blackColor], UITextAttributeTextColor, [UIFont fontWithName:kHelveticaNeueThin size:22], UITextAttributeFont, [UIColor clearColor], UITextAttributeTextShadowColor, nil]];
     
-    UIImage *emptyBarButton = [UIImage imageNamed:@"emptyBarButton.png"];
-    if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 6) {
-        [[UIBarButtonItem appearance] setBackButtonTitlePositionAdjustment:UIOffsetMake(0, -2.0f) forBarMetrics:UIBarMetricsDefault];
+    UIImage *emptyBarButton = [UIImage imageNamed:@"emptyBarButton"];
+    if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 6.0f) {
+        [[UIBarButtonItem appearance] setBackButtonTitlePositionAdjustment:UIOffsetMake(0, -.75f) forBarMetrics:UIBarMetricsDefault];
     } else {
         [[UIBarButtonItem appearance] setBackButtonTitlePositionAdjustment:UIOffsetMake(0, 0.5f) forBarMetrics:UIBarMetricsDefault];
     }
     [[UIBarButtonItem appearance] setTintColor:[UIColor whiteColor]];
     if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 6) {
         [[UIBarButtonItem appearance] setTitleTextAttributes:@{
-                                        UITextAttributeFont : [UIFont fontWithName:kAvenirMedium size:15],
+                                        UITextAttributeFont : [UIFont fontWithName:kHelveticaNeueThin size:14],
                              UITextAttributeTextShadowColor : [UIColor clearColor],
                                    UITextAttributeTextColor : [UIColor blackColor],
          } forState:UIControlStateNormal];
     } else {
         [[UIBarButtonItem appearance] setTitleTextAttributes:@{
+                             UITextAttributeTextShadowColor : [UIColor clearColor],
                                    UITextAttributeTextColor : [UIColor blackColor],
          } forState:UIControlStateNormal];
     }
-    [[UIBarButtonItem appearance] setTitlePositionAdjustment:UIOffsetMake(0.0f, 0.0f) forBarMetrics:UIBarMetricsDefault];
+    [[UIBarButtonItem appearance] setTitlePositionAdjustment:UIOffsetMake(0.0f, 0.5f) forBarMetrics:UIBarMetricsDefault];
     
     [[UIBarButtonItem appearance] setBackgroundImage:emptyBarButton forState:UIControlStateNormal barMetrics:UIBarMetricsDefault];
     
-    [[UISearchBar appearance] setSearchFieldBackgroundImage:[UIImage imageNamed:@"textField.png"]forState:UIControlStateNormal];
-     
-    
-    
-
+    [[UISearchBar appearance] setBackgroundImage:[UIImage imageNamed:@"newFoodiaHeader"]];
+    [[UISearchBar appearance] setSearchFieldBackgroundImage:[UIImage imageNamed:@"textField"]forState:UIControlStateNormal];
 }
 
 - (NSString *)applicationDocumentsDirectory {

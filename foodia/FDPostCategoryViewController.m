@@ -15,8 +15,11 @@
 #import "SDImageCache.h"
 #import <QuartzCore/QuartzCore.h>
 #import "Flurry.h"
+#import "FDQuickPostViewController.h"
 
-@interface FDPostCategoryViewController () <UITextFieldDelegate>
+@interface FDPostCategoryViewController () <UITextFieldDelegate> {
+    NSString *activeCategoryString;
+}
 @property (nonatomic, weak) IBOutlet UIImageView *dummyView;
 @property (nonatomic, weak) IBOutlet UIView *eatingContainerView;
 @property (nonatomic, weak) IBOutlet UIView *drinkingContainerView;
@@ -26,9 +29,6 @@
 @property (nonatomic, weak) IBOutlet UILabel *eatingTitleView;
 @property (nonatomic, weak) IBOutlet UILabel *shoppingTitleView;
 @property (nonatomic, weak) IBOutlet UILabel *drinkingTitleView;
-@property (nonatomic, weak) IBOutlet UIButton *cameraButton;
-@property (nonatomic, weak) IBOutlet UIButton *doneButton;
-@property (nonatomic, weak) IBOutlet UIButton *plusButton;
 @property (nonatomic, weak) IBOutlet UIButton *clearButton;
 @property (nonatomic, weak) IBOutlet UIImageView *textFieldImageView;
 @property (nonatomic, weak) IBOutlet UITextField *objectTextField;
@@ -39,22 +39,14 @@
 @property (nonatomic, strong) NSTimer       *categoryImageTimer;
 @property (nonatomic, strong) NSDictionary  *categoryImageURLs;
 @property (nonatomic, strong) NSString      *objectType;
-@property (strong, nonatomic) IBOutlet UIBarButtonItem *nextButtonItem;
-@property (nonatomic, strong) AFHTTPRequestOperation *categoryImageRequestOpertaion;
+@property (strong, nonatomic) IBOutlet UIBarButtonItem *quickPostButtonItem;
+@property (nonatomic, strong) AFHTTPRequestOperation *categoryImageRequestOperation;
 @property (nonatomic, strong) AFHTTPRequestOperation *objectSearchRequestOperation;
 - (void)showCategories;
 - (IBAction)cancel:(id)sender;
-- (IBAction)selectEat:(id)sender;
-- (IBAction)selectMake:(id)sender;
-- (IBAction)selectDrink:(id)sender;
-- (IBAction)selectShop:(id)sender;
 - (IBAction)clearTextField:(id)sender;
 - (IBAction)textFieldDidChange:(id)sender;
-- (UIButton *)setupButtonForContainer:(UIView *)containerView
-                            titleView:(UIView *)titleView
-                     placeholderImage:(UIImage *)placeholderImage
-                             imageUrl:(NSURL *)imageUrl
-                                delay:(float)delay;
+- (IBAction)quickPost;
 @end
 
 @implementation FDPostCategoryViewController
@@ -69,9 +61,6 @@
 @synthesize eatingTitleView;
 @synthesize shoppingTitleView;
 @synthesize drinkingTitleView;
-@synthesize cameraButton;
-@synthesize doneButton;
-@synthesize plusButton;
 @synthesize clearButton;
 @synthesize textFieldImageView;
 @synthesize objectTextField;
@@ -82,18 +71,28 @@
 @synthesize buttons;
 @synthesize categoryImageTimer;
 @synthesize categoryImageURLs;
-@synthesize nextButtonItem;
-@synthesize categoryImageRequestOpertaion;
+@synthesize quickPostButtonItem;
+@synthesize categoryImageRequestOperation;
 
 - (void)viewDidLoad
 {
     [super viewDidLoad];
     [Flurry logEvent:@"Viewing category screen" timed:YES];
     self.navigationItem.rightBarButtonItem = nil;
-    if (self.isEditing == NO) {
+    activeCategoryString = @"";
+    if (self.isEditingPost == NO) {
         self.thePost = [[FDPost alloc] init];
     }
     [FDPost setUserPost:self.thePost];
+    self.makingTitleView.layer.cornerRadius = 2.0f;
+    self.makingTitleView.clipsToBounds = YES;
+    self.shoppingTitleView.layer.cornerRadius = 2.0f;
+    self.shoppingTitleView.clipsToBounds = YES;
+    self.drinkingTitleView.layer.cornerRadius = 2.0f;
+    self.drinkingTitleView.clipsToBounds = YES;
+    self.eatingTitleView.layer.cornerRadius = 2.0f;
+    self.eatingTitleView.clipsToBounds = YES;
+    
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -105,23 +104,16 @@
     if (dummyImage) {
         self.dummyView.alpha = 1.0;
         self.dummyView.image = self.dummyImage;
-        if (([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone && [UIScreen mainScreen].bounds.size.height == 568.0)) self.dummyView.frame = CGRectMake(0, -44, 320, 548);
-        else self.dummyView.frame = CGRectMake(0, -44, 320, 460);
+        if (([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone && [UIScreen mainScreen].bounds.size.height == 568.0)) {
+            self.dummyView.frame = CGRectMake(0, -64, 320, 568);
+        } else {
+            self.dummyView.frame = CGRectMake(0, -64, 320, 480);
+        }
         self.view.clipsToBounds = NO;
         dummyImage = nil;
         [self hideCategories];
     } else {
         [self showCategories];
-    }
-    if ([[[UIDevice currentDevice] systemVersion] floatValue] < 6) {
-        [self.objectTextField setFont:[UIFont fontWithName:kFuturaMedium size:15]];
-        [self.eatingTitleView setFont:[UIFont fontWithName:kFuturaMedium size:22]];
-        [self.drinkingTitleView setFont:[UIFont fontWithName:kFuturaMedium size:22]];
-        [self.makingTitleView setFont:[UIFont fontWithName:kFuturaMedium size:22]];
-        [self.shoppingTitleView setFont:[UIFont fontWithName:kFuturaMedium size:22]];
-        [self.navigationItem.leftBarButtonItem setTitleTextAttributes:@{UITextAttributeFont:[UIFont fontWithName:kFuturaMedium size:16], UITextAttributeTextColor:[UIColor blackColor]} forState:UIControlStateNormal];
-        [self.navigationItem.leftBarButtonItem setTintColor:[UIColor whiteColor]];
-        [self.navigationItem.leftBarButtonItem setBackButtonBackgroundImage:[UIImage imageNamed:@"emptyBarButton"] forState:UIControlStateNormal barMetrics:UIBarMetricsDefault];
     }
 }
 
@@ -132,19 +124,25 @@
 
 - (void)viewWillDisappear:(BOOL)animated {
     [super viewWillDisappear:animated];
-    [self.categoryImageRequestOpertaion cancel];
+    self.categoryImageRequestOperation = nil;
     [self.categoryImageTimer invalidate];
 }
 
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
-    if ([segue.identifier isEqualToString:@"NewPost"]) {
-        FDPost.userPost.foodiaObject = self.objectTextField.text;
+    FDPost.userPost.foodiaObject = self.objectTextField.text;
+    if ([segue.identifier isEqualToString:@"QuickPost"]) {
+        FDQuickPostViewController *vc = [segue destinationViewController];
+        [vc setCategoryPhrase:activeCategoryString];
     }
+}
+
+- (IBAction)quickPost {
+    [self performSegueWithIdentifier:@"QuickPost" sender:self];
 }
 
 - (void)viewDidUnload
 {
-    [self setNextButtonItem:nil];
+    [self setQuickPostButtonItem:nil];
     [super viewDidUnload];
     // Release any retained subviews of the main view.
 }
@@ -155,10 +153,11 @@
 }
 
 - (void)getNewCategoryImages {
-    self.categoryImageRequestOpertaion = [[FDAPIClient sharedClient] getCategoryImageURLsWithSuccess:^(NSDictionary *result) {
+    self.categoryImageRequestOperation = [[FDAPIClient sharedClient] getCategoryImageURLsWithSuccess:^(NSDictionary *result) {
         self.categoryImageURLs = result;
-        //[FDCache cacheCategoryImageURLs:self.categoryImageURLs];
+        [FDCache cacheCategoryImageURLs:self.categoryImageURLs];
     } failure:^(NSError *error) {
+        self.categoryImageURLs = [FDCache getCachedCategoryImageURLs];
         NSLog(@"category image update failed! %@", error.description);
     }];
 }
@@ -168,6 +167,10 @@
     self.drinkingContainerView.transform  = CGAffineTransformMakeTranslation(-320, 0);
     self.makingContainerView.transform   = CGAffineTransformMakeTranslation(320, 0);
     self.shoppingContainerView.transform   = CGAffineTransformMakeTranslation(-320, 0);
+    self.eatingTitleView.transform    = CGAffineTransformMakeTranslation(320, 0);
+    self.drinkingTitleView.transform  = CGAffineTransformMakeTranslation(-320, 0);
+    self.makingTitleView.transform   = CGAffineTransformMakeTranslation(320, 0);
+    self.shoppingTitleView.transform   = CGAffineTransformMakeTranslation(-320, 0);
 }
 
 
@@ -176,9 +179,11 @@
     if (self.dummyView.image == nil) return;
     [UIView animateWithDuration:0.2 delay:0.3 options:UIViewAnimationOptionCurveEaseInOut animations:^{
         self.eatingContainerView.transform = CGAffineTransformMakeTranslation(-20, 0);
+        self.eatingTitleView.transform = CGAffineTransformMakeTranslation(-20, 0);
     } completion:^(BOOL finished) {
         [UIView animateWithDuration:0.2 animations:^{
             self.eatingContainerView.transform = CGAffineTransformIdentity;
+            self.eatingTitleView.transform = CGAffineTransformIdentity;
         }];
         [UIView animateWithDuration:0.2 animations:^{
             self.dummyView.alpha = 0.0;
@@ -189,28 +194,32 @@
     
     [UIView animateWithDuration:0.2 delay:0.2 options:UIViewAnimationOptionCurveEaseInOut animations:^{
         self.drinkingContainerView.transform = CGAffineTransformMakeTranslation(20, 0);
+        self.drinkingTitleView.transform = CGAffineTransformMakeTranslation(20, 0);
     } completion:^(BOOL finished) {
         [UIView animateWithDuration:0.2 animations:^{
             self.drinkingContainerView.transform = CGAffineTransformIdentity;
+            self.drinkingTitleView.transform = CGAffineTransformIdentity;
         }];
     }];
     
     [UIView animateWithDuration:0.2 delay:0.1 options:UIViewAnimationOptionCurveEaseInOut animations:^{
         self.makingContainerView.transform = CGAffineTransformMakeTranslation(-20, 0);
+        self.makingTitleView.transform = CGAffineTransformMakeTranslation(-20, 0);
     } completion:^(BOOL finished) {
         [UIView animateWithDuration:0.2 animations:^{
             self.makingContainerView.transform = CGAffineTransformIdentity;
-            
+            self.makingTitleView.transform = CGAffineTransformIdentity;
         }];
     }];
     
     [UIView animateWithDuration:0.2 delay:0.0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
         self.shoppingContainerView.transform = CGAffineTransformMakeTranslation(20, 0);
-        self.plusButton.transform = CGAffineTransformMakeTranslation(-20, 0);
+        self.shoppingTitleView.transform = CGAffineTransformMakeTranslation(20, 0);
+        //self.plusButton.transform = CGAffineTransformMakeTranslation(-20, 0);
     } completion:^(BOOL finished) {
         [UIView animateWithDuration:0.2 animations:^{
             self.shoppingContainerView.transform = CGAffineTransformIdentity;
-            
+            self.shoppingTitleView.transform = CGAffineTransformIdentity;
         }];
         
     }];
@@ -231,16 +240,16 @@
     if (imageArray.count) {
         imageUrl = [NSURL URLWithString:[imageArray objectAtIndex:arc4random()%imageArray.count]];
     }
-    button = [self setupButtonForContainer:self.eatingContainerView titleView:self.eatingTitleView placeholderImage:[UIImage imageNamed:@"category_eat"] imageUrl:imageUrl delay:0.5*[[ordinals objectAtIndex:0] floatValue]];
-    [button addTarget:self action:@selector(selectEat:) forControlEvents:UIControlEventTouchUpInside];
+    button = [self setupButtonForContainer:self.eatingContainerView placeholderImage:[UIImage imageNamed:@"category_eat"] imageUrl:imageUrl delay:0.5*[[ordinals objectAtIndex:0] floatValue]];
+    [button addTarget:self action:@selector(selectEat) forControlEvents:UIControlEventTouchUpInside];
     
     imageArray = [self.categoryImageURLs objectForKey:@"Cooking"];
     imageUrl = nil;
     if (imageArray.count) {
         imageUrl = [NSURL URLWithString:[imageArray objectAtIndex:arc4random()%imageArray.count]];
     }
-    button = [self setupButtonForContainer:self.makingContainerView titleView:self.makingTitleView placeholderImage:[UIImage imageNamed:@"category_make"] imageUrl:imageUrl delay:0.5*[[ordinals objectAtIndex:1] floatValue]];
-    [button addTarget:self action:@selector(selectMake:) forControlEvents:UIControlEventTouchUpInside];
+    button = [self setupButtonForContainer:self.makingContainerView placeholderImage:[UIImage imageNamed:@"category_make"] imageUrl:imageUrl delay:0.5*[[ordinals objectAtIndex:1] floatValue]];
+    [button addTarget:self action:@selector(selectMake) forControlEvents:UIControlEventTouchUpInside];
     
     imageArray = [self.categoryImageURLs objectForKey:@"Drinking"];
     imageUrl = nil;
@@ -248,8 +257,8 @@
         imageUrl = [NSURL URLWithString:[imageArray objectAtIndex:arc4random()%imageArray.count]];
     }
     
-    button = [self setupButtonForContainer:self.drinkingContainerView titleView:self.drinkingTitleView placeholderImage:[UIImage imageNamed:@"category_drink"] imageUrl:imageUrl delay:0.5*[[ordinals objectAtIndex:2] floatValue]];
-    [button addTarget:self action:@selector(selectDrink:) forControlEvents:UIControlEventTouchUpInside];
+    button = [self setupButtonForContainer:self.drinkingContainerView placeholderImage:[UIImage imageNamed:@"category_drink"] imageUrl:imageUrl delay:0.5*[[ordinals objectAtIndex:2] floatValue]];
+    [button addTarget:self action:@selector(selectDrink) forControlEvents:UIControlEventTouchUpInside];
     
     imageArray = [self.categoryImageURLs objectForKey:@"Shopping"];
     imageUrl = nil;
@@ -257,8 +266,8 @@
         imageUrl = [NSURL URLWithString:[imageArray objectAtIndex:arc4random()%imageArray.count]];
     }
     
-    button = [self setupButtonForContainer:self.shoppingContainerView titleView:self.shoppingTitleView placeholderImage:[UIImage imageNamed:@"category_shop"] imageUrl:imageUrl delay:0.5*[[ordinals objectAtIndex:3] floatValue]];
-    [button addTarget:self action:@selector(selectShop:) forControlEvents:UIControlEventTouchUpInside];
+    button = [self setupButtonForContainer:self.shoppingContainerView placeholderImage:[UIImage imageNamed:@"category_shop"] imageUrl:imageUrl delay:0.5*[[ordinals objectAtIndex:3] floatValue]];
+    [button addTarget:self action:@selector(selectShop) forControlEvents:UIControlEventTouchUpInside];
     
     [self.categoryImageTimer invalidate];
     self.categoryImageTimer = [NSTimer scheduledTimerWithTimeInterval:5 target:self selector:@selector(loadCategoryImages) userInfo:nil repeats:NO];
@@ -277,10 +286,18 @@
             self.makingContainerView.transform   = CGAffineTransformIdentity;
             self.drinkingContainerView.transform  = CGAffineTransformIdentity;
             self.eatingContainerView.transform    = CGAffineTransformIdentity;
+            
+            self.drinkingTitleView.alpha  = 1.0;
+            self.makingTitleView.alpha   = 1.0;
+            self.shoppingTitleView.alpha   = 1.0;
+            self.eatingTitleView.alpha    = 1.0;
+            self.shoppingTitleView.transform   = CGAffineTransformIdentity;
+            self.makingTitleView.transform   = CGAffineTransformIdentity;
+            self.drinkingTitleView.transform  = CGAffineTransformIdentity;
+            self.eatingTitleView.transform    = CGAffineTransformIdentity;
+            
             self.textFieldImageView.alpha   = 0.0;
             self.objectTextField.alpha      = 0.0;
-            self.cameraButton.alpha         = 1.0;
-            self.doneButton.alpha           = 0.0;
             self.clearButton.alpha          = 0.0;
             self.searchResultsTableView.alpha = 0.0;
         } completion:^(BOOL finished) {
@@ -289,104 +306,105 @@
             self.shoppingContainerView.userInteractionEnabled    = YES;
             self.eatingContainerView.userInteractionEnabled      = YES;
         }];
-    } else if (self.isEditing == NO) {
+    } else if (self.isEditingPost == NO) {
         [self dismissViewControllerAnimated:YES completion:nil];
     } else {
         [self.navigationController popViewControllerAnimated:YES];
     }
 }
 
-- (IBAction)selectEat:(id)sender {
-    [self.navigationItem setRightBarButtonItem:nextButtonItem animated:YES];
-    if ([[[UIDevice currentDevice] systemVersion] floatValue] < 6) {
-        [self.navigationItem.rightBarButtonItem setTitleTextAttributes:@{UITextAttributeFont:[UIFont fontWithName:kFuturaMedium size:16], UITextAttributeTextColor:[UIColor blackColor]} forState:UIControlStateNormal];
-    }
-    self.objectType = @"FoodObject";
-    FDPost.userPost.category = @"Eating";
+- (void)selectEat {
+    [self.navigationItem setRightBarButtonItem:quickPostButtonItem animated:YES];
+    self.objectType = kFoodObject;
+    FDPost.userPost.category = kEating;
     self.eatingContainerView.userInteractionEnabled = NO;
     self.objectTextField.text = nil;
-    self.objectTextField.placeholder = @"What are you eating?";
+    self.objectTextField.placeholder = kEatingCategoryString;
+    activeCategoryString = kEatingCategoryString;
     [self.objectTextField becomeFirstResponder];
     [UIView animateWithDuration:0.3 animations:^{
-        self.doneButton.alpha = 1.0;
-        self.cameraButton.alpha = 0.0;
+
         self.makingContainerView.alpha = 0.0;
         self.shoppingContainerView.alpha = 0.0;
         self.drinkingContainerView.alpha = 0.0;
+        self.makingTitleView.alpha = 0.0;
+        self.shoppingTitleView.alpha = 0.0;
+        self.drinkingTitleView.alpha = 0.0;
+        self.eatingTitleView.transform = CGAffineTransformMakeTranslation(0, 5-self.eatingContainerView.frame.origin.y);
         self.eatingContainerView.transform = CGAffineTransformMakeTranslation(0, 5-self.eatingContainerView.frame.origin.y);
     } completion:^(BOOL finished) {
         [self showTextView];
     }];
 }
-- (IBAction)selectMake:(id)sender {
-    [self.navigationItem setRightBarButtonItem:nextButtonItem animated:YES];
-    if ([[[UIDevice currentDevice] systemVersion] floatValue] < 6) {
-        [self.navigationItem.rightBarButtonItem setTitleTextAttributes:@{UITextAttributeFont:[UIFont fontWithName:kFuturaMedium size:16], UITextAttributeTextColor:[UIColor blackColor]} forState:UIControlStateNormal];
-    }
-    self.objectType = @"FoodObject";
-    FDPost.userPost.category = @"Making";
+- (void)selectMake {
+    [self.navigationItem setRightBarButtonItem:quickPostButtonItem animated:YES];
+    self.objectType = kFoodObject;
+    FDPost.userPost.category = kMaking;
     self.makingContainerView.userInteractionEnabled = NO;
     self.objectTextField.text = nil;
-    self.objectTextField.placeholder = @"What are you making?";
-    
+    self.objectTextField.placeholder = kMakingCategoryString;
+    activeCategoryString = kMakingCategoryString;
     [self.objectTextField becomeFirstResponder];
     [UIView animateWithDuration:0.3 animations:^{
-        self.doneButton.alpha = 1.0;
-        self.cameraButton.alpha = 0.0;
+
         self.shoppingContainerView.alpha = 0.0;
         self.eatingContainerView.alpha = 0.0;
         self.drinkingContainerView.alpha = 0.0;
+        self.shoppingTitleView.alpha = 0.0;
+        self.eatingTitleView.alpha = 0.0;
+        self.drinkingTitleView.alpha = 0.0;
+        self.makingTitleView.transform = CGAffineTransformMakeTranslation(0, 5-self.makingContainerView.frame.origin.y);
         self.makingContainerView.transform = CGAffineTransformMakeTranslation(0, 5-self.makingContainerView.frame.origin.y);
     } completion:^(BOOL finished) {
         [self showTextView];
 
     }];
 }
-- (IBAction)selectDrink:(id)sender {
-    [self.navigationItem setRightBarButtonItem:nextButtonItem animated:YES];
-    if ([[[UIDevice currentDevice] systemVersion] floatValue] < 6) {
-        [self.navigationItem.rightBarButtonItem setTitleTextAttributes:@{UITextAttributeFont:[UIFont fontWithName:kFuturaMedium size:16], UITextAttributeTextColor:[UIColor blackColor]} forState:UIControlStateNormal];
-    }
-    self.objectType = @"DrinkObject";
-    FDPost.userPost.category = @"Drinking";
+- (void)selectDrink {
+    [self.navigationItem setRightBarButtonItem:quickPostButtonItem animated:YES];
+    self.objectType = kDrinkObject;
+    FDPost.userPost.category = kDrinking;
     self.drinkingContainerView.userInteractionEnabled = NO;
     self.objectTextField.text = nil;
-    self.objectTextField.placeholder = @"What are you drinking?";
+    self.objectTextField.placeholder = kDrinkingCategoryString;
+    activeCategoryString = kDrinkingCategoryString;
     [self.objectTextField becomeFirstResponder];
     [UIView animateWithDuration:0.3 animations:^{
-        self.doneButton.alpha = 1.0;
-        self.cameraButton.alpha = 0.0;
+
         self.makingContainerView.alpha = 0.0;
         self.shoppingContainerView.alpha = 0.0;
         self.eatingContainerView.alpha = 0.0;
+        self.makingTitleView.alpha = 0.0;
+        self.shoppingTitleView.alpha = 0.0;
+        self.eatingTitleView.alpha = 0.0;
+        self.drinkingTitleView.transform = CGAffineTransformMakeTranslation(0, 5-self.drinkingContainerView.frame.origin.y);
         self.drinkingContainerView.transform = CGAffineTransformMakeTranslation(0, 5-self.drinkingContainerView.frame.origin.y);
     } completion:^(BOOL finished) {
         [self showTextView];
 
     }];
 }
-- (IBAction)selectShop:(id)sender {
-    [self.navigationItem setRightBarButtonItem:nextButtonItem animated:YES];
-    if ([[[UIDevice currentDevice] systemVersion] floatValue] < 6) {
-        [self.navigationItem.rightBarButtonItem setTitleTextAttributes:@{UITextAttributeFont:[UIFont fontWithName:kFuturaMedium size:16], UITextAttributeTextColor:[UIColor blackColor]} forState:UIControlStateNormal];
-    }
-    self.objectType = @"ShoppingObject";
-    FDPost.userPost.category = @"Shopping";
+- (void)selectShop {
+    [self.navigationItem setRightBarButtonItem:quickPostButtonItem animated:YES];
+    self.objectType = kShoppingObject;
+    FDPost.userPost.category = kShopping;
     self.shoppingContainerView.userInteractionEnabled = NO;
     self.objectTextField.text = nil;
-    self.objectTextField.placeholder = @"What are you shopping for?";
+    self.objectTextField.placeholder = kShoppingCategoryString;
+    activeCategoryString = kShoppingCategoryString;
     [self.objectTextField becomeFirstResponder];
     [UIView animateWithDuration:0.3 animations:^{
-        self.doneButton.alpha = 1.0;
-        self.cameraButton.alpha = 0.0;
+
         self.makingContainerView.alpha = 0.0;
         self.drinkingContainerView.alpha = 0.0;
         self.eatingContainerView.alpha = 0.0;
-        
+        self.makingTitleView.alpha = 0.0;
+        self.drinkingTitleView.alpha = 0.0;
+        self.eatingTitleView.alpha = 0.0;
+        self.shoppingTitleView.transform = CGAffineTransformMakeTranslation(0, 5-self.shoppingContainerView.frame.origin.y);
         self.shoppingContainerView.transform = CGAffineTransformMakeTranslation(0, 5-self.shoppingContainerView.frame.origin.y);
     } completion:^(BOOL finished) {
         [self showTextView];
-
     }];
 }
 
@@ -410,7 +428,7 @@
     [self.searchResultsTableView reloadData];
     [self startSearchRequest];
     [UIView animateWithDuration:0.2 animations:^{
-        self.textFieldImageView.alpha = 0.9;
+        self.textFieldImageView.alpha = 0.95;
         self.objectTextField.alpha = 1.0;
         self.clearButton.alpha = 1.0;
         self.searchResultsTableView.alpha = 1.0;
@@ -419,7 +437,6 @@
 
 - (void)startSearchRequest {
     [self.objectSearchRequestOperation cancel];
-    
     RequestSuccess success = ^(NSArray *result) {
         self.searchResults = result;
         [self.searchResultsTableView reloadData];
@@ -440,16 +457,15 @@
 
 
 - (UIButton *)setupButtonForContainer:(UIView *)containerView
-                            titleView:(UIView *)titleView
                      placeholderImage:(UIImage *)placeholderImage
                              imageUrl:(NSURL *)imageUrl
                                 delay:(float)delay {
     
     UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
-    if (containerView.subviews.count == 1) {
+    if (containerView.subviews.count == 0) {
         button.frame = containerView.bounds;
         [containerView addSubview:button];
-        [containerView bringSubviewToFront:titleView];
+        //[containerView bringSubviewToFront:titleView];
         UIImage *image = [[SDImageCache sharedImageCache] imageFromMemoryCacheForKey:imageUrl.absoluteString];
         if (image)
             [button setImage:image forState:UIControlStateNormal];
@@ -459,7 +475,7 @@
         button.alpha = 0;
         button.frame = containerView.bounds;
         [containerView addSubview:button];
-        [containerView bringSubviewToFront:titleView];
+        //[containerView bringSubviewToFront:titleView];
         [self.buttons addObject:button];
         __weak UIButton *_button = button;
         
@@ -500,11 +516,7 @@
     if (cell == nil) {
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"SearchCell"];
         cell.selectionStyle = UITableViewCellSelectionStyleGray;
-        if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 6) {
-            cell.textLabel.font = [UIFont fontWithName:kAvenirMedium size:15];
-        } else {
-            cell.textLabel.font = [UIFont fontWithName:kFuturaMedium size:15];
-        }
+        cell.textLabel.font = [UIFont fontWithName:kHelveticaNeueThin size:16];
         cell.textLabel.textColor = [UIColor darkGrayColor];
         cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
     }
@@ -521,12 +533,12 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
-    if(indexPath.row == [self.searchResults count]) {
-    } else {
+    if (indexPath.row != [self.searchResults count]) {
         self.objectTextField.text = [self.searchResults objectAtIndex:indexPath.row];
     }
-    if (self.isEditing == NO)[self performSegueWithIdentifier:@"NewPost" sender:nil];
-    else {
+    if (self.isEditingPost == NO){
+        [self performSegueWithIdentifier:@"TakePhotoFromCategory" sender:nil];
+    } else {
         FDPost.userPost.foodiaObject = self.objectTextField.text;
         [self.navigationController popViewControllerAnimated:YES];
     }

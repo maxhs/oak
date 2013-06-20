@@ -25,18 +25,15 @@
     self.recommendeeFacebookIds = [NSMutableSet set];
     [FDPost.userPost.recommendedTo enumerateObjectsUsingBlock:^(id obj, BOOL *stop) {
         if ([obj userId]){
-            NSLog(@"object userid: %@",[obj userId]);
             [self.recommendeeIds addObject:[obj userId]];
         } else {
-            NSLog(@"object fbid: %@",[obj fbid]);
             [self.recommendeeFacebookIds addObject:[obj fbid]];
         }
     }];
     UILabel *navTitle = [[UILabel alloc] init];
-    navTitle.frame = CGRectMake(0,0,200,44);
-    navTitle.text = @"I'M RECOMMENDING";
-    
-    navTitle.font = [UIFont fontWithName:kAvenirMedium size:21];
+    navTitle.frame = CGRectMake(0,0,180,44);
+    navTitle.text = @"I'm recommending";
+    navTitle.font = [UIFont fontWithName:kHelveticaNeueThin size:20];
     navTitle.backgroundColor = [UIColor clearColor];
     navTitle.textColor = [UIColor blackColor];
     navTitle.textAlignment = NSTextAlignmentCenter;
@@ -48,7 +45,7 @@
     for(UIView *subView in self.searchDisplayController.searchBar.subviews) {
         if ([subView isKindOfClass:[UITextField class]]) {
             UITextField *searchField = (UITextField *)subView;
-            searchField.font = [UIFont fontWithName:kAvenirMedium size:15];
+            searchField.font = [UIFont fontWithName:kHelveticaNeueThin size:15];
         }
     }
     //replace ugly background

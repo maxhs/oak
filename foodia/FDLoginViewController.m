@@ -19,7 +19,9 @@
 
 static NSArray *tagLines;
 
-@interface FDLoginViewController () <UIScrollViewDelegate, UIAlertViewDelegate, UITextFieldDelegate>
+@interface FDLoginViewController () <UIScrollViewDelegate, UIAlertViewDelegate, UITextFieldDelegate> {
+    BOOL iPhone5;
+}
 @property (weak, nonatomic) IBOutlet UIButton *loginButton;
 @property (weak, nonatomic) IBOutlet UIButton *emailButton;
 @property (weak, nonatomic) IBOutlet UIPageControl *pageControl;
@@ -46,12 +48,12 @@ static NSArray *tagLines;
 + (void)initialize {
     if (self == [FDLoginViewController class]) {
         tagLines = @[
-        @"Capture and share your great food moments",
-        @"Discover new food, curated by folks you trust",
-        @"Recommend great food to your friends",
-        @"Find inspiration through food",
+        @"Organize your food life",
+        @"Discover new food from folks you trust",
+        @"Recommend great food to friends",
+        @"View your diet in a single, simple digest",
         @"Spend less time with your phone…",
-        @"…and more time with your food."];
+        @"…and more time with good food."];
     }
 }
 
@@ -70,30 +72,26 @@ static NSArray *tagLines;
     self.emailButton.layer.shadowOffset = CGSizeMake(0,0);
     self.emailButton.layer.shadowOpacity = .2;
     self.emailButton.layer.shadowRadius = 2.0;
-    
-    if ([[[UIDevice currentDevice] systemVersion] floatValue] < 6) {
-        [self.emailButton.titleLabel setFont:[UIFont fontWithName:kFuturaMedium size:15.0]];
-        [self.signupEmailButton.titleLabel setFont:[UIFont fontWithName:kFuturaMedium size:17.0]];
-        [self.loginEmailButton.titleLabel setFont:[UIFont fontWithName:kFuturaMedium size:17.0]];
-        [self.nameTextField setFont:[UIFont fontWithName:kFuturaMedium size:15.0]];
-        [self.emailTextField setFont:[UIFont fontWithName:kFuturaMedium size:15.0]];
-        [self.passwordTextField setFont:[UIFont fontWithName:kFuturaMedium size:15.0]];
-        [self.forgotPasswordButton.titleLabel setFont:[UIFont fontWithName:kFuturaMedium size:15.0]];
-    }
 
-    [self.signupEmailButton setBackgroundColor:[UIColor whiteColor]];
     self.signupEmailButton.layer.shadowColor = [UIColor blackColor].CGColor;
     self.signupEmailButton.layer.shadowOffset = CGSizeMake(0,0);
     self.signupEmailButton.layer.shadowOpacity = .2;
     self.signupEmailButton.layer.shadowRadius = 3.0;
     
-    [self.loginEmailButton setBackgroundColor:[UIColor whiteColor]];
     self.loginEmailButton.layer.shadowColor = [UIColor blackColor].CGColor;
     self.loginEmailButton.layer.shadowOffset = CGSizeMake(0,0);
     self.loginEmailButton.layer.shadowOpacity = .2;
     self.loginEmailButton.layer.shadowRadius = 3.0;
     [self.passwordTextField setSecureTextEntry:YES];
     self.loginButton.showsTouchWhenHighlighted = YES;
+    
+    if (([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone && [UIScreen mainScreen].bounds.size.height == 568.0)){
+        iPhone5 = YES;
+    } else {
+        iPhone5 = NO;
+    }
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(loginEmailUser) name:@"LoginNewEmailUser" object:nil];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -103,21 +101,44 @@ static NSArray *tagLines;
         self.loginButton.alpha = 1.f;
         self.emailButton.alpha = 1.f;
     }];
-    if (self.previewPosts.count == 0) [self loadPreviewPosts];
+    [self loadPreviewPosts];
+    [super viewWillAppear:animated];
+}
+
+- (void)viewDidAppear:(BOOL)animated {
     if (FBSession.activeSession.state == FBSessionStateOpen) {
         [(FDAppDelegate*)[UIApplication sharedApplication].delegate showLoadingOverlay];
         [self performSegueWithIdentifier:@"ShowFeed" sender:self];
     } else if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookId] && [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookAccessToken]) {
         [(FDAppDelegate*)[UIApplication sharedApplication].delegate showLoadingOverlay];
         [(FDAppDelegate *)[UIApplication sharedApplication].delegate openSessionWithAllowLoginUI:NO];
-    } else if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] && [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsAuthenticationToken] && [[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsAvatarUrl] length]) {
-        [(FDAppDelegate*)[UIApplication sharedApplication].delegate showLoadingOverlay];
-        [self performSegueWithIdentifier:@"ShowFeed" sender:self];
+    } else if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] && [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsEmail]) {
+        if (![[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsAvatarUrl] length]){
+            FDEditProfileViewController *vc;
+            if (iPhone5){
+                UIStoryboard *storyboard5 = [UIStoryboard storyboardWithName:@"iPhone5" bundle:nil];
+                vc = [storyboard5 instantiateViewControllerWithIdentifier:@"EditProfile"];
+            } else {
+                UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"iPhone" bundle:nil];
+                vc = [storyboard instantiateViewControllerWithIdentifier:@"EditProfile"];
+            }
+            [self presentViewController:vc animated:YES completion:nil];
+        } else {
+            [(FDAppDelegate*)[UIApplication sharedApplication].delegate showLoadingOverlay];
+            [self performSegueWithIdentifier:@"ShowFeed" sender:self];
+        }
     } else {
-        
-        [FBSession.activeSession close]; // so we close our session and start over
+        [NSUserDefaults resetStandardUserDefaults];
+        [NSUserDefaults standardUserDefaults];
+        NSString *domainName = [[NSBundle mainBundle] bundleIdentifier];
+        [[NSUserDefaults standardUserDefaults] removePersistentDomainForName:domainName];
+        [FBSession.activeSession closeAndClearTokenInformation]; // so we close our session and start over
     }
-    [super viewWillAppear:animated];
+    [super viewDidAppear:animated];
+}
+
+- (void)loginEmailUser {
+    [self performSegueWithIdentifier:@"ShowFeed" sender:self];
 }
 
 - (IBAction)showEmailConnect {
@@ -161,6 +182,7 @@ static NSArray *tagLines;
         [self.cancelEmailButton setAlpha:0.0];
         [self.loginButton setAlpha:1.0];
         [self.forgotPasswordButton setAlpha:0.0];
+        [self.loginButton setAlpha:1.0];
     } completion:^(BOOL finished) {
         self.emailLoginStarted = NO;
         [self.signupEmailButton removeTarget:self action:@selector(signupWithEmail) forControlEvents:UIControlEventTouchUpInside];
@@ -177,19 +199,16 @@ static NSArray *tagLines;
 - (void)showSignup {
     [self.forgotPasswordButton setHidden:YES];
     [UIView animateWithDuration:.4 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-        [self.emailContainerView setFrame:CGRectMake(0, 0, 320, 200)];
+        [self.emailContainerView setFrame:CGRectMake(0, 20, 320, 200)];
         [self.loginEmailButton setAlpha:0.0];
-        if ([UIScreen mainScreen].bounds.size.height == 568) {
-            self.signupEmailButton.transform = CGAffineTransformMakeTranslation(60, 94);
+        [self.loginButton setAlpha:0.0];
+        [self.pageControl setAlpha:0.0];
+        if (iPhone5) {
+            self.signupEmailButton.transform = CGAffineTransformMakeTranslation(60, 114);
+            self.previewScrollView.transform = CGAffineTransformMakeTranslation(0, 110);
         } else {
-            self.signupEmailButton.transform = CGAffineTransformMakeTranslation(60, 90);
-        }
-        if ([UIScreen mainScreen].bounds.size.height == 568){
-            self.previewScrollView.transform = CGAffineTransformMakeTranslation(0, 40);
-            self.pageControl.transform = CGAffineTransformMakeTranslation(0,40);
-        } else {
-            self.previewScrollView.transform = CGAffineTransformMakeTranslation(0, 45);
-            self.pageControl.transform = CGAffineTransformMakeTranslation(0,45);
+            self.signupEmailButton.transform = CGAffineTransformMakeTranslation(60, 100);
+            self.previewScrollView.transform = CGAffineTransformMakeTranslation(0, 90);
         }
      
     } completion:^(BOOL finished) {
@@ -202,20 +221,17 @@ static NSArray *tagLines;
     [self.nameTextField setHidden:YES];
     [self.nameBackground setHidden:YES];
     [UIView animateWithDuration:.4 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-        [self.emailContainerView setFrame:CGRectMake(0, -30, 320, 200)];
+        [self.emailContainerView setFrame:CGRectMake(0, -10, 320, 200)];
         [self.signupEmailButton setAlpha:0.0];
-        if ([UIScreen mainScreen].bounds.size.height == 568) {
-            self.loginEmailButton.transform = CGAffineTransformMakeTranslation(-60, 92);
+        [self.loginButton setAlpha:0.0];
+        [self.pageControl setAlpha:0.0];
+        if (iPhone5) {
+            self.loginEmailButton.transform = CGAffineTransformMakeTranslation(-60, 112);
+            self.previewScrollView.transform = CGAffineTransformMakeTranslation(0, 90);
         } else {
-            self.loginEmailButton.transform = CGAffineTransformMakeTranslation(-60, 86);
-            self.forgotPasswordButton.transform = CGAffineTransformMakeTranslation(0, 20);
-        }
-        if ([UIScreen mainScreen].bounds.size.height == 568){
-            self.previewScrollView.transform = CGAffineTransformMakeTranslation(0, 40);
-            self.pageControl.transform = CGAffineTransformMakeTranslation(0,40);
-        } else {
-            self.previewScrollView.transform = CGAffineTransformMakeTranslation(0, 45);
-            self.pageControl.transform = CGAffineTransformMakeTranslation(0,45);
+            self.loginEmailButton.transform = CGAffineTransformMakeTranslation(-60, 96);
+            self.forgotPasswordButton.transform = CGAffineTransformMakeTranslation(0, 23);
+            self.previewScrollView.transform = CGAffineTransformMakeTranslation(0, 80);
         }
         [self.forgotPasswordButton setAlpha:1.0];
     } completion:^(BOOL finished) {
@@ -256,7 +272,7 @@ static NSArray *tagLines;
             [[NSUserDefaults standardUserDefaults] setObject:user.userId forKey:kUserDefaultsId];
             [[NSUserDefaults standardUserDefaults] setObject:user.password forKey:kUserDefaultsPassword];
             FDEditProfileViewController *vc;
-            if (([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone && [UIScreen mainScreen].bounds.size.height == 568.0)){
+            if (iPhone5){
                 UIStoryboard *storyboard5 = [UIStoryboard storyboardWithName:@"iPhone5" bundle:nil];
                 vc = [storyboard5 instantiateViewControllerWithIdentifier:@"EditProfile"];
             } else {
@@ -286,7 +302,7 @@ static NSArray *tagLines;
             [self performSegueWithIdentifier:@"ShowFeed" sender:self];
         } else {
             FDEditProfileViewController *vc;
-            if (([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone && [UIScreen mainScreen].bounds.size.height == 568.0)){
+            if (iPhone5){
                 UIStoryboard *storyboard5 = [UIStoryboard storyboardWithName:@"iPhone5" bundle:nil];
                 vc = [storyboard5 instantiateViewControllerWithIdentifier:@"EditProfile"];
             } else {
@@ -371,11 +387,6 @@ static NSArray *tagLines;
     for (FDPost *post in self.previewPosts) {
         NSUInteger index = [self.previewPosts indexOfObject:post];
         FDPreviewPostView *view = [[[NSBundle mainBundle] loadNibNamed:@"FDPreviewPostView" owner:self options:nil] lastObject];
-        if ([[[UIDevice currentDevice] systemVersion] floatValue] < 6) {
-            [view.taglineLabel setFont:[UIFont fontWithName:kFuturaMedium size:17.0]];
-            [view.timeLabel setFont:[UIFont fontWithName:kFuturaMedium size:14.0]];
-            [view.locationLabel setFont:[UIFont fontWithName:kFuturaMedium size:14.0]];
-        }
         CGRect frame = CGRectMake(index * view.frame.size.width, 0, view.frame.size.width, view.frame.size.height);
         view.frame = frame;
         viewSize = frame.size;
@@ -418,6 +429,15 @@ static NSArray *tagLines;
     } completion:^(BOOL finished) {
         [self startPreviewTimer];
     }];
+    
+    // fade in the labels as they approach the center of the screen
+    for (FDPreviewPostView *view in self.previewScrollView.subviews) {
+        CGFloat distanceFromCenterScreen = fabs(view.center.x - self.previewScrollView.frame.size.width/2 - self.previewScrollView.contentOffset.x);
+        CGFloat opacity = 1 - fabs(MIN(200.0,distanceFromCenterScreen)/200.0);
+        view.taglineLabel.alpha = opacity;
+        view.timeLabel.alpha = opacity;
+        view.locationLabel.alpha = opacity;
+    }
 }
 
 - (void)startPreviewTimer {
