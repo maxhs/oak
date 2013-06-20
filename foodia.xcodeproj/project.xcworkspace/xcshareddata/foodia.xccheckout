@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDESourceControlProjectIdentifier</key>
+	<string>D8DE3D7C-86DF-43C9-9FB4-65FB485386E6</string>
+	<key>IDESourceControlProjectName</key>
+	<string>foodia</string>
+	<key>IDESourceControlProjectOriginsDictionary</key>
+	<dict>
+		<key>D729A935-8A08-414E-9BB3-B8C7791BB884</key>
+		<string>ssh://github.com/BradLarson/GPUImage.git</string>
+		<key>F6FD6C04-3FA0-4C04-8965-7E3516E46EBD</key>
+		<string>ssh://github.com/johnkdoe/TWReverseAuthSubmodule.git</string>
+		<key>FB7A6B8B-7E4D-4D0B-95B8-53D6197D929D</key>
+		<string>https://github.com/FOODIA/oak.git</string>
+	</dict>
+	<key>IDESourceControlProjectPath</key>
+	<string>foodia.xcodeproj/project.xcworkspace</string>
+	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
+	<dict>
+		<key>D729A935-8A08-414E-9BB3-B8C7791BB884</key>
+		<string>../../../GPUImage</string>
+		<key>F6FD6C04-3FA0-4C04-8965-7E3516E46EBD</key>
+		<string>../../foodia/TWReverseAuthSubmodule</string>
+		<key>FB7A6B8B-7E4D-4D0B-95B8-53D6197D929D</key>
+		<string>../..</string>
+	</dict>
+	<key>IDESourceControlProjectURL</key>
+	<string>https://github.com/FOODIA/oak.git</string>
+	<key>IDESourceControlProjectVersion</key>
+	<integer>110</integer>
+	<key>IDESourceControlProjectWCCIdentifier</key>
+	<string>FB7A6B8B-7E4D-4D0B-95B8-53D6197D929D</string>
+	<key>IDESourceControlProjectWCConfigurations</key>
+	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>FB7A6B8B-7E4D-4D0B-95B8-53D6197D929D</string>
+			<key>IDESourceControlWCCName</key>
+			<string>oak</string>
+		</dict>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>D729A935-8A08-414E-9BB3-B8C7791BB884</string>
+			<key>IDESourceControlWCCName</key>
+			<string>GPUImage</string>
+		</dict>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>F6FD6C04-3FA0-4C04-8965-7E3516E46EBD</string>
+			<key>IDESourceControlWCCName</key>
+			<string>TWReverseAuthSubmodule</string>
+		</dict>
+	</array>
+</dict>
+</plist>
