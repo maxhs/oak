@@ -370,12 +370,6 @@ bail:
 	}
 }
 
-@end
-
-
-#pragma mark -
-@implementation AVCamCaptureManager (InternalUtilityMethods)
-
 // Keep track of current device orientation so it can be applied to movie recordings and still image captures
 - (void)deviceOrientationDidChange
 {	

@@ -250,7 +250,7 @@
 }
 
 - (IBAction)post{
-    [FDPost.userPost setFoodiaObject:foodObjectTextField.text];
+    if (!FDPost.userPost.foodiaObject.length) [FDPost.userPost setFoodiaObject:foodObjectTextField.text];
     [[FDAPIClient sharedClient] quickPost:FDPost.userPost success:^(id result) {
 
     } failure:^(NSError *error) {

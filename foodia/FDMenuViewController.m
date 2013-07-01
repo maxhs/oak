@@ -29,7 +29,9 @@
 #import "UIButton+WebCache.h"
 #import "UIImageView+WebCache.h"
 
-@interface FDMenuViewController ()
+@interface FDMenuViewController () {
+    BOOL canLoadAdditionalNotifications;
+}
 @property (nonatomic, strong) NSArray *activityItems;
 @property (weak, nonatomic) UIView *titleView;
 @property (weak, nonatomic) UILabel *activityLabel;
@@ -50,6 +52,7 @@
     self.tableView.delegate = self;
     self.tableView.dataSource = self;
     self.tableView.scrollEnabled = YES;
+    canLoadAdditionalNotifications = YES;
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(shrink) name:@"ShrinkMenuView" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(grow) name:@"GrowMenuView" object:nil];
 }
@@ -81,11 +84,6 @@
         
         }];
     }
-}
-
-- (void)viewDidUnload
-{
-    [super viewDidUnload];
 }
 
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation
@@ -249,7 +247,7 @@
 }
 
 - (void)showTopViewControllerWithIdentifier:(NSString *)identifier {
-    UIViewController *newTopViewController = [[UIViewController alloc] init];
+    UIViewController *newTopViewController;
     //tests whether the device has a 4-inch display for the above view controllers
     if (([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone && [UIScreen mainScreen].bounds.size.height == 568.0)){
         UIStoryboard *storyboard5 = [UIStoryboard storyboardWithName:@"iPhone5" bundle:nil];
@@ -278,7 +276,7 @@
 }
 
 - (void)showProfile:(id)sender{
-    FDProfileViewController *newTopViewController = [[FDProfileViewController alloc] init];
+    FDProfileViewController *newTopViewController;
     
     //tests whether the device has a 4-inch display for the above view controllers
     if (([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone && [UIScreen mainScreen].bounds.size.height == 568.0)){
@@ -302,7 +300,7 @@
 }
 
 - (void)showPost:(id)sender{
-    FDPostViewController *vc = [[FDPostViewController alloc] init];
+    FDPostViewController *vc;
     //tests whether the device has a 4-inch display for the above view controllers
     if (([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone && [UIScreen mainScreen].bounds.size.height == 568.0)){
         UIStoryboard *storyboard5 = [UIStoryboard storyboardWithName:@"iPhone5" bundle:nil];
@@ -322,14 +320,54 @@
 - (void)refresh
 {
     [self grow];
-    self.feedRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getActivitySuccess:^(NSMutableArray *notifications) {
-        self.notifications = notifications;
+    if (self.notifications.count) {
+        self.feedRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getActivitySinceNotification:[self.notifications objectAtIndex:0] success:^(NSArray *newNotifications) {
+            NSArray *tempArray = [newNotifications arrayByAddingObjectsFromArray:[self.notifications copy]];
+            self.notifications = [tempArray mutableCopy];
+            self.feedRequestOperation = nil;
+            [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:1] withRowAnimation:UITableViewRowAnimationFade];
+        } failure:^(NSError *error) {
+            self.feedRequestOperation = nil;
+        }];
+    } else {
+        self.feedRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getActivitySuccess:^(NSMutableArray *notifications) {
+            self.notifications = notifications;
+            self.feedRequestOperation = nil;
+            [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:1] withRowAnimation:UITableViewRowAnimationFade];
+        } failure:^(NSError *error) {
+            self.feedRequestOperation = nil;
+        }];
+    }
+}
+
+- (void)loadMoreNotifications {
+    self.feedRequestOperation = (AFJSONRequestOperation*)[[FDAPIClient sharedClient] getActivityBeforeNotification:self.notifications.lastObject success:^(NSArray *result) {
+        if (result.count == 0){
+            canLoadAdditionalNotifications = NO;
+        } else {
+            [self.notifications addObjectsFromArray:result];
+            //[self.tableView reloadSections:[NSIndexSet indexSetWithIndex:1] withRowAnimation:UITableViewRowAnimationFade];
+            [self.tableView reloadData];
+            canLoadAdditionalNotifications = YES;
+        }
         self.feedRequestOperation = nil;
-        [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:1] withRowAnimation:UITableViewRowAnimationFade];
     } failure:^(NSError *error) {
         self.feedRequestOperation = nil;
-        NSLog(@"Loading Activities Failed");
     }];
+    canLoadAdditionalNotifications = NO;
+}
+
+#pragma mark - UIScrollViewDelegate Methods
+
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView {
+    if (scrollView.contentOffset.y + scrollView.bounds.size.height > scrollView.contentSize.height - [(UITableView*)scrollView rowHeight]*20) {
+        [self didShowLastRow];
+    }
+    
+}
+
+- (void)didShowLastRow {
+    if (self.notifications.count && canLoadAdditionalNotifications) [self loadMoreNotifications];
 }
 
 @end

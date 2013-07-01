@@ -19,7 +19,6 @@
 
 #import "FDAPIClient.h"
 #import "FDPost.h"
-#import "FDNotification.h"
 #import <CoreLocation/CoreLocation.h>
 #import "Post.h"
 #import "FDVenueLocation.h"
@@ -72,7 +71,7 @@
 typedef void(^OperationSuccess)(AFHTTPRequestOperation *operation, id result);
 typedef void(^OperationFailure)(AFHTTPRequestOperation *operation, NSError *error);
 
-@interface FDAPIClient ()
+@interface FDAPIClient () <UIAlertViewDelegate>
 
 @end
 
@@ -530,6 +529,46 @@ AFJSONRequestOperation *op = (AFJSONRequestOperation *)[self HTTPRequestOperatio
     return [self requestOperationWithMethod:@"GET"
                                        path:ACTIVITY_PATH
                                  parameters:nil
+                                    success:opSuccess
+                                    failure:opFailure];
+}
+
+- (AFHTTPRequestOperation *)getActivityBeforeNotification:(FDNotification*)notification
+                                                  success:(RequestSuccess)success
+                                                  failure:(RequestFailure)failure
+{
+    NSDictionary *parameters = @{@"before_date":notification.epochTime};
+    OperationFailure opFailure = ^(AFHTTPRequestOperation *operation, NSError *error) {
+        failure(error);
+    };
+    
+    OperationSuccess opSuccess = ^(AFHTTPRequestOperation *operation, id responseObject) {
+        success([self notificationsFromJSONArray:responseObject]);
+    };
+    
+    return [self requestOperationWithMethod:@"GET"
+                                       path:ACTIVITY_PATH
+                                 parameters:parameters
+                                    success:opSuccess
+                                    failure:opFailure];
+}
+
+- (AFHTTPRequestOperation *)getActivitySinceNotification:(FDNotification*)notification
+                                                  success:(RequestSuccess)success
+                                                  failure:(RequestFailure)failure
+{
+    NSDictionary *parameters = @{@"since_date":notification.epochTime};
+    OperationFailure opFailure = ^(AFHTTPRequestOperation *operation, NSError *error) {
+        failure(error);
+    };
+    
+    OperationSuccess opSuccess = ^(AFHTTPRequestOperation *operation, id responseObject) {
+        success([self notificationsFromJSONArray:responseObject]);
+    };
+    
+    return [self requestOperationWithMethod:@"GET"
+                                       path:ACTIVITY_PATH
+                                 parameters:parameters
                                     success:opSuccess
                                     failure:opFailure];
 }
@@ -1549,10 +1588,14 @@ AFJSONRequestOperation *op = (AFJSONRequestOperation *)[self HTTPRequestOperatio
         [parameters setObject:[tempTagArray componentsJoinedByString:@","] forKey:@"post[tags]"];
     }
     
-    if (post.withFriends) {
+    if (post.withFriends.count) {
         NSMutableArray *mutableArray = [NSMutableArray arrayWithCapacity:post.withFriends.count];
         for (FDUser *user in post.withFriends) {
-            [mutableArray addObject:[NSString stringWithFormat:@"%@|%@", user.facebookId, user.name]];
+            if (user.fbid){
+                [mutableArray addObject:[NSString stringWithFormat:@"%@|%@|fbid", user.fbid, user.name]];
+            } else {
+                [mutableArray addObject:[NSString stringWithFormat:@"%@|%@|userId", user.userId, user.name]];
+            }
         }
         [parameters setObject:[mutableArray componentsJoinedByString:@","]
                        forKey:@"post[with_friends]"];
@@ -1658,6 +1701,7 @@ AFJSONRequestOperation *op = (AFJSONRequestOperation *)[self HTTPRequestOperatio
     OperationFailure opFailure = ^(AFHTTPRequestOperation *operation, NSError *error)
     {
         NSLog(@"Failure from user connect method: %@",error.description);
+        [[[UIAlertView alloc] initWithTitle:nil message:@"Sorry, but we're having trouble connecting to FOODIA right now. Please try again soon." delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
         failure(error);
     };
     

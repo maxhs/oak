@@ -25,6 +25,7 @@
 @interface FDPostsTagsViewController () <MFMailComposeViewControllerDelegate, MFMessageComposeViewControllerDelegate, UIActionSheetDelegate, UIAlertViewDelegate> {
     int rowToReload;
     BOOL goToComment;
+    BOOL justLiked;
 }
 @property (nonatomic, strong) NSMutableArray *swipedCells;
 
@@ -53,6 +54,18 @@
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(loadTags) name:@"RefreshFeed" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(updatePostNotification:) name:@"UpdatePostNotification" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(setRowToReload:) name:@"RowToReloadFromMenu" object:nil];
+}
+
+- (void)setRowToReload:(NSNotification*) notification {
+    NSString *postIdentifier = [notification.userInfo objectForKey:@"identifier"];
+    for (FDPost *post in self.posts){
+        if ([[NSString stringWithFormat:@"%@", post.identifier] isEqualToString:postIdentifier]){
+            rowToReload = [self.posts indexOfObject:post];
+            break;
+        }
+    }
+    //post wasn't in this posts array, so make rowToReload inactive
+    rowToReload = kRowToReloadInactive;
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -145,6 +158,62 @@
     }
     
     return cell;
+}
+
+// like or unlike the post
+- (void)likeButtonTapped:(UIButton *)button {
+    FDPost *post = [self.posts objectAtIndex:button.tag];
+    [self.swipedCells addObject:post.identifier];
+    if ([post isLikedByUser]) {
+        [UIView animateWithDuration:.35 animations:^{
+            [button setBackgroundImage:[UIImage imageNamed:@"recBubble"] forState:UIControlStateNormal];
+        }];
+        [[FDAPIClient sharedClient] unlikePost:post
+                                        detail:NO
+                                       success:^(FDPost *newPost) {
+                                           justLiked = NO;
+                                           [self.posts replaceObjectAtIndex:button.tag withObject:newPost];
+                                           if (self.tableView.numberOfSections < 2) {
+                                               NSIndexPath *path = [NSIndexPath indexPathForRow:button.tag inSection:0];
+                                               [self.tableView reloadRowsAtIndexPaths:[NSArray arrayWithObject:path] withRowAnimation:UITableViewRowAnimationFade];
+                                           } else {
+                                               NSIndexPath *path = [NSIndexPath indexPathForRow:button.tag inSection:1];
+                                               [self.tableView reloadRowsAtIndexPaths:[NSArray arrayWithObject:path] withRowAnimation:UITableViewRowAnimationFade];
+                                           }
+                                       }
+                                       failure:^(NSError *error) {
+                                           NSLog(@"unlike failed! %@", error.description);
+                                           if (error.description){
+                                               
+                                           }
+                                       }
+         ];
+        
+    } else {
+        [UIView animateWithDuration:.35 animations:^{
+            [button setBackgroundImage:[UIImage imageNamed:@"likeBubbleSelected"] forState:UIControlStateNormal];
+        }];
+        [[FDAPIClient sharedClient] likePost:post
+                                      detail:NO
+                                     success:^(FDPost *newPost) {
+                                         [self.posts replaceObjectAtIndex:button.tag withObject:newPost];
+                                         //conditionally change the like count number
+                                         int t = [newPost.likeCount intValue] + 1;
+                                         if (!justLiked) [newPost setLikeCount:[[NSNumber alloc] initWithInt:t]];
+                                         justLiked = YES;
+                                         
+                                         if (self.tableView.numberOfSections == 1) {
+                                             NSIndexPath *path = [NSIndexPath indexPathForRow:button.tag inSection:0];
+                                             [self.tableView reloadRowsAtIndexPaths:[NSArray arrayWithObject:path] withRowAnimation:UITableViewRowAnimationFade];
+                                         } else {
+                                             NSIndexPath *path = [NSIndexPath indexPathForRow:button.tag inSection:1];
+                                             [self.tableView reloadRowsAtIndexPaths:[NSArray arrayWithObject:path] withRowAnimation:UITableViewRowAnimationFade];
+                                         }
+                                     } failure:^(NSError *error) {
+                                         NSLog(@"like failed! %@", error.description);
+                                     }
+         ];
+    }
 }
 
 #pragma mark - Display likers
@@ -300,6 +369,20 @@
     [[self.posts objectAtIndex:self.tableView.indexPathForSelectedRow.row] setLikers:newLikers];
     [self.tableView reloadData];
     
+}
+
+-(void)showPlace:(UIButton*)button {
+    if ([button.titleLabel.text isEqualToString:@"Home"] || [button.titleLabel.text isEqualToString:@"home"]) {
+        if (self.universal){
+            [[[UIAlertView alloc] initWithTitle:@"" message:@"We don't share information about anyone's home on FOODIA." delegate:self cancelButtonTitle:@"Okay" otherButtonTitles: nil] show];
+        } else {
+            [[[UIAlertView alloc] initWithTitle:@"" message:@"Sorry, but we don't collect information about your home on FOODIA." delegate:self cancelButtonTitle:@"Okay" otherButtonTitles: nil] show];
+        }
+        
+    } else {
+        [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
+        [self performSegueWithIdentifier:@"ShowPlace" sender:[self.posts objectAtIndex:button.tag]];
+    }
 }
 
 - (void)recommend:(id)sender {

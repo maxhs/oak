@@ -127,7 +127,6 @@
         [self setInviteButton];
     } else {
         [self.actionButton setTag:[user.userId integerValue]];
-        [self.actionButton removeTarget:self action:@selector(inviteUser) forControlEvents:UIControlEventTouchUpInside];
         [self.actionButton addTarget:self action:@selector(buttonPressed:) forControlEvents:UIControlEventTouchUpInside];
     }
 }

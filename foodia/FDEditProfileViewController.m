@@ -119,8 +119,8 @@
 }
 
 - (void)willShowKeyboard:(NSNotification *)notification {
-    UIBarButtonItem *cancelButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel target:self action:@selector(doneEditing)];
-    [cancelButton setTitle:@"CANCEL"];
+    UIBarButtonItem *cancelButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel target:self action:@selector(willHideKeyboard)];
+    [cancelButton setTitle:kCancel];
     [[self navigationItem] setRightBarButtonItem:cancelButton];
     
     NSDictionary* info = [notification userInfo];
@@ -211,7 +211,12 @@
 
 - (IBAction)submitDetails {
     [self.view endEditing:YES];
-    
+    NSString *philosophy;
+    if ([self.philosophyTextView.text isEqualToString:kFoodPhilosophyPlaceholder]){
+        philosophy = @"";
+    } else {
+        philosophy = self.philosophyTextView.text;
+    }
     if (self.nameTextField.text.length > 0 && self.userPhoto.imageView.image != nil){
         [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
         
@@ -219,7 +224,7 @@
                                                     name:self.nameTextField.text
                                                 location:self.locationTextField.text
                                                userPhoto:self.userPhoto.imageView.image
-                                              philosophy:self.philosophyTextView.text
+                                              philosophy:philosophy
                                                 password:self.passwordTextField.text
                                                  success:^(FDUser *theUser) {
                                                      
@@ -232,7 +237,6 @@
             if ([self.presentingViewController isKindOfClass:[FDLoginViewController class]]){
                 [self dismissViewControllerAnimated:YES completion:^{
                     [[NSNotificationCenter defaultCenter] postNotificationName:@"LoginNewEmailUser" object:nil];
-                    [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
                 }];
             } else {
                 [[NSNotificationCenter defaultCenter] postNotificationName:@"RefreshPhilosophy" object:nil];

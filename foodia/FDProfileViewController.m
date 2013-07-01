@@ -40,7 +40,6 @@ NSString* const theirLocationBarPlaceholder = @"Search the places they've been";
     BOOL noSearchResults;
     BOOL justLiked;
     BOOL tableHeaderViewSet;
-    UIImage *originalShadowImage;
     CGRect postListRect;
     int postListHeight;
     int rowToReload;
@@ -110,6 +109,10 @@ NSString* const theirLocationBarPlaceholder = @"Search the places they've been";
             self.followingCountLabel.text = [NSString stringWithFormat:@"Following %@",[[result objectForKey:@"following_count"] stringValue]];
             self.followerCountLabel.text = [NSString stringWithFormat:@"%@ Followers",[[result objectForKey:@"follower_count"] stringValue]];
             
+            [self.postCountLabel setHidden:NO];
+            [self.followingCountLabel setHidden:NO];
+            [self.followerCountLabel setHidden:NO];
+            
             if (myProfile){
                 [self.socialButton removeTarget:self action:@selector(followButtonTapped) forControlEvents:UIControlEventTouchUpInside];
                 [self.socialButton addTarget:self action:@selector(editProfile) forControlEvents:UIControlEventTouchUpInside];
@@ -151,6 +154,7 @@ NSString* const theirLocationBarPlaceholder = @"Search the places they've been";
         }
         postListRect = self.postList.frame;
         self.postList.tableHeaderView = self.profileDetailsContainerView;
+        
     } failure:^(NSError *error) {}];
 }
 
@@ -269,13 +273,9 @@ NSString* const theirLocationBarPlaceholder = @"Search the places they've been";
     }
     self.searchBar.placeholder = searchBarPlaceholder;
     
-    //add the sweet shadow
-    if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 6) {
-        originalShadowImage = self.navigationController.navigationBar.shadowImage;
-    }
-    
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(updatePostNotification:) name:@"UpdatePostNotification" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(refreshPhilosophy) name:@"RefreshPhilosophy" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(setRowToReload:) name:@"RowToReloadFromMenu" object:nil];
 }
 
 - (void)setRowToReload:(NSNotification*) notification {
@@ -288,13 +288,6 @@ NSString* const theirLocationBarPlaceholder = @"Search the places they've been";
     }
     //post wasn't in this posts array, so make rowToReload inactive
     rowToReload = kRowToReloadInactive;
-}
-- (void)viewWillAppear:(BOOL)animated {
-    [super viewWillAppear:animated];
-    if ([[[UIDevice currentDevice] systemVersion] floatValue] < 6.0) {
-        self.navigationController.navigationBar.shadowImage = [[UIImage alloc] init];
-    }
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(setRowToReload:) name:@"RowToReloadFromMenu" object:nil];
 }
 
 - (void)refreshPhilosophy{
@@ -566,13 +559,20 @@ NSString* const theirLocationBarPlaceholder = @"Search the places they've been";
     [self performSegueWithIdentifier:@"ShowPostFromProfile" sender:post];
 }
 
--(void)showPlace:(id)sender {
-    [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
-    UIButton *button = (UIButton *) sender;
-    if (filteredPosts.count > 0) {
-        [self performSegueWithIdentifier:@"ShowPlaceFromProfile" sender:[filteredPosts objectAtIndex:button.tag]];
+-(void)showPlace:(UIButton*)button {
+    if ([button.titleLabel.text isEqualToString:@"Home"] || [button.titleLabel.text isEqualToString:@"home"]) {
+        if (myProfile){
+            [[[UIAlertView alloc] initWithTitle:@"" message:@"Sorry, but we don't collect information about your home on FOODIA." delegate:self cancelButtonTitle:@"Okay" otherButtonTitles: nil] show];
+        } else{
+            [[[UIAlertView alloc] initWithTitle:@"" message:@"We don't share information about anyone's home on FOODIA." delegate:self cancelButtonTitle:@"Okay" otherButtonTitles: nil] show];
+        }
     } else {
-        [self performSegueWithIdentifier:@"ShowPlaceFromProfile" sender:[self.posts objectAtIndex:button.tag]];
+        [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
+        if (filteredPosts.count > 0) {
+            [self performSegueWithIdentifier:@"ShowPlaceFromProfile" sender:[filteredPosts objectAtIndex:button.tag]];
+        } else {
+            [self performSegueWithIdentifier:@"ShowPlaceFromProfile" sender:[self.posts objectAtIndex:button.tag]];
+        }
     }
 }
 
@@ -1144,9 +1144,6 @@ NSString* const theirLocationBarPlaceholder = @"Search the places they've been";
     self.objectSearchRequestOperation = nil;
     self.postSearchRequestOperation = nil;
     [super viewWillDisappear:animated];
-    if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 6) {
-        self.navigationController.navigationBar.shadowImage = originalShadowImage;
-    }
     [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
 }
 

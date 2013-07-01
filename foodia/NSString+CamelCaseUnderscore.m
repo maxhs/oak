@@ -15,9 +15,9 @@
     BOOL previousCharacterWasUppercase = FALSE;
     BOOL currentCharacterIsUppercase = FALSE;
     unichar currentChar = 0;
-    unichar previousChar = 0;
+    //unichar previousChar = 0;
     for (NSInteger idx = 0; idx < [self length]; idx += 1) {
-        previousChar = currentChar;
+        //previousChar = currentChar;
         currentChar = [self characterAtIndex:idx];
         previousCharacterWasUppercase = currentCharacterIsUppercase;
         currentCharacterIsUppercase = [uppercase characterIsMember:currentChar];

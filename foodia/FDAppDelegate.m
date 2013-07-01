@@ -22,6 +22,8 @@
 //#import "GAI.h"
 
 #define kFlurryAPIKey @"W5U7NXYMMQ8RJQR7WI9A"
+#define kLoadingOverlayTag 23
+#define kLoadingOverlayString @"Loading"
 
 @interface FDAppDelegate ()
 @property (strong,nonatomic) UILabel *wallPost;
@@ -40,6 +42,7 @@
     [self customizeAppearance];
     self.facebook.sessionDelegate = self;
     [[UIApplication sharedApplication] registerForRemoteNotificationTypes:(UIRemoteNotificationTypeAlert | UIRemoteNotificationTypeBadge | UIRemoteNotificationTypeSound)];
+    [[NSUserDefaults standardUserDefaults] setBool:NO forKey:kLoadingOverlayString];
     [self performSetup];
     
     NSSetUncaughtExceptionHandler(&uncaughtExceptionHandler);
@@ -59,6 +62,7 @@
     // Create tracker instance.
     id<GAITracker> tracker = [[GAI sharedInstance] trackerWithTrackingId:@"UA-40164626-1"];*/
     
+    //[AFNetworkActivityIndicatorManager sharedManager].enabled = YES;
     return YES;
 }
 
@@ -82,7 +86,6 @@ void uncaughtExceptionHandler(NSException *exception) {
 - (void)application:(UIApplication*)application didFailToRegisterForRemoteNotificationsWithError:(NSError*)error
 {
     [Flurry logEvent:@"Rejected Remote Notifications"];
-    NSLog(@"Failed to register for remote notifications.");
 }
 
 - (void)performSetup {
@@ -131,10 +134,8 @@ void uncaughtExceptionHandler(NSException *exception) {
 
 - (void)fbDidNotLogin:(BOOL)cancelled {
     if (cancelled){
-        NSLog(@"user cancelled login process");
     } else {
         [[FBSession activeSession] closeAndClearTokenInformation];
-        NSLog(@"didn't login for some reason");
     }
 }
 
@@ -147,7 +148,6 @@ void uncaughtExceptionHandler(NSException *exception) {
 }
 
 - (void)fbSessionInvalidated {
-    NSLog(@"fb session was invalidated");
     [[FBSession activeSession] closeAndClearTokenInformation];
 }
 
@@ -252,7 +252,8 @@ void uncaughtExceptionHandler(NSException *exception) {
 
 - (void)showLoadingOverlay
 {
-    if (![[NSUserDefaults standardUserDefaults] boolForKey:@"Loading"]){
+    if (![[NSUserDefaults standardUserDefaults] boolForKey:kLoadingOverlayString]){
+        [[NSUserDefaults standardUserDefaults] setBool:YES forKey:kLoadingOverlayString];
         CGFloat width = [[UIScreen mainScreen] bounds].size.width;
         CGFloat height = [[UIScreen mainScreen] bounds].size.height;
         UIImageView *imgOverlay = [[UIImageView alloc] initWithFrame:CGRectMake(0,0, width, height)];
@@ -262,7 +263,7 @@ void uncaughtExceptionHandler(NSException *exception) {
         [activityIndicator startAnimating];
         activityIndicator.center = CGPointMake(width/2, height/2);
         
-        [imgOverlay setTag:23];
+        [imgOverlay setTag:kLoadingOverlayTag];
         [imgOverlay setAlpha:0];
         [imgOverlay addSubview:activityIndicator];
         [activityIndicator setAlpha:0.0];
@@ -274,24 +275,21 @@ void uncaughtExceptionHandler(NSException *exception) {
         } completion:^(BOOL finished) {
             [UIView animateWithDuration:.25 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
                 [activityIndicator setAlpha:1.0];
-            } completion:^(BOOL finished) {
-                
-            }];
+            } completion:^(BOOL finished) {}];
         }];
-        [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"Loading"];
-        //always remove loading indicator after 20.0 seconds. 
+        //always remove loading indicator after 20.0 seconds.
         [self performSelector:@selector(hideLoadingOverlay) withObject:nil afterDelay:20.0];
     }
 }
 
 - (void)hideLoadingOverlay
 {
-    UIView *imgOverlay = [self.window viewWithTag:23];
+    UIView *imgOverlay = [self.window viewWithTag:kLoadingOverlayTag];
     [UIView animateWithDuration:0.3 animations:^{
         imgOverlay.alpha = 0.0;
     } completion:^(BOOL finished) {
         [imgOverlay removeFromSuperview];
-        [[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"Loading"];
+        [[NSUserDefaults standardUserDefaults] setBool:NO forKey:kLoadingOverlayString];
     }];
 }
 
@@ -299,25 +297,18 @@ void uncaughtExceptionHandler(NSException *exception) {
     [self.facebook dialog:@"feed" andParams:params andDelegate:self];
 }
 
-- (void)showUserProfile:(NSString *)facebookId
-{
-    NSDictionary *userInfo = [NSDictionary dictionaryWithObject:facebookId forKey:@"fbid"];
-    [[NSNotificationCenter defaultCenter]
-     postNotificationName:@"ShowProfile"
-     object:self
-     userInfo:userInfo];
-}
-
 - (void)applicationWillResignActive:(UIApplication *)application
 {
     // Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.
     // Use this method to pause ongoing tasks, disable timers, and throttle down OpenGL ES frame rates. Games should use this method to pause the game.
     if ([[NSUserDefaults standardUserDefaults] boolForKey:kIsPosting]) {
-        NSLog(@"Canceling an existing post request operation");
         [(AFJSONRequestOperation*)[[FDAPIClient sharedClient] postOp] cancel];
+        [FDAPIClient sharedClient].postOp = nil;
+        NSLog(@"Canceling a new post request operation");
     } else if ([[NSUserDefaults standardUserDefaults] boolForKey:kIsEditingPost]) {
         NSLog(@"Canceling an existing edit post request operation");
         [(AFJSONRequestOperation*)[[FDAPIClient sharedClient] editPostOp] cancel];
+        [FDAPIClient sharedClient].postOp = nil;
     }
     if (self.isTakingPhoto) [[NSNotificationCenter defaultCenter] postNotificationName:@"CleanupCameraCapture" object:nil];
 }
@@ -326,7 +317,7 @@ void uncaughtExceptionHandler(NSException *exception) {
 {
     // Use this method to release shared resources, save user data, invalidate timers, and store enough application state information to restore your application to its current state in case it is terminated later. 
     // If your application supports background execution, this method is called instead of applicationWillTerminate: when the user quits.
-    /*UIApplication*    app = [UIApplication sharedApplication];
+    UIApplication*    app = [UIApplication sharedApplication];
     
     __block UIBackgroundTaskIdentifier bgTask = [app beginBackgroundTaskWithExpirationHandler:^{
         [app endBackgroundTask:bgTask];
@@ -337,17 +328,25 @@ void uncaughtExceptionHandler(NSException *exception) {
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
         
         // Do the work associated with the task.
-        NSLog(@"Submitting a post request operation on the background thread");
+        
         if ([[NSUserDefaults standardUserDefaults] boolForKey:kIsPosting] && FDPost.userPost) {
+            NSLog(@"Submitting a post request operation on the background thread");
             [[FDAPIClient sharedClient] submitPost:FDPost.userPost success:^(id result) {
                 [[NSNotificationCenter defaultCenter] postNotificationName:@"RefreshFeed" object:nil];
+                [[NSUserDefaults standardUserDefaults] setBool:NO forKey:kIsEditingPost];
+                [[NSUserDefaults standardUserDefaults] setBool:NO forKey:kIsPosting];
+                [app endBackgroundTask:bgTask];
+                bgTask = UIBackgroundTaskInvalid;
             } failure:^(NSError *error) {
                 NSLog(@"error from restarting post: %@",error.description);
+                [[NSUserDefaults standardUserDefaults] setBool:NO forKey:kIsEditingPost];
+                [[NSUserDefaults standardUserDefaults] setBool:NO forKey:kIsPosting];
+                [app endBackgroundTask:bgTask];
+                bgTask = UIBackgroundTaskInvalid;
             }];
         }
-        [app endBackgroundTask:bgTask];
-        bgTask = UIBackgroundTaskInvalid;
-    });*/
+        
+    });
 }
 
 - (void)applicationWillEnterForeground:(UIApplication *)application
@@ -363,7 +362,7 @@ void uncaughtExceptionHandler(NSException *exception) {
     if (self.isTakingPhoto){
         [[NSNotificationCenter defaultCenter] postNotificationName:@"StartCameraCapture" object:nil];
     }
-    if ([[NSUserDefaults standardUserDefaults] boolForKey:kIsPosting] && FDPost.userPost) {
+    /*if ([[NSUserDefaults standardUserDefaults] boolForKey:kIsPosting] && FDPost.userPost) {
         NSLog(@"Restarting a pending post request operation");
         [[FDAPIClient sharedClient] submitPost:FDPost.userPost success:^(id result) {
             [[NSNotificationCenter defaultCenter] postNotificationName:@"RefreshFeed" object:nil];
@@ -377,7 +376,7 @@ void uncaughtExceptionHandler(NSException *exception) {
         } failure:^(NSError *error) {
             [[NSUserDefaults standardUserDefaults] setBool:NO forKey:kIsEditingPost];
         }];
-    }
+    }*/
     [FBSession.activeSession handleDidBecomeActive];
 }
 
@@ -404,11 +403,7 @@ void uncaughtExceptionHandler(NSException *exception) {
     [[UINavigationBar appearance] setTitleTextAttributes: [NSDictionary dictionaryWithObjectsAndKeys: [UIColor blackColor], UITextAttributeTextColor, [UIFont fontWithName:kHelveticaNeueThin size:22], UITextAttributeFont, [UIColor clearColor], UITextAttributeTextShadowColor, nil]];
     
     UIImage *emptyBarButton = [UIImage imageNamed:@"emptyBarButton"];
-    if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 6.0f) {
-        [[UIBarButtonItem appearance] setBackButtonTitlePositionAdjustment:UIOffsetMake(0, -.75f) forBarMetrics:UIBarMetricsDefault];
-    } else {
-        [[UIBarButtonItem appearance] setBackButtonTitlePositionAdjustment:UIOffsetMake(0, 0.5f) forBarMetrics:UIBarMetricsDefault];
-    }
+
     [[UIBarButtonItem appearance] setTintColor:[UIColor whiteColor]];
     if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 6) {
         [[UIBarButtonItem appearance] setTitleTextAttributes:@{
@@ -422,10 +417,9 @@ void uncaughtExceptionHandler(NSException *exception) {
                                    UITextAttributeTextColor : [UIColor blackColor],
          } forState:UIControlStateNormal];
     }
-    [[UIBarButtonItem appearance] setTitlePositionAdjustment:UIOffsetMake(0.0f, 0.5f) forBarMetrics:UIBarMetricsDefault];
-    
+    //[[UIBarButtonItem appearance] setTitlePositionAdjustment:UIOffsetMake(0.0f, 0.5f) forBarMetrics:UIBarMetricsDefault];
+    [[UIBarButtonItem appearance] setBackButtonBackgroundImage:emptyBarButton forState:UIControlStateNormal barMetrics:UIBarMetricsDefault];
     [[UIBarButtonItem appearance] setBackgroundImage:emptyBarButton forState:UIControlStateNormal barMetrics:UIBarMetricsDefault];
-    
     [[UISearchBar appearance] setBackgroundImage:[UIImage imageNamed:@"newFoodiaHeader"]];
     [[UISearchBar appearance] setSearchFieldBackgroundImage:[UIImage imageNamed:@"textField"]forState:UIControlStateNormal];
 }

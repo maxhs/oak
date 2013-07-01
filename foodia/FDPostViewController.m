@@ -214,10 +214,11 @@ static NSDictionary *placeholderImages;
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
     if ([segue.identifier isEqualToString:@"UpdatePost"]) {
         FDNewPostViewController *newPostVC = [segue destinationViewController];
-        [newPostVC.postButtonItem setTitle:@"SAVE"];
+        [newPostVC.postButtonItem setTitle:kSave];
         [newPostVC setIsEditingPost:YES];
         [FDPost setUserPost:self.post];
-        [FDPost.userPost setPhotoImage:[UIImage imageWithData:[NSData dataWithContentsOfURL:self.post.originalImageURL]]];
+        [newPostVC.photoButton setImageWithURL:self.post.originalImageURL forState:UIControlStateNormal];
+        //[FDPost.userPost setPhotoImage:[UIImage imageWithData:[NSData dataWithContentsOfURL:self.post.originalImageURL]]];
     } else if ([segue.identifier isEqualToString:@"Recommend"]) {
         if ([FBSession.activeSession.permissions
              indexOfObject:@"publish_actions"] == NSNotFound) {
@@ -336,7 +337,7 @@ static NSDictionary *placeholderImages;
 - (void)showPostDetails {
     //Add en edit button if the post is editable
     if ([self.post.user.facebookId isEqualToString:[[NSUserDefaults standardUserDefaults]objectForKey:@"FacebookID"]] || [self.post.user.userId isEqualToString:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]]){
-        self.editButton = [[UIBarButtonItem alloc] initWithTitle:@"EDIT" style:UIBarButtonItemStyleBordered target:self action:@selector(updatePost)];
+        self.editButton = [[UIBarButtonItem alloc] initWithTitle:kEdit style:UIBarButtonItemStyleBordered target:self action:@selector(updatePost)];
     }
     if (self.post.user.facebookId.length && [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookAccessToken]){
         [self.posterButton setImageWithURL:[Utilities profileImageURLForFacebookID:self.post.user.facebookId] forState:UIControlStateNormal];
@@ -867,7 +868,7 @@ static NSDictionary *placeholderImages;
 
 - (void)willShowKeyboard:(NSNotification *)notification {
     UIBarButtonItem *cancelButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel target:self action:@selector(doneEditing)];
-    [cancelButton setTitle:@"CANCEL"];
+    [cancelButton setTitle:kCancel];
     [[self navigationItem] setRightBarButtonItem:cancelButton];
     
     NSDictionary* info = [notification userInfo];
@@ -974,12 +975,23 @@ static NSDictionary *placeholderImages;
 }
 
 - (IBAction)handlePan:(UIPanGestureRecognizer *)recognizer {
-    CGPoint translation = [recognizer translationInView:self.view];
-    [recognizer setTranslation:CGPointMake(0, 0) inView:self.view];
-    CGPoint center = recognizer.view.center;
-    center.y += translation.y;
-    center.x += translation.x;
-    recognizer.view.center = center;
+    if (self.photoImageView.frame.size.width == 320 && self.photoImageView.frame.size.height == 320 && self.photoImageView.frame.origin.x == 0) {
+        return;
+    } else {
+        float yMin = 0;
+        float xMin = 0;
+        float yMax = self.view.frame.size.height;
+        float xMax = self.view.frame.size.width;
+        CGPoint translation = [recognizer translationInView:self.view];
+        [recognizer setTranslation:CGPointMake(0, 0) inView:self.view];
+        
+        CGPoint center = recognizer.view.center;
+        center.y += translation.y;
+        center.x += translation.x;
+        if (center.y < yMin || center.x < xMin || center.y > yMax || center.x > xMax)
+            return;
+        recognizer.view.center = center;
+    }
 }
 
 - (void)holdOntoPost {
@@ -989,7 +1001,7 @@ static NSDictionary *placeholderImages;
         [self.navigationController setNavigationBarHidden:YES animated:YES];
         CGFloat width = [[UIScreen mainScreen] bounds].size.width;
         CGFloat height = [[UIScreen mainScreen] bounds].size.height;
-        [self.loadingOverlay setFrame:CGRectMake(0,-20, width, height)];
+        [self.loadingOverlay setFrame:CGRectMake(0,0, width, height)];
         [self.loadingOverlay setImage:[UIImage imageNamed:@"overlay4"]];
         [self.loadingOverlay setAlpha:0.0];
         [self.view insertSubview:self.loadingOverlay aboveSubview:self.navigationController.navigationBar];

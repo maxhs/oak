@@ -109,24 +109,6 @@
     [self.rankButton.titleLabel setFont:[UIFont fontWithName:kHelveticaNeueThin size:14]];
     [self.sortByDistanceButton.titleLabel setFont:[UIFont fontWithName:kHelveticaNeueThin size:14]];
 
-    /*[[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(updatePostNotification:)
-                                                 name:@"UpdatePostNotification"
-                                               object:nil];
-    
-    //replace ugly background
-    for (UIView *view in self.searchDisplayController.searchBar.subviews) {
-        if ([view isKindOfClass:NSClassFromString(@"UISearchBarBackground")]){
-            UIImageView *header = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"newFoodiaHeader.png"]];
-            [view addSubview:header];
-            break;
-        }
-    }
-    [self.searchDisplayController.searchBar setFrame:CGRectMake(0,0,320,44)];
-    [self.view addSubview:self.searchDisplayController.searchBar];
-    
-    UIBarButtonItem *searchBarButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"magnifier"] style:UIBarButtonItemStyleBordered target:self action:@selector(activateSearch)];
-    self.navigationItem.rightBarButtonItem = searchBarButton;*/
 }
 
 
@@ -348,10 +330,13 @@
     }
 }
 
--(void)showPlace: (id)sender {
-    [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
-    UIButton *button = (UIButton *) sender;
-    [self.delegate performSegueWithIdentifier:@"ShowPlace" sender:(FDPost*)[self.posts objectAtIndex:button.tag]];
+-(void)showPlace:(UIButton*)button {
+    if ([button.titleLabel.text isEqualToString:@"Home"] || [button.titleLabel.text isEqualToString:@"home"]) {
+        [[[UIAlertView alloc] initWithTitle:@"" message:@"We don't share information about anyone's home on FOODIA." delegate:self cancelButtonTitle:@"Okay" otherButtonTitles: nil] show];
+    } else {
+        [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
+        [self.delegate performSegueWithIdentifier:@"ShowPlace" sender:(FDPost*)[self.posts objectAtIndex:button.tag]];
+    }
 }
 
 - (void)endEditMode {
@@ -412,7 +397,7 @@
         [self loadFromCache];
     } else {*/
     if (!location) self.showingDistance = NO;
-        if (!self.shouldShowKeepers){
+        if (!self.shouldShowKeepers && self.feedRequestOperation == nil){
             [Flurry logEvent:@"Loading initial recommended posts" timed:YES];
             self.feedRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getRecommendedPostsByPopularity:popularity distance:location Success:^(NSArray *posts) {
                 if (posts.count == 0){
@@ -429,7 +414,7 @@
                 self.feedRequestOperation = nil;
                 [self reloadData];
             }];
-        } else {
+        } else if (self.feedRequestOperation == nil) {
             [Flurry logEvent:@"Loading initial keepers posts" timed:YES];
             self.feedRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getHeldPosts:^(NSArray *posts) {
                 if (posts.count == 0){
@@ -495,7 +480,7 @@
     [self.tableView setEditing:YES animated:NO];
     [self.rankButton setBackgroundColor:kColorLightBlack];
     [self.rankButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-    [self.rankButton setTitle:@"SAVE" forState:UIControlStateNormal];
+    [self.rankButton setTitle:kSave forState:UIControlStateNormal];
     [self.rankButton addTarget:self action:@selector(endEditMode) forControlEvents:UIControlEventTouchUpInside];
 }
 

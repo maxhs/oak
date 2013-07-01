@@ -26,10 +26,7 @@
     [super viewDidLoad];
     [self refresh];
     [Flurry logPageView];
-    /*[[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(updatePostNotification:)
-                                                 name:@"UpdatePostNotification"
-                                               object:nil];*/
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(refresh) name:@"RefreshFeed" object:nil];
 }
 
 /*-(void)loadFromCacheReal {
@@ -89,7 +86,8 @@
             }];
         } else {*/
     if (self.posts.count == 0) [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
-    self.feedRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getInitialFeedPostsSuccess:^(NSArray *posts) {
+    if (self.feedRequestOperation == nil/* && self.isViewLoaded && self.view.window*/){
+        self.feedRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getInitialFeedPostsSuccess:^(NSArray *posts) {
             /*for(int i=0;i<[posts count];i++) {
                 [FDCache cachePost:[posts objectAtIndex:i]];
             }*/
@@ -101,6 +99,7 @@
             self.feedRequestOperation = nil;
             NSLog(@"error: %@",error.description);
         }];
+    }
 }
 
 //leave this overriden!!
@@ -108,14 +107,6 @@
     //if([self.posts count] != 0) [self refresh];
     //else [self loadFromCache];
     //[super.tableView reloadData];
-}
-
--(void)tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath
-{
-    if([indexPath row] == ((NSIndexPath*)[[tableView indexPathsForVisibleRows] lastObject]).row && tableView == self.tableView){
-        //end of loading
-        [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
-    }
 }
 
 - (void)loadAdditionalPosts {

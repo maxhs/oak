@@ -23,7 +23,6 @@ static void *AVCamFocusModeObserverContext = &AVCamFocusModeObserverContext;
     BOOL iPhone5;
     UITapGestureRecognizer *singleTap;
     UITapGestureRecognizer *doubleTap;
-    UIImage *originalImage;
     BOOL photoFromLibrary;
     NSArray *filterArray;
 }
@@ -41,7 +40,7 @@ static void *AVCamFocusModeObserverContext = &AVCamFocusModeObserverContext;
 @synthesize captureVideoPreviewLayer;
 @synthesize isPreview = _isPreview;
 @synthesize photoPreviewImageView;
-@synthesize cropImage = _cropImage;
+@synthesize originalImage = _originalImage;
 
 - (NSString *)stringForFocusMode:(AVCaptureFocusMode)focusMode
 {
@@ -131,7 +130,7 @@ static void *AVCamFocusModeObserverContext = &AVCamFocusModeObserverContext;
 
 - (void)setUpCamera {
     NSLog(@"should be setting up the camera");
-    if (!originalImage) originalImage = [[UIImage alloc] init];
+    if (_originalImage == nil) _originalImage = [[UIImage alloc] init];
     stillCamera = [[GPUImageStillCamera alloc] initWithSessionPreset:AVCaptureSessionPresetPhoto cameraPosition:AVCaptureDevicePositionBack];
     // Create the focus mode UI overlay
     //[self addObserver:self forKeyPath:@"captureManager.videoInput.device.focusMode" options:NSKeyValueObservingOptionNew context:AVCamFocusModeObserverContext];
@@ -229,8 +228,9 @@ static void *AVCamFocusModeObserverContext = &AVCamFocusModeObserverContext;
     // Capture a still image
     
     [stillCamera capturePhotoAsImageProcessedUpToFilter:filter withCompletionHandler:^(UIImage *filteredImage, NSError *error) {
-        if (!error){
-            originalImage = filteredImage;
+        if (error){
+            NSLog(@"Error with camera capture :(");
+        } else {
             CGSize bounds = CGSizeMake(320,320); // Considering image is shown in 320*320
             CGRect rect = CGRectMake(0, -(80), 320, 320); //rectangle area to be cropped
             float widthFactor = rect.size.width * (filteredImage.size.width/bounds.width);
@@ -238,9 +238,11 @@ static void *AVCamFocusModeObserverContext = &AVCamFocusModeObserverContext;
             float factorX = rect.origin.x * (filteredImage.size.width/bounds.width);
             float factorY = rect.origin.y * (filteredImage.size.height/bounds.height);
             CGRect factoredRect = CGRectMake(factorX,factorY,widthFactor,heightFactor);
-            _cropImage = [UIImage imageWithCGImage:CGImageCreateWithImageInRect([filteredImage CGImage], factoredRect)];
+            CGImageRef tempImage = CGImageCreateWithImageInRect([filteredImage CGImage], factoredRect);
+            _originalImage = [UIImage imageWithCGImage:tempImage];
+            CGImageRelease(tempImage);
+            [self.photoPreviewImageView setImage:_originalImage];
             
-            [self.photoPreviewImageView setImage:_cropImage];
             [UIView animateWithDuration:.25 delay:0.0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
                 [self.useButton setAlpha:1.0];
                 [self.photoPreviewImageView setAlpha:1.0];
@@ -277,8 +279,7 @@ static void *AVCamFocusModeObserverContext = &AVCamFocusModeObserverContext;
     
     [singleTap setEnabled:YES];
     [doubleTap setEnabled:YES];
-    if (_cropImage) _cropImage = nil;
-    if (originalImage) originalImage = nil;
+    if (_originalImage) _originalImage = nil;
     if (self.photoPreviewImageView) self.photoPreviewImageView.image = nil;
     [stillCamera removeAllTargets];
     [filter removeAllTargets];
@@ -403,7 +404,7 @@ static void *AVCamFocusModeObserverContext = &AVCamFocusModeObserverContext;
     [stillCamera removeAllTargets];
     
     if (self.isPreview) {
-        [self.photoPreviewImageView setImage:[(GPUImageFilter*)[filterArray objectAtIndex:button.tag] imageByFilteringImage:_cropImage]];
+        [self.photoPreviewImageView setImage:[(GPUImageFilter*)[filterArray objectAtIndex:button.tag] imageByFilteringImage:_originalImage]];
     } else {
         //reset GPUImage to apply newly selected filter
         filter = [filterArray objectAtIndex:button.tag];
@@ -583,9 +584,8 @@ static void *AVCamFocusModeObserverContext = &AVCamFocusModeObserverContext;
     [self animateFocusSquare:tapPoint];
     
     AVCaptureDevice *device = stillCamera.inputCamera;
-    CGPoint pointOfInterest = CGPointMake(.5f, .5f);
     CGSize frameSize = self.view.frame.size;
-    pointOfInterest = CGPointMake(tapPoint.y / frameSize.height, 1.f - (tapPoint.x / frameSize.width));
+    CGPoint pointOfInterest = CGPointMake(tapPoint.y / frameSize.height, 1.f - (tapPoint.x / frameSize.width));
     if ([device isFocusPointOfInterestSupported] && [device isFocusModeSupported:AVCaptureFocusModeAutoFocus]) {
         NSError *error;
         if ([device lockForConfiguration:&error]) {
@@ -620,11 +620,11 @@ static void *AVCamFocusModeObserverContext = &AVCamFocusModeObserverContext;
                                          // The end of the enumeration is signaled by asset == nil.
                                          if (myAsset) {
                                              
-                                             UIImageOrientation orientation = UIImageOrientationUp;
+                                             /*UIImageOrientation orientation = UIImageOrientationUp;
                                              NSNumber* orientationValue = [myAsset valueForProperty:@"ALAssetPropertyOrientation"];
                                              if (orientationValue != nil) {
                                                  orientation = [orientationValue intValue];
-                                             }
+                                             }*/
                                             [self.libraryButton setImage:[UIImage imageWithCGImage:[myAsset thumbnail] scale:1.0 orientation:UIImageOrientationUp] forState:UIControlStateNormal];
                                          }
                                      }];

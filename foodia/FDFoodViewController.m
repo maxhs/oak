@@ -27,7 +27,7 @@
     NSMutableArray *tags;
     FDFoodiaTag *maxTag;
     int maxTagCount;
-    FDFoodiaTag *secongTag;
+    FDFoodiaTag *secondTag;
     int secondTagCount;
 }
 
@@ -196,11 +196,14 @@
             //get info for the tag label
             if ([tag.postsCount intValue] >= maxTagCount) {
                 if (maxTag) {
-                    secongTag = maxTag;
+                    secondTag = maxTag;
                     secondTagCount = maxTagCount;
                 }
                 maxTag = tag;
                 maxTagCount = [tag.postsCount intValue];
+            } else if ([tag.postsCount intValue] >= secondTagCount){
+                secondTag = tag;
+                secondTagCount = [tag.postsCount intValue];
             }
             
             UIButton *tagButton = [UIButton buttonWithType:UIButtonTypeCustom];
@@ -246,7 +249,7 @@
             [self.tagContainerView addSubview:tagButton];
         }
         if (maxTag){
-            [self.maxTagLabel setText:[NSString stringWithFormat:@"\"%@\" was a running theme (%i times). \"%@\" wasn't far behind (%i times).",maxTag.name,maxTagCount,secongTag.name,secondTagCount]];
+            [self.maxTagLabel setText:[NSString stringWithFormat:@"\"%@\" was a running theme (%i times). \"%@\" wasn't far behind (%i times).",maxTag.name,maxTagCount,secondTag.name,secondTagCount]];
         }
         
         [self setRows:rowIndex];
@@ -260,7 +263,7 @@
         [self.tagContainerView addSubview:tagLabel];
         [self.maxTagLabel setTextColor:[UIColor darkGrayColor]];
         [self.maxTagLabel setTextAlignment:NSTextAlignmentCenter];
-        [self.maxTagLabel setText:@"Tap the \"+\" button on your home screen to start organizing your food life."];
+        [self.maxTagLabel setText:@"Tap the \"+\" button on your home screen and start organizing your food life."];
     }
 }
 

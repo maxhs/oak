@@ -34,7 +34,7 @@
     self.recommendees = [NSMutableSet set];
     self.recommendeeList = [NSMutableArray array];
     UILabel *navTitle = [[UILabel alloc] init];
-    navTitle.frame = CGRectMake(0,0,320,44);
+    navTitle.frame = CGRectMake(80,0,160,44);
     navTitle.text = @"Recommending";
     navTitle.font = [UIFont fontWithName:kHelveticaNeueThin size:20];
     navTitle.backgroundColor = [UIColor clearColor];
@@ -94,6 +94,8 @@
     cell.selectionStyle = UITableViewCellSelectionStyleGray;
     return cell;
 }
+
+
 
 - (NSIndexPath *)tableView:(UITableView *)tableView willSelectRowAtIndexPath:(NSIndexPath *)indexPath {
 

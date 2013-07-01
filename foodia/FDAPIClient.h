@@ -9,6 +9,7 @@
 #import "AFNetworking.h"
 #import "FDVenue.h"
 #import "FDUser.h"
+#import "FDNotification.h"
 #import <CoreLocation/CoreLocation.h>
 
 @class FDPost;
@@ -169,6 +170,13 @@ typedef void(^RequestSuccess)(id result);
 // get notifications
 - (AFHTTPRequestOperation *)getActivitySuccess:(RequestSuccess)success
                                        failure:(RequestFailure)failure;
+
+- (AFHTTPRequestOperation *)getActivityBeforeNotification:(FDNotification*)notification
+                                                  success:(RequestSuccess)success
+                                                  failure:(RequestFailure)failure;
+- (AFHTTPRequestOperation *)getActivitySinceNotification:(FDNotification*)notification
+                                                 success:(RequestSuccess)success
+                                                 failure:(RequestFailure)failure;
 
 - (AFHTTPRequestOperation *)getActivityCountSuccess:(RequestSuccess)success
                                             failure:(RequestFailure)failure;

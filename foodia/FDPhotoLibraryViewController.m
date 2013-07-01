@@ -55,7 +55,7 @@
     }];
     UILabel *navTitle = [[UILabel alloc] init];
     navTitle.frame = CGRectMake(0,0,180,44);
-    navTitle.text = @"My photos";
+    navTitle.text = @"My Photos";
     navTitle.font = [UIFont fontWithName:kHelveticaNeueThin size:20];
     navTitle.backgroundColor = [UIColor clearColor];
     navTitle.textColor = [UIColor blackColor];
@@ -133,13 +133,13 @@
         FDCameraViewController *vc = (FDCameraViewController*)self.presentingViewController;
         vc.isPreview = YES;
         [vc.photoPreviewImageView setImage:image];
-        [vc setCropImage:image];
+        [vc setOriginalImage:image];
         [self dismissViewControllerAnimated:YES completion:nil];
     } else {
         FDCameraViewController *vc = [self.navigationController.viewControllers objectAtIndex:self.navigationController.viewControllers.count-2];
         vc.isPreview = YES;
         [vc.photoPreviewImageView setImage:image];
-        [vc setCropImage:image];
+        [vc setOriginalImage:image];
         [self.navigationController popViewControllerAnimated:YES];
     }
     

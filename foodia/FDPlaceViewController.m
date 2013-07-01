@@ -104,13 +104,13 @@
             [self.hoursTextView setTextColor:[UIColor lightGrayColor]];
             [self.hoursTextView setFrame:CGRectMake(4,self.hoursTextView.frame.origin.y,320,self.hoursTextView.contentSize.height)];
         }
-        [[FDAPIClient sharedClient] getPostsForPlace:self.place success:^(id result){
-            if ([(NSMutableArray *)result count]) {
+        [[FDAPIClient sharedClient] getPostsForPlace:self.place success:^(NSMutableArray *result){
+            if (result.count) {
                 self.posts = result;
                 [self.postsContainerTableView reloadData];
                 [self showDetails];
             } else {
-                [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
+                //[(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
             }
         }failure:^(NSError *error) {
             self.postsContainerTableView.separatorStyle = UITableViewCellSeparatorStyleNone;

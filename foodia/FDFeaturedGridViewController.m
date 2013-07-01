@@ -20,13 +20,12 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
     [Flurry logPageView];
 }
 
+
 - (void)loadFromCache {
     NSMutableArray *cachedPosts = [FDCache getCachedFeaturedPosts];
-    NSLog(@"cached posts? %@",cachedPosts);
     if (cachedPosts == nil) {
         [self refresh];
     } else {
@@ -38,25 +37,12 @@
     }
 }
 
-- (void)loadFresh {
-    
-}
-
 - (void)saveCache {
     [FDCache cacheFeaturedPosts:self.posts];
 }
 
-
--(void) tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath {
-    if([indexPath row] == ((NSIndexPath*)[[tableView indexPathsForVisibleRows] lastObject]).row && tableView == self.tableView){
-        //end of loading
-        [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
-        //NSLog(@"should be saving the cache");
-        //[self saveCache];
-    }
-}
-
 - (void)refresh {
+    [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
     [Flurry logEvent:@"Viewing featured grid" timed:YES];
     // if we already have some posts in the feed, get the feed since the last post
     if (self.posts.count) {

@@ -86,7 +86,6 @@
     self.swipedCells = [NSMutableArray array];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(swipedCells:) name:@"CellOpened" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(swipedCells:) name:@"CellClosed" object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(refresh) name:@"RefreshFeed" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(updatePostNotification:) name:@"UpdatePostNotification" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(setRowToReload:) name:@"RowToReloadFromMenu" object:nil];
 }
@@ -113,14 +112,16 @@
 }
 
 -(void)getNotificationCount{
-    self.notificationRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getActivityCountSuccess:^(NSString *notifications) {
-        self.notificationsPending = [notifications integerValue];
-        self.notificationRequestOperation = nil;
-        //[self.tableView reloadSections:[NSIndexSet indexSetWithIndex:1] withRowAnimation:UITableViewRowAnimationAutomatic];
-    } failure:^(NSError *error) {
-        self.notificationRequestOperation = nil;
-        NSLog(@"Refreshing Failed");
-    }];
+    if (self.notificationRequestOperation == nil) {
+        self.notificationRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getActivityCountSuccess:^(NSString *notifications) {
+            self.notificationsPending = [notifications integerValue];
+            self.notificationRequestOperation = nil;
+            //[self.tableView reloadSections:[NSIndexSet indexSetWithIndex:1] withRowAnimation:UITableViewRowAnimationAutomatic];
+        } failure:^(NSError *error) {
+            self.notificationRequestOperation = nil;
+            NSLog(@"Refreshing Failed");
+        }];
+    }
 }
 
 - (NSDate*)egoRefreshTableHeaderDataSourceLastUpdated:(EGORefreshTableHeaderView*)view{
@@ -206,10 +207,13 @@
     }
 }
 
--(void)showPlace: (id)sender {
-    [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
-    UIButton *button = (UIButton *) sender;
-    [self.delegate performSegueWithIdentifier:@"ShowPlace" sender:[self.posts objectAtIndex:button.tag]];
+-(void)showPlace:(UIButton*)button {
+    if ([button.titleLabel.text isEqualToString:@"Home"] || [button.titleLabel.text isEqualToString:@"home"]) {
+        [[[UIAlertView alloc] initWithTitle:@"" message:@"We don't share information about anyone's home on FOODIA." delegate:self cancelButtonTitle:@"Okay" otherButtonTitles: nil] show];
+    } else {
+        [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
+        [self.delegate performSegueWithIdentifier:@"ShowPlace" sender:[self.posts objectAtIndex:button.tag]];
+    }
 }
 
 #pragma mark - Table view data source
@@ -304,6 +308,14 @@
         }
         if (self.posts.count < 20) [cell setHidden:YES];
         return cell;
+    }
+}
+
+-(void)tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    if([indexPath row] == ((NSIndexPath*)[[tableView indexPathsForVisibleRows] lastObject]).row && tableView == self.tableView){
+        //end of loading
+        [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
     }
 }
 
@@ -583,7 +595,7 @@
     if(indexPath.section == 1) {
         if ([self.delegate respondsToSelector:@selector(postTableViewController:didSelectPost:)]) {
             [self.delegate postTableViewController:self didSelectPost:[self.posts objectAtIndex:indexPath.row]];
-        } else if ([self.delegate respondsToSelector:@selector(postTableViewController:didSelectPlace::)]) {
+        } else if ([self.delegate respondsToSelector:@selector(postTableViewController:didSelectPlace:)]) {
             [self.delegate postTableViewController:self didSelectPlace:[self.posts objectAtIndex:indexPath.row]];
         }
     }
@@ -644,16 +656,17 @@
 
 - (void)egoRefreshTableHeaderDidTriggerRefresh:(EGORefreshTableHeaderView*)view {
     self.isRefreshing = YES;
-    self.notificationRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getActivityCountSuccess:^(NSString *notifications) {
-        self.notificationsPending = [notifications integerValue];
-        self.notificationRequestOperation = nil;
-        //[self.tableView reloadData];
-        [self refresh];
-    } failure:^(NSError *error) {
-        self.notificationRequestOperation = nil;
-        NSLog(@"Refreshing Failed");
-    }];
-    //
+    if (self.notificationRequestOperation == nil) {
+        self.notificationRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getActivityCountSuccess:^(NSString *notifications) {
+            self.notificationsPending = [notifications integerValue];
+            self.notificationRequestOperation = nil;
+            //[self.tableView reloadData];
+            [self refresh];
+        } failure:^(NSError *error) {
+            self.notificationRequestOperation = nil;
+            NSLog(@"Refreshing Failed");
+        }];
+    }
 }
 
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView {

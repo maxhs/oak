@@ -39,8 +39,11 @@
     BOOL shouldBeginEditing;
     BOOL showingDistance;
     BOOL sliderRevealed;
+    BOOL movedRight;
+    int page;
     UIImage *originalShadowImage;
     CLLocation *currentLocation;
+    NSString *noPostSearchString;
 }
 
 @property (nonatomic,strong) FDFeedTableViewController          *feedTableViewController;
@@ -53,23 +56,20 @@
 @property (retain, nonatomic) IBOutlet UIButton *addPostButton;
 @property (weak, nonatomic) IBOutlet UILabel *feedLabel;
 @property (weak, nonatomic) IBOutlet UILabel *featuredLabel;
-//@property (weak, nonatomic) IBOutlet UILabel *myPostsLabel;
 @property (weak, nonatomic) IBOutlet UILabel *keepersLabel;
 @property (weak, nonatomic) IBOutlet UILabel *nearbyLabel;
 @property (weak, nonatomic) IBOutlet UILabel *recLabel;
+@property (weak, nonatomic) IBOutlet UITableView *resultsTableView;
 @property (strong, nonatomic) UIButton *logoImageButton;
 @property (nonatomic, weak) UIViewController *currentChildViewController;
 @property (strong, nonatomic) UIDocumentInteractionController *documentInteractionController;
-@property BOOL movedRight;
-@property int page;
 @property (nonatomic, strong) ACAccountStore *accountStore;
 @property (nonatomic, strong) TWAPIManager *apiManager;
 @property (nonatomic, strong) NSArray *accounts;
 @property (strong, nonatomic) UIActionSheet *twitterActionSheet;
 @property (strong, nonatomic) SLComposeViewController *tweetSheet;
-@property (weak, nonatomic) IBOutlet UITableView *resultsTableView;
+
 @property (strong, nonatomic) NSMutableArray *searchPosts;
-@property (strong, nonatomic) NSString *noPostSearchString;
 @property (strong, nonatomic) UIView *editContainerView;
 @property (strong, nonatomic) UIButton *sortByDistanceButton;
 @property (strong, nonatomic) UIButton *sortByPopularityButton;
@@ -80,13 +80,11 @@
 @implementation FDFeedViewController
 @synthesize lastContentOffsetX = _lastContentOffsetX;
 @synthesize lastContentOffsetY = _lastContentOffsetY;
-@synthesize page = _page;
 @synthesize documentInteractionController = _documentInteractionController;
 @synthesize twitterActionSheet = _twitterActionSheet;
 @synthesize tweetSheet = _tweetSheet;
 @synthesize goToComment;
 @synthesize swipedCells;
-@synthesize noPostSearchString = _noPostSearchString;
 
 - (void)viewDidLoad
 {
@@ -108,7 +106,7 @@
     //self.placesViewController      = [[FDPlacesViewController alloc] initWithDelegate:self];
     self.recommendedTableViewController = [[FDRecommendedTableViewController alloc] initWithDelegate:self];
     self.keepersViewController          = [[FDRecommendedTableViewController alloc]  initWithDelegate:self];
-    self.page = 0;
+    page = 0;
     self.addPostButton.layer.shadowOffset = CGSizeMake(0,0);
     self.addPostButton.layer.shadowColor = [UIColor blackColor].CGColor;
     self.addPostButton.layer.shadowRadius = 5.0;
@@ -130,6 +128,7 @@
     [self.clipViewBackground setAlpha:0.0];
     [clipView setAlpha:0.0];
     [_scrollView setAlpha:0.0];
+    _scrollView.scrollEnabled = NO;
     
     self.logoImageButton = [UIButton buttonWithType:UIButtonTypeCustom];
     [self.logoImageButton setImage:[UIImage imageNamed:@"upsideDownIcon"] forState:UIControlStateNormal];
@@ -265,9 +264,9 @@
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
     CGFloat pageWidth = scrollView.frame.size.width;
     int currentPage = floor((scrollView.contentOffset.x - pageWidth / 2) / pageWidth) + 1;
-    if (currentPage != self.page && scrollView.contentOffset.x) [self hideKeyboard];
-    if (self.page < currentPage) self.movedRight = YES;
-    else self.movedRight = NO;
+    if (currentPage != page && scrollView.contentOffset.x) [self hideKeyboard];
+    if (page < currentPage) movedRight = YES;
+    else movedRight = NO;
     switch (currentPage) {
         case 0:
             [self showFeatured];
@@ -292,7 +291,7 @@
         default:
             break;
     }
-    self.page = currentPage;
+    page = currentPage;
 }
 
 - (void)hideLabelsExcept:(UILabel *)feed{
@@ -401,7 +400,7 @@
 }
 
 - (void) hideLabels{
-    switch (self.page) {
+    switch (page) {
         case 0:
             [self hideLabelsExcept:self.featuredLabel];
             break;
@@ -490,13 +489,13 @@
 - (void)showRecommended {
     //self.title = @"RECOMMENDED";
     [self.recommendedTableViewController setShouldShowKeepers:NO];
-    [self.recommendedTableViewController performSelector:@selector(refresh) withObject:nil afterDelay:.5];
+    if (self.recommendedTableViewController.feedRequestOperation == nil) [self.recommendedTableViewController refresh];
     [self showPostViewController:self.recommendedTableViewController];
 }
 
 - (void)showKeepers {
     [self.keepersViewController setShouldShowKeepers:YES];
-    [self.keepersViewController performSelector:@selector(refresh) withObject:nil afterDelay:.5];
+    if (self.keepersViewController.feedRequestOperation == nil) [self.keepersViewController refresh];
     [self showPostViewController:self.keepersViewController];
 }
 
@@ -514,7 +513,7 @@
         [self addChildViewController:toViewController];
         toViewController.view.frame = self.feedContainerView.bounds;
         
-        if (self.movedRight) {
+        if (movedRight) {
             toViewController.view.transform = CGAffineTransformMakeTranslation(self.feedContainerView.bounds.size.width, 0);
         } else {
             toViewController.view.transform = CGAffineTransformMakeTranslation(-self.feedContainerView.bounds.size.width, 0);
@@ -522,16 +521,16 @@
             
         [self transitionFromViewController:self.currentChildViewController
                           toViewController:toViewController
-                                  duration:0.15f
+                                  duration:0.175f
                                    options:0
                                 animations:^{
                                     CGAffineTransform hiddenTransform;
-                                    if (self.movedRight) {
+                                    if (movedRight) {
                                         hiddenTransform = CGAffineTransformMakeTranslation(-self.feedContainerView.bounds.size.width, 0);
                                     } else {
                                         hiddenTransform = CGAffineTransformMakeTranslation(self.feedContainerView.bounds.size.width, 0);
                                     }
-                                    hiddenTransform = CGAffineTransformScale(hiddenTransform, 0.3, 0.3);
+                                    hiddenTransform = CGAffineTransformScale(hiddenTransform, 0.4, 0.4);
                                     self.currentChildViewController.view.transform = hiddenTransform;
                                     toViewController.view.transform = CGAffineTransformIdentity;
                                 }
@@ -567,7 +566,7 @@
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
     if (self.searchPosts.count) return self.searchPosts.count;
-    else if (_noPostSearchString.length) return 1;
+    else if (noPostSearchString.length) return 1;
     else return 0;
 }
 
@@ -630,12 +629,20 @@
             cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:NoPostsCellIdentifier];
         }
         [cell.textLabel setFont:[UIFont fontWithName:kHelveticaNeueThin size:16]];
-        [cell.textLabel setText:self.noPostSearchString];
+        [cell.textLabel setText:noPostSearchString];
         [cell.textLabel setNumberOfLines:0];
         [cell.textLabel setTextColor:[UIColor lightGrayColor]];
         [cell.textLabel setTextAlignment:NSTextAlignmentCenter];
         cell.selectionStyle = UITableViewCellSelectionStyleNone;
         return cell;
+    }
+}
+
+-(void)tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    if([indexPath row] == ((NSIndexPath*)[[tableView indexPathsForVisibleRows] lastObject]).row && tableView == self.resultsTableView){
+        //end of loading
+        [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
     }
 }
 
@@ -668,10 +675,13 @@
     [self performSegueWithIdentifier:@"ShowPost" sender:post];
 }
 
--(void)showPlace: (id)sender {
-    [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
-    UIButton *button = (UIButton *) sender;
-    [self performSegueWithIdentifier:@"ShowPlace" sender:[self.searchPosts objectAtIndex:button.tag]];
+-(void)showPlace:(UIButton*)button {
+    if ([button.titleLabel.text isEqualToString:@"Home"] || [button.titleLabel.text isEqualToString:@"home"]) {
+        [[[UIAlertView alloc] initWithTitle:@"" message:@"We don't share information about anyone's home on FOODIA." delegate:self cancelButtonTitle:@"Okay" otherButtonTitles: nil] show];
+    } else {
+        [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
+        [self performSegueWithIdentifier:@"ShowPlace" sender:[self.searchPosts objectAtIndex:button.tag]];
+    }
 }
 
 #pragma mark - Display likers
@@ -809,7 +819,7 @@
     showingDistance = NO;
     [[FDAPIClient sharedClient] getPostsForQuery:searchBar.text Success:^(id result) {
         self.searchPosts = result;
-        self.noPostSearchString = [NSString stringWithFormat:@"Sorry, but we couldn't find any posts with %@ in them",self.searchBar.text];
+        noPostSearchString = [NSString stringWithFormat:@"Sorry, but we couldn't find any posts with %@ in them",self.searchBar.text];
         [self.resultsTableView reloadData];
         [UIView animateWithDuration:.25 animations:^{
             [self.resultsTableView setAlpha:1.0];
@@ -829,13 +839,12 @@
     [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
     [[FDAPIClient sharedClient] getDistancePostsForQuery:self.searchBar.text withLocation:currentLocation  Success:^(id result) {
         self.searchPosts = result;
-        self.noPostSearchString = [NSString stringWithFormat:@"Sorry, but we couldn't find any posts with %@ in them",self.searchBar.text];
+        noPostSearchString = [NSString stringWithFormat:@"Sorry, but we couldn't find any posts with %@ in them",self.searchBar.text];
         [self.resultsTableView reloadData];
         [UIView animateWithDuration:.25 animations:^{
             [self.resultsTableView setAlpha:1.0];
         }];
         self.resultsTableView.separatorStyle = UITableViewCellSeparatorStyleSingleLine;
-        [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
     } failure:^(NSError *error) {
         NSLog(@"error from search method: %@",error.description);
     }];
@@ -851,13 +860,12 @@
     [self.searchPosts removeAllObjects];
     [[FDAPIClient sharedClient] getPopularPostsForQuery:self.searchBar.text Success:^(id result) {
         self.searchPosts = result;
-        self.noPostSearchString = [NSString stringWithFormat:@"Sorry, but we couldn't find any posts with %@ in them",self.searchBar.text];
+        noPostSearchString = [NSString stringWithFormat:@"Sorry, but we couldn't find any posts with %@ in them",self.searchBar.text];
         [self.resultsTableView reloadData];
         [UIView animateWithDuration:.25 animations:^{
             [self.resultsTableView setAlpha:1.0];
         }];
         self.resultsTableView.separatorStyle = UITableViewCellSeparatorStyleSingleLine;
-        [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
     } failure:^(NSError *error) {
         NSLog(@"error from search method: %@",error.description);
     }];
@@ -875,7 +883,7 @@
         [self.searchPosts removeAllObjects];
         [self.resultsTableView reloadData];
         [self.resultsTableView setSeparatorStyle:UITableViewCellSeparatorStyleNone];
-        self.noPostSearchString = @"";
+        noPostSearchString = @"";
         [self.searchBar endEditing:YES];
         [self.searchBar resignFirstResponder];
         

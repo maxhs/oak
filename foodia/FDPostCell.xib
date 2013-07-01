@@ -240,6 +240,7 @@
 										<string key="NSFrame">{{268, 98}, {275, 44}}</string>
 										<reference key="NSSuperview" ref="660401749"/>
 										<reference key="NSWindow"/>
+										<reference key="NSNextKeyView"/>
 										<object class="NSColor" key="IBUIBackgroundColor">
 											<int key="NSColorSpace">1</int>
 											<bytes key="NSRGB">MC44OTk5OTk5NzYyIDAuNTA2MjM3ODI4MyAwLjEyMDMzMTM3MjggMAA</bytes>
@@ -247,6 +248,10 @@
 										<string key="targetRuntimeIdentifier">IBCocoaTouchFramework</string>
 										<int key="IBUIContentHorizontalAlignment">0</int>
 										<int key="IBUIContentVerticalAlignment">0</int>
+										<double key="IBUITitleEdgeInsets.top">0.0</double>
+										<double key="IBUITitleEdgeInsets.bottom">0.0</double>
+										<double key="IBUITitleEdgeInsets.left">15</double>
+										<double key="IBUITitleEdgeInsets.right">15</double>
 										<string key="IBUINormalTitle">View Location...</string>
 										<reference key="IBUIHighlightedTitleColor" ref="6010283"/>
 										<object class="NSColor" key="IBUINormalTitleColor" id="479103110">
@@ -892,6 +897,7 @@
 				<reference key="60.IBUserGuides" ref="0"/>
 				<boolean value="NO" key="60.showNotes"/>
 				<string key="68.IBPluginDependency">com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
+				<real value="1" key="68.IBUIButtonInspectorSelectedEdgeInsetMetadataKey"/>
 				<reference key="68.IBUserGuides" ref="0"/>
 				<boolean value="NO" key="68.showNotes"/>
 				<string key="7.IBPluginDependency">com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>

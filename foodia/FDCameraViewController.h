@@ -15,7 +15,7 @@
 }
 @property (nonatomic,weak) AVCamCaptureManager *captureManager;
 @property (nonatomic, strong) IBOutlet UIImageView *photoPreviewImageView;
-@property (strong, nonatomic) UIImage *cropImage;
+@property (strong, nonatomic) UIImage *originalImage;
 @property (nonatomic,weak) AVCaptureVideoPreviewLayer *captureVideoPreviewLayer;
 @property (nonatomic,weak) IBOutlet UIButton *takePhotoButton;
 @property (nonatomic,weak) IBOutlet UIButton *cancelButton;

@@ -120,7 +120,7 @@ static NSDictionary *categoryImages = nil;
                                             forKey:kDefaultsFoursquareActive];
     [self updateCrossPostButtons];
     
-    if ([self.navigationItem.rightBarButtonItem.title isEqualToString:@"SAVE"]) _isEditingPost = YES;
+    if ([self.navigationItem.rightBarButtonItem.title isEqualToString:kSave]) _isEditingPost = YES;
     else _isEditingPost = NO;
     
     self.library = [[ALAssetsLibrary alloc]init];
@@ -138,7 +138,7 @@ static NSDictionary *categoryImages = nil;
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
-    if ([self.navigationItem.rightBarButtonItem.title isEqualToString:@"SAVE"] || _isEditingPost){
+    if ([self.navigationItem.rightBarButtonItem.title isEqualToString:kSave] || _isEditingPost){
         [self.deleteButton setHidden:NO];
         [self.facebookButton setHidden:YES];
         [self.foursquareButton setHidden:YES];
@@ -151,7 +151,7 @@ static NSDictionary *categoryImages = nil;
         }
     } else {
         _isEditingPost = NO;
-        self.navigationItem.backBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"POST" style:UIBarButtonItemStyleBordered target:nil action:nil];
+        self.navigationItem.backBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:kPost style:UIBarButtonItemStyleBordered target:nil action:nil];
     }
     
     if (FDPost.userPost.locationName) {
@@ -466,7 +466,7 @@ static NSDictionary *categoryImages = nil;
     [self.foursquareButton setHidden:YES];
     [self.lockButton setHidden:YES];
     [self.tagTitleLabel setHidden:NO];
-    UIBarButtonItem *cancelButton = [[UIBarButtonItem alloc] initWithTitle:@"CANCEL" style:UIBarButtonItemStyleBordered target:self action:@selector(doneEditing)];
+    UIBarButtonItem *cancelButton = [[UIBarButtonItem alloc] initWithTitle:kCancel style:UIBarButtonItemStyleBordered target:self action:@selector(doneEditing)];
     [[self navigationItem] setRightBarButtonItem:cancelButton];
     
    /* if (FDPost.userPost.foodiaObject.length) {
@@ -504,10 +504,10 @@ static NSDictionary *categoryImages = nil;
     [self.tagTitleLabel setHidden:YES];
     [self.searchResults removeAllObjects];
     if (_isEditingPost) {
-        UIBarButtonItem *saveButton = [[UIBarButtonItem alloc] initWithTitle:@"SAVE" style:UIBarButtonItemStyleBordered target:self action:@selector(submitPost:)];
+        UIBarButtonItem *saveButton = [[UIBarButtonItem alloc] initWithTitle:kSave style:UIBarButtonItemStyleBordered target:self action:@selector(submitPost:)];
         [[self navigationItem] setRightBarButtonItem:saveButton];
     } else {
-        UIBarButtonItem *postButton = [[UIBarButtonItem alloc] initWithTitle:@"POST" style:UIBarButtonItemStyleBordered target:self action:@selector(submitPost:)];
+        UIBarButtonItem *postButton = [[UIBarButtonItem alloc] initWithTitle:kPost style:UIBarButtonItemStyleBordered target:self action:@selector(submitPost:)];
         [[self navigationItem] setRightBarButtonItem:postButton];
     }
 }
@@ -624,7 +624,7 @@ static NSDictionary *categoryImages = nil;
 }
 
 - (void)takePhoto {
-    if ([self.navigationItem.rightBarButtonItem.title isEqualToString:@"SAVE"]){
+    if ([self.navigationItem.rightBarButtonItem.title isEqualToString:kSave]){
         FDCameraViewController *vc;
         if (([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone && [UIScreen mainScreen].bounds.size.height == 568.0)){
             UIStoryboard *storyboard5 = [UIStoryboard storyboardWithName:@"iPhone5" bundle:nil];
@@ -736,7 +736,6 @@ static NSDictionary *categoryImages = nil;
         [self.twitterButton setEnabled:YES];
         [self.instagramButton setEnabled:YES];
         [self.foursquareButton setEnabled:YES];
-        
     }
     if ([[NSUserDefaults standardUserDefaults] boolForKey:kDefaultsTwitterActive]) {
         [self.twitterButton setImage:[UIImage imageNamed:@"twitter.png"] forState:UIControlStateNormal];
@@ -780,15 +779,13 @@ static NSDictionary *categoryImages = nil;
     }
     
     [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
-    if ([self.postButtonItem.title isEqualToString:@"POST"]){
+    if ([self.postButtonItem.title isEqualToString:kPost]){
         
         //adjust for non-fb users
         if (![[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookAccessToken] && [[[UIDevice currentDevice] systemVersion] floatValue] >= 6) {
             [[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"OpenGraph"];
         }
         [[FDAPIClient sharedClient] submitPost:FDPost.userPost success:^(id result) {
-            [[NSUserDefaults standardUserDefaults] setBool:YES forKey:kJustPosted];
-
             //if posting to Facebook from an email sign-in account
             if ([[NSUserDefaults standardUserDefaults] boolForKey:kDefaultsFacebookActive] && ![[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookAccessToken]) {
                 NSDictionary *userInfo = @{@"identifier":[[result objectForKey:@"post"] objectForKey:@"id"]};
@@ -826,11 +823,11 @@ static NSDictionary *categoryImages = nil;
     } else {
         [[FDAPIClient sharedClient] editPost:FDPost.userPost success:^(id result) {
             //success editing post. now go back to the post
-            [[NSUserDefaults standardUserDefaults] setBool:YES forKey:kJustPosted];
+
             [((FDAppDelegate *)[UIApplication sharedApplication].delegate) hideLoadingOverlay];
             FDPostViewController *destinationVC = (FDPostViewController*)[self.navigationController.viewControllers objectAtIndex:self.navigationController.viewControllers.count-2];
             [destinationVC setShouldReframe:YES];
-            [[NSNotificationCenter defaultCenter] postNotificationName:@"RefreshFeed" object:nil];
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"RefreshPostView" object:nil];
             [self.navigationController popViewControllerAnimated:YES];
         } failure:^(NSError *error) {
             NSLog(@"error editing post: %@",error.description);
@@ -938,7 +935,7 @@ static NSDictionary *categoryImages = nil;
         [self.navigationItem setHidesBackButton:YES animated:YES];
         UIBarButtonItem *cancel = [[UIBarButtonItem alloc]initWithBarButtonSystemItem:UIBarButtonSystemItemCancel target:self action:@selector(cancelWebview:)];
         [self.navigationItem setLeftBarButtonItem:cancel animated:YES];
-        [self.navigationItem.leftBarButtonItem setTitle:@"CANCEL"];
+        [self.navigationItem.leftBarButtonItem setTitle:kCancel];
         [self.view addSubview:self.webView];
         [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
     }

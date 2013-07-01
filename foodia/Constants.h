@@ -9,9 +9,14 @@
 #define kUserDefaultsUserName @"UserName"
 #define kUserDefaultsAvatarUrl @"AvatarUrl"
 
-#define kJustPosted @"JustPosted"
+//Program and posting constants
 #define kIsPosting @"IsPosting"
 #define kIsEditingPost @"IsEditingPosting"
+#define kSave @"Save"
+#define kEdit @"Edit"
+#define kPost @"Post"
+#define kCancel @"Cancel"
+#define kCancel @"Done"
 
 //Location Constants
 #define kHome @"Home"
@@ -56,15 +61,6 @@
 #define kHelveticaNeueThin @"HelveticaNeue-Light"
 #define kHelveticaNeueCondensedBold @"HelveticaNeue-CondensedBold"
 #define kHelveticaNeueMedium @"HelveticaNeue-Medium"
-
-#define kThonburi @"Thonburi"
-#define kThonburiBold @"Thonburi-Bold" 
-
-#define kAvenirMedium @"AvenirNextCondensed-Medium"
-#define kAvenirDemiBold @"AvenirNextCondensed-DemiBold"
-
-#define kFuturaMedium @"Futura-CondensedMedium"
-#define kFuturaExtraBold @"Futura-CondensedExtraBold"
 
 //ColorString
 #define kColorGreenString @"green"

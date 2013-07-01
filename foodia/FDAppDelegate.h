@@ -28,7 +28,6 @@
 - (void)showLoadingOverlay;
 - (void)hideLoadingOverlay;
 - (void)feedDialogWithParams:(NSMutableDictionary *)params;
-- (void)showUserProfile:(NSString *)facebookId;
 - (void)fbSessionInvalidated;
 - (void)fbDidLogout;
 @end

@@ -107,12 +107,12 @@
                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
                                             <items>
                                                 <navigationItem id="6fR-y6-pEh">
-                                                    <barButtonItem key="leftBarButtonItem" title="BACK" id="sc9-jj-eVA">
+                                                    <barButtonItem key="leftBarButtonItem" title="Back" id="sc9-jj-eVA">
                                                         <connections>
                                                             <action selector="back" destination="lJq-6Z-hv6" id="9mz-xd-NdV"/>
                                                         </connections>
                                                     </barButtonItem>
-                                                    <barButtonItem key="rightBarButtonItem" title="DONE" id="xsn-zW-Ja0">
+                                                    <barButtonItem key="rightBarButtonItem" title="Done" id="xsn-zW-Ja0">
                                                         <connections>
                                                             <action selector="cancel" destination="lJq-6Z-hv6" id="KBF-sM-Ggk"/>
                                                         </connections>
@@ -127,7 +127,6 @@
                                             <color key="textColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
                                             <fontDescription key="fontDescription" name="HelveticaNeue-Light" family="Helvetica Neue" pointSize="14"/>
                                             <textInputTraits key="textInputTraits" autocapitalizationType="sentences" returnKeyType="done" enablesReturnKeyAutomatically="YES"/>
-                                            <dataDetectorType key="dataDetectorTypes" phoneNumber="YES" link="YES" address="YES" calendarEvent="YES"/>
                                             <connections>
                                                 <outlet property="delegate" destination="lJq-6Z-hv6" id="gtc-GJ-6cd"/>
                                             </connections>
@@ -297,7 +296,6 @@
                     </view>
                     <navigationItem key="navigationItem" id="bvB-o6-zjq">
                         <nil key="title"/>
-                        <barButtonItem key="backBarButtonItem" title="BACK" id="vPV-cQ-Z0H"/>
                         <view key="titleView" contentMode="scaleToFill" id="CoL-W0-hZA">
                             <rect key="frame" x="75" y="0.0" width="170" height="44"/>
                             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
@@ -601,7 +599,6 @@
                     </tableView>
                     <toolbarItems/>
                     <navigationItem key="navigationItem" id="u2c-KW-5lv">
-                        <barButtonItem key="backBarButtonItem" title="BACK" id="HNI-L1-13K"/>
                         <barButtonItem key="leftBarButtonItem" image="menuBarButtonImage.png" id="qWV-4g-qh2">
                             <color key="tintColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                             <connections>
@@ -647,9 +644,7 @@
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                     </view>
-                    <navigationItem key="navigationItem" id="SnB-IE-sGh">
-                        <barButtonItem key="backBarButtonItem" title="BACK" id="9hn-n0-ZFp"/>
-                    </navigationItem>
+                    <navigationItem key="navigationItem" id="SnB-IE-sGh"/>
                     <simulatedNavigationBarMetrics key="simulatedTopBarMetrics" barStyle="blackOpaque" prompted="NO"/>
                     <connections>
                         <outlet property="mapView" destination="Zyl-Xj-dHR" id="mj7-l9-9OF"/>
@@ -670,13 +665,12 @@
                         <color key="backgroundColor" cocoaTouchSystemColor="groupTableViewBackgroundColor"/>
                     </tableView>
                     <navigationItem key="navigationItem" title="Settings" id="LiC-pa-ddN">
-                        <barButtonItem key="backBarButtonItem" title="BACK" id="Je0-oT-vFc"/>
                         <barButtonItem key="leftBarButtonItem" image="menuBarButtonImage.png" id="Gii-fX-fQ2">
                             <connections>
                                 <action selector="revealMenu:" destination="3qp-5M-D2S" id="ZlM-dl-cWb"/>
                             </connections>
                         </barButtonItem>
-                        <barButtonItem key="rightBarButtonItem" title="SAVE" id="rTk-mK-sAd">
+                        <barButtonItem key="rightBarButtonItem" title="Save" id="rTk-mK-sAd">
                             <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
                             <connections>
                                 <action selector="save" destination="3qp-5M-D2S" id="uFc-7m-Aei"/>
@@ -848,6 +842,7 @@
                         <segue destination="MIu-0K-XDF" kind="push" identifier="ShowProfileFromComments" id="ffR-76-WDf"/>
                         <segue destination="MIu-0K-XDF" kind="push" identifier="ShowProfileFromLikers" id="ujd-Ef-jEs"/>
                         <segue destination="LZE-XF-kth" kind="push" identifier="ShowPost" id="q3z-C5-Y9h"/>
+                        <segue destination="drh-hQ-eC0" kind="push" identifier="ShowPlace" id="7mS-nw-3e6"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="bwI-V5-WSl" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -936,7 +931,7 @@
                                         <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
                                         <color key="backgroundColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
                                     </view>
-                                    <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="0  Followers" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" minimumFontSize="10" id="EJw-5w-zKk" userLabel="Label - 0 Followers">
+                                    <label hidden="YES" opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="0  Followers" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" minimumFontSize="10" id="EJw-5w-zKk" userLabel="Label - 0 Followers">
                                         <rect key="frame" x="250" y="46" width="60" height="38"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
                                         <fontDescription key="fontDescription" name="HelveticaNeue-Light" family="Helvetica Neue" pointSize="14"/>
@@ -960,7 +955,7 @@
                                             <action selector="showFollowers:" destination="MIu-0K-XDF" eventType="touchUpInside" id="s5X-ql-3fH"/>
                                         </connections>
                                     </button>
-                                    <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="0 Posts" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" minimumFontSize="10" id="uab-cy-F1S">
+                                    <label hidden="YES" opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="0 Posts" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" minimumFontSize="10" id="uab-cy-F1S">
                                         <rect key="frame" x="100" y="46" width="41" height="38"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
                                         <fontDescription key="fontDescription" name="HelveticaNeue-Light" family="Helvetica Neue" pointSize="14"/>
@@ -982,7 +977,7 @@
                                             <action selector="showPosts:" destination="MIu-0K-XDF" eventType="touchUpInside" id="05c-7M-uw2"/>
                                         </connections>
                                     </button>
-                                    <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="Following 0" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" minimumFontSize="10" id="ImW-qC-YaO">
+                                    <label hidden="YES" opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="Following 0" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" minimumFontSize="10" id="ImW-qC-YaO">
                                         <rect key="frame" x="168" y="46" width="67" height="38"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
                                         <fontDescription key="fontDescription" name="HelveticaNeue-Light" family="Helvetica Neue" pointSize="14"/>
@@ -1069,7 +1064,6 @@
                     <toolbarItems/>
                     <navigationItem key="navigationItem" id="0Qd-Gc-okv">
                         <nil key="title"/>
-                        <barButtonItem key="backBarButtonItem" title="BACK" id="tQ7-2X-zCY"/>
                         <view key="titleView" contentMode="scaleToFill" id="fDM-8y-Pfp">
                             <rect key="frame" x="70" y="0.0" width="180" height="44"/>
                             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
@@ -1243,14 +1237,13 @@
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                     </view>
                     <navigationItem key="navigationItem" id="dhB-Px-vPo">
-                        <barButtonItem key="backBarButtonItem" title="BACK" id="8on-z5-rRd"/>
                         <barButtonItem key="leftBarButtonItem" image="menuBarButtonImage.png" id="wDi-Ip-yJA">
                             <color key="tintColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                             <connections>
                                 <action selector="revealMenu:" destination="Bvi-Le-G9O" id="lbT-nn-qaC"/>
                             </connections>
                         </barButtonItem>
-                        <barButtonItem key="rightBarButtonItem" image="down_arrow.png" style="plain" id="YcI-CE-bEB">
+                        <barButtonItem key="rightBarButtonItem" image="down_arrow.png" id="YcI-CE-bEB">
                             <color key="tintColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                             <connections>
                                 <action selector="rightBarButtonAction" destination="Bvi-Le-G9O" id="SYh-pt-mAt"/>
@@ -1502,7 +1495,6 @@
                     </view>
                     <navigationItem key="navigationItem" id="ykP-RB-mlH">
                         <nil key="title"/>
-                        <barButtonItem key="backBarButtonItem" title="BACK" id="2T7-6W-u58"/>
                         <view key="titleView" contentMode="scaleToFill" id="yPx-9a-Kie">
                             <rect key="frame" x="60" y="0.0" width="200" height="44"/>
                             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
@@ -1614,13 +1606,13 @@
                         </connections>
                     </tableView>
                     <navigationItem key="navigationItem" id="zSZ-xS-PVF">
-                        <barButtonItem key="leftBarButtonItem" title="CANCEL" id="0On-I6-dq8">
+                        <barButtonItem key="leftBarButtonItem" title="Cancel" id="0On-I6-dq8">
                             <color key="tintColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                             <connections>
                                 <action selector="cancel:" destination="vuk-kw-h1L" id="kCJ-D0-thg"/>
                             </connections>
                         </barButtonItem>
-                        <barButtonItem key="rightBarButtonItem" title="NEXT" id="YUf-EN-leN">
+                        <barButtonItem key="rightBarButtonItem" title="Next" id="YUf-EN-leN">
                             <color key="tintColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                             <connections>
                                 <action selector="recommend:" destination="vuk-kw-h1L" id="OSQ-20-aeZ"/>
@@ -1692,6 +1684,7 @@
                         <segue destination="MIu-0K-XDF" kind="push" identifier="ShowProfileFromLikers" id="nSX-R9-uXs"/>
                         <segue destination="MIu-0K-XDF" kind="push" identifier="ShowProfileFromComments" id="2fo-Dp-rf2"/>
                         <segue destination="LZE-XF-kth" kind="push" identifier="ShowPost" id="0fg-wP-n2X"/>
+                        <segue destination="drh-hQ-eC0" kind="push" identifier="ShowPlace" id="VJP-HF-0mF"/>
                     </connections>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="NT4-Yv-Ekl" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -1707,12 +1700,12 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <imageView userInteractionEnabled="NO" alpha="0.59999999999999998" contentMode="scaleToFill" image="background4.png" id="nay-mK-5cO">
-                                <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
+                                <rect key="frame" x="0.0" y="-64" width="320" height="568"/>
                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                             </imageView>
                             <view contentMode="scaleToFill" id="d8U-TY-riT">
                                 <rect key="frame" x="5" y="5" width="310" height="120"/>
-                                <color key="backgroundColor" white="0.25" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                             </view>
                             <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="   I'M EATING" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumFontSize="10" id="YEB-0b-5wn">
                                 <rect key="frame" x="3" y="21" width="112" height="29"/>
@@ -1722,7 +1715,7 @@
                             </label>
                             <view contentMode="scaleToFill" id="iCo-Sb-rnX">
                                 <rect key="frame" x="5" y="130" width="310" height="120"/>
-                                <color key="backgroundColor" white="0.25" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                             </view>
                             <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="   I'M DRINKING" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumFontSize="10" id="0jY-xI-SQh">
                                 <rect key="frame" x="3" y="146" width="132" height="29"/>
@@ -1732,7 +1725,7 @@
                             </label>
                             <view contentMode="scaleToFill" id="USQ-9a-aF7">
                                 <rect key="frame" x="5" y="255" width="310" height="120"/>
-                                <color key="backgroundColor" white="0.25" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                             </view>
                             <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="   I'M MAKING" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumFontSize="10" id="bHn-T6-Ukn">
                                 <rect key="frame" x="3" y="271" width="120" height="29"/>
@@ -1742,7 +1735,7 @@
                             </label>
                             <view contentMode="scaleToFill" id="pG9-xC-bUH">
                                 <rect key="frame" x="5" y="380" width="310" height="120"/>
-                                <color key="backgroundColor" white="0.25" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                             </view>
                             <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="   I'M SHOPPING" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumFontSize="10" id="BcZ-NY-Gph">
                                 <rect key="frame" x="3" y="395" width="134" height="29"/>
@@ -1779,6 +1772,11 @@
                             <tableView clipsSubviews="YES" alpha="0.0" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="r4K-mE-94t">
                                 <rect key="frame" x="0.0" y="125" width="320" height="379"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <view key="tableFooterView" contentMode="scaleToFill" id="tXW-ER-XcL">
+                                    <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
+                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                    <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+                                </view>
                                 <connections>
                                     <outlet property="dataSource" destination="ywJ-KN-kbC" id="lAm-h9-asC"/>
                                     <outlet property="delegate" destination="ywJ-KN-kbC" id="JCW-QM-Bho"/>
@@ -1789,14 +1787,13 @@
                         <simulatedStatusBarMetrics key="simulatedStatusBarMetrics"/>
                     </view>
                     <navigationItem key="navigationItem" id="dVP-j6-XNr">
-                        <barButtonItem key="backBarButtonItem" title="BACK" id="JNw-TZ-ZvY"/>
-                        <barButtonItem key="leftBarButtonItem" title="CANCEL" id="6hK-xw-mkD">
+                        <barButtonItem key="leftBarButtonItem" title="Cancel" id="6hK-xw-mkD">
                             <color key="tintColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                             <connections>
                                 <action selector="cancel:" destination="ywJ-KN-kbC" id="zmM-I1-pRq"/>
                             </connections>
                         </barButtonItem>
-                        <barButtonItem key="rightBarButtonItem" title="QUICK POST" style="done" id="5iB-pM-Cc2">
+                        <barButtonItem key="rightBarButtonItem" title="Quick Post" style="done" id="5iB-pM-Cc2">
                             <color key="tintColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                             <connections>
                                 <action selector="quickPost" destination="ywJ-KN-kbC" id="u5G-u2-6xv"/>
@@ -1968,7 +1965,7 @@
                                             </connections>
                                         </button>
                                         <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" alpha="0.0" contentMode="left" text="" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="4ou-XZ-OuS" userLabel="Foodia Object label">
-                                            <rect key="frame" x="134" y="306" width="186" height="22"/>
+                                            <rect key="frame" x="134" y="305" width="186" height="22"/>
                                             <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                             <fontDescription key="fontDescription" name="HelveticaNeue-Light" family="Helvetica Neue" pointSize="16"/>
                                             <color key="textColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
@@ -1984,7 +1981,6 @@
                                         <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="Fb1-gS-1L2" userLabel="Location Button">
                                             <rect key="frame" x="100" y="240" width="120" height="44"/>
                                             <fontDescription key="fontDescription" name="HelveticaNeue-Light" family="Helvetica Neue" pointSize="15"/>
-                                            <color key="tintColor" white="0.25" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                                             <state key="normal" title="I'M AT" backgroundImage="newPostBubble.png">
                                                 <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                                 <color key="titleShadowColor" white="0.25" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
@@ -1997,7 +1993,7 @@
                                             </connections>
                                         </button>
                                         <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="w4A-3n-AHd" userLabel="Category Button">
-                                            <rect key="frame" x="100" y="295" width="120" height="44"/>
+                                            <rect key="frame" x="100" y="294" width="120" height="44"/>
                                             <fontDescription key="fontDescription" name="HelveticaNeue-Light" family="Helvetica Neue" pointSize="15"/>
                                             <state key="normal" title="I'M EATING" backgroundImage="newPostBubble.png">
                                                 <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
@@ -2041,7 +2037,7 @@
                                         <button hidden="YES" opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="Pb2-8Z-Dip">
                                             <rect key="frame" x="202" y="457" width="75" height="44"/>
                                             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                            <fontDescription key="fontDescription" name="Thonburi" family="Thonburi" pointSize="13"/>
+                                            <fontDescription key="fontDescription" name="HelveticaNeue-Light" family="Helvetica Neue" pointSize="13"/>
                                             <state key="normal" title="Delete" backgroundImage="recBubble.png">
                                                 <color key="titleColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
                                                 <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
@@ -2079,8 +2075,7 @@
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                     </view>
                     <navigationItem key="navigationItem" id="7BD-Rt-Rqo">
-                        <barButtonItem key="backBarButtonItem" title="BACK" id="kU8-By-vIJ"/>
-                        <barButtonItem key="rightBarButtonItem" title="POST" style="done" id="2xJ-GP-vHZ">
+                        <barButtonItem key="rightBarButtonItem" title="Post" style="done" id="2xJ-GP-vHZ">
                             <color key="tintColor" red="1" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                             <connections>
                                 <action selector="submitPost:" destination="i81-4z-gaU" id="rmY-7P-EWD"/>
@@ -2136,7 +2131,7 @@
                                 </connections>
                             </mapView>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="e61-sR-Npw" userLabel="remove location button">
-                                <rect key="frame" x="275" y="153" width="44" height="44"/>
+                                <rect key="frame" x="275" y="152" width="44" height="44"/>
                                 <fontDescription key="fontDescription" type="boldSystem" pointSize="15"/>
                                 <state key="normal" image="cancelPin.png">
                                     <color key="titleColor" red="0.19607843459999999" green="0.30980393290000002" blue="0.52156865600000002" alpha="1" colorSpace="calibratedRGB"/>
@@ -2326,7 +2321,7 @@
                     </view>
                     <navigationItem key="navigationItem" id="oBd-hz-2Yp">
                         <barButtonItem key="backBarButtonItem" title="BACK" id="e6B-3a-Bfz"/>
-                        <barButtonItem key="rightBarButtonItem" title="POST" id="uNf-W4-4Ht">
+                        <barButtonItem key="rightBarButtonItem" title="Post" id="uNf-W4-4Ht">
                             <connections>
                                 <action selector="post" destination="DoK-WK-qkD" id="iTh-nx-P8X"/>
                             </connections>
@@ -2369,7 +2364,7 @@
                                     <autoresizingMask key="autoresizingMask"/>
                                     <subviews>
                                         <label opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="left" text="Title" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="0e0-AU-Sb2">
-                                            <rect key="frame" x="15" y="0.0" width="290" height="43"/>
+                                            <rect key="frame" x="10" y="0.0" width="300" height="43"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <fontDescription key="fontDescription" name="HelveticaNeue-Medium" family="Helvetica Neue" pointSize="18"/>
                                             <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
@@ -2522,7 +2517,7 @@
             </objects>
             <point key="canvasLocation" x="377" y="682"/>
         </scene>
-        <!--Photo Library View Controller - Photos-->
+        <!--Photo Library View Controller - My photos-->
         <scene sceneID="uBm-zA-YiN">
             <objects>
                 <tableViewController storyboardIdentifier="PhotoLibrary" useStoryboardIdentifierAsRestorationIdentifier="YES" clearsSelectionOnViewWillAppear="NO" id="8gr-gJ-90M" customClass="FDPhotoLibraryViewController" sceneMemberID="viewController">
@@ -2535,9 +2530,7 @@
                             <outlet property="delegate" destination="8gr-gJ-90M" id="gOB-oY-12D"/>
                         </connections>
                     </tableView>
-                    <navigationItem key="navigationItem" title="Photos" id="blE-7S-ftL">
-                        <barButtonItem key="backBarButtonItem" title="BACK" id="IvZ-Wo-1JZ"/>
-                    </navigationItem>
+                    <navigationItem key="navigationItem" title="My photos" id="blE-7S-ftL"/>
                     <simulatedNavigationBarMetrics key="simulatedTopBarMetrics" prompted="NO"/>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="shY-19-FdY" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -2700,369 +2693,21 @@
         <image name="unlocked.png" width="36" height="36"/>
         <image name="whiteButton.png" width="127" height="35"/>
     </resources>
-    <classes>
-        <class className="ECSlidingViewController" superclassName="UIViewController">
-            <source key="sourceIdentifier" type="project" relativePath="./Classes/ECSlidingViewController.h"/>
-        </class>
-        <class className="FDAddLocationViewController" superclassName="UIViewController">
-            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDAddLocationViewController.h"/>
-            <relationships>
-                <relationship kind="action" name="removeLocation:"/>
-                <relationship kind="action" name="selectHome"/>
-                <relationship kind="outlet" name="foursquareLogoView" candidateClass="UIImageView"/>
-                <relationship kind="outlet" name="mapView" candidateClass="MKMapView"/>
-                <relationship kind="outlet" name="searchBar" candidateClass="UISearchBar"/>
-                <relationship kind="outlet" name="tableContainerView" candidateClass="UIView"/>
-                <relationship kind="outlet" name="tableView" candidateClass="UITableView"/>
-            </relationships>
-        </class>
-        <class className="FDCameraViewController" superclassName="UIViewController">
-            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDCameraViewController.h"/>
-            <relationships>
-                <relationship kind="action" name="cancel"/>
-                <relationship kind="action" name="captureStillImage:"/>
-                <relationship kind="action" name="libraryButtonTapped"/>
-                <relationship kind="outlet" name="backgroundTopFrame" candidateClass="UIImageView"/>
-                <relationship kind="outlet" name="cancelButton" candidateClass="UIButton"/>
-                <relationship kind="outlet" name="filterScrollView" candidateClass="UIScrollView"/>
-                <relationship kind="outlet" name="filterScrollViewBackground" candidateClass="UIImageView"/>
-                <relationship kind="outlet" name="libraryButton" candidateClass="UIButton"/>
-                <relationship kind="outlet" name="photoPreviewImageView" candidateClass="UIImageView"/>
-                <relationship kind="outlet" name="takePhotoButton" candidateClass="UIButton"/>
-                <relationship kind="outlet" name="useButton" candidateClass="UIButton"/>
-            </relationships>
-        </class>
-        <class className="FDCategoryPostsViewController" superclassName="UIViewController">
-            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDCategoryPostsViewController.h"/>
-            <relationships>
-                <relationship kind="outlet" name="tableView" candidateClass="UITableView"/>
-            </relationships>
-        </class>
-        <class className="FDClipView" superclassName="UIView">
-            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDClipView.h"/>
-            <relationships>
-                <relationship kind="outlet" name="_scrollView" candidateClass="UIScrollView"/>
-            </relationships>
-        </class>
-        <class className="FDEditProfileViewController" superclassName="UIViewController">
-            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDEditProfileViewController.h"/>
-            <relationships>
-                <relationship kind="action" name="back"/>
-                <relationship kind="action" name="cancel"/>
-                <relationship kind="action" name="editPhoto"/>
-                <relationship kind="action" name="submitDetails"/>
-                <relationship kind="outlet" name="backButton" candidateClass="UIBarButtonItem"/>
-                <relationship kind="outlet" name="cancelButton" candidateClass="UIBarButtonItem"/>
-                <relationship kind="outlet" name="locationTextField" candidateClass="UITextField"/>
-                <relationship kind="outlet" name="nameTextField" candidateClass="UITextField"/>
-                <relationship kind="outlet" name="navBar" candidateClass="UINavigationBar"/>
-                <relationship kind="outlet" name="passwordBackground" candidateClass="UIImageView"/>
-                <relationship kind="outlet" name="passwordTextField" candidateClass="UITextField"/>
-                <relationship kind="outlet" name="philosophyTextView" candidateClass="UITextView"/>
-                <relationship kind="outlet" name="photoPrompt" candidateClass="UILabel"/>
-                <relationship kind="outlet" name="saveProfileButton" candidateClass="UIButton"/>
-                <relationship kind="outlet" name="tableView" candidateClass="UITableView"/>
-                <relationship kind="outlet" name="userPhoto" candidateClass="UIButton"/>
-            </relationships>
-        </class>
-        <class className="FDFeedNavigationViewController" superclassName="UINavigationController">
-            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDFeedNavigationViewController.h"/>
-        </class>
-        <class className="FDFeedViewController" superclassName="UIViewController">
-            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDFeedViewController.h"/>
-            <relationships>
-                <relationship kind="action" name="revealMenu:" candidateClass="UIBarButtonItem"/>
-                <relationship kind="action" name="rightBarButtonAction"/>
-                <relationship kind="outlet" name="_scrollView" candidateClass="UIScrollView"/>
-                <relationship kind="outlet" name="addPostButton" candidateClass="UIButton"/>
-                <relationship kind="outlet" name="clipView" candidateClass="UIView"/>
-                <relationship kind="outlet" name="clipViewBackground" candidateClass="UIImageView"/>
-                <relationship kind="outlet" name="featuredLabel" candidateClass="UILabel"/>
-                <relationship kind="outlet" name="feedContainerView" candidateClass="UIView"/>
-                <relationship kind="outlet" name="feedLabel" candidateClass="UILabel"/>
-                <relationship kind="outlet" name="keepersLabel" candidateClass="UILabel"/>
-                <relationship kind="outlet" name="menuButtonItem" candidateClass="UIBarButtonItem"/>
-                <relationship kind="outlet" name="nearbyLabel" candidateClass="UILabel"/>
-                <relationship kind="outlet" name="recLabel" candidateClass="UILabel"/>
-                <relationship kind="outlet" name="resultsTableView" candidateClass="UITableView"/>
-                <relationship kind="outlet" name="sliderButtonItem" candidateClass="UIBarButtonItem"/>
-            </relationships>
-        </class>
-        <class className="FDFoodNavigationController" superclassName="UINavigationController">
-            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDFoodNavigationController.h"/>
-        </class>
-        <class className="FDFoodViewController" superclassName="UIViewController">
-            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDFoodViewController.h"/>
-            <relationships>
-                <relationship kind="action" name="month"/>
-                <relationship kind="action" name="revealMenu:" candidateClass="UIBarButtonItem"/>
-                <relationship kind="action" name="rightBarButtonAction"/>
-                <relationship kind="action" name="week"/>
-                <relationship kind="action" name="year"/>
-                <relationship kind="outlet" name="homeStatsLabel" candidateClass="UILabel"/>
-                <relationship kind="outlet" name="mapContainerView" candidateClass="UIView"/>
-                <relationship kind="outlet" name="mapView" candidateClass="MKMapView"/>
-                <relationship kind="outlet" name="maxTagLabel" candidateClass="UILabel"/>
-                <relationship kind="outlet" name="monthButton" candidateClass="UIButton"/>
-                <relationship kind="outlet" name="tableView" candidateClass="UITableView"/>
-                <relationship kind="outlet" name="tagContainerView" candidateClass="UIView"/>
-                <relationship kind="outlet" name="weekButton" candidateClass="UIButton"/>
-                <relationship kind="outlet" name="yearButton" candidateClass="UIButton"/>
-            </relationships>
-        </class>
-        <class className="FDFoodiaTagsViewController" superclassName="UIViewController">
-            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDFoodiaTagsViewController.h"/>
-            <relationships>
-                <relationship kind="outlet" name="tableView" candidateClass="UITableView"/>
-                <relationship kind="outlet" name="tagContainerView" candidateClass="UIView"/>
-            </relationships>
-        </class>
-        <class className="FDLoginViewController" superclassName="UIViewController">
-            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDLoginViewController.h"/>
-            <relationships>
-                <relationship kind="action" name="cancelEmailConnect"/>
-                <relationship kind="action" name="forgotPassword"/>
-                <relationship kind="action" name="login:"/>
-                <relationship kind="action" name="showEmailConnect"/>
-                <relationship kind="outlet" name="cancelEmailButton" candidateClass="UIButton"/>
-                <relationship kind="outlet" name="dummyStuff" candidateClass="UIView"/>
-                <relationship kind="outlet" name="emailButton" candidateClass="UIButton"/>
-                <relationship kind="outlet" name="emailContainerView" candidateClass="UIView"/>
-                <relationship kind="outlet" name="emailTextField" candidateClass="UITextField"/>
-                <relationship kind="outlet" name="forgotPasswordButton" candidateClass="UIButton"/>
-                <relationship kind="outlet" name="loginButton" candidateClass="UIButton"/>
-                <relationship kind="outlet" name="loginEmailButton" candidateClass="UIButton"/>
-                <relationship kind="outlet" name="logoImageView" candidateClass="UIImageView"/>
-                <relationship kind="outlet" name="nameBackground" candidateClass="UIImageView"/>
-                <relationship kind="outlet" name="nameTextField" candidateClass="UITextField"/>
-                <relationship kind="outlet" name="pageControl" candidateClass="UIPageControl"/>
-                <relationship kind="outlet" name="passwordTextField" candidateClass="UITextField"/>
-                <relationship kind="outlet" name="previewScrollView" candidateClass="UIScrollView"/>
-                <relationship kind="outlet" name="signupEmailButton" candidateClass="UIButton"/>
-            </relationships>
-        </class>
-        <class className="FDMenuViewController" superclassName="UITableViewController">
-            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDMenuViewController.h"/>
-        </class>
-        <class className="FDNewPostViewController" superclassName="UIViewController">
-            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDNewPostViewController.h"/>
-            <relationships>
-                <relationship kind="action" name="addPhoto:"/>
-                <relationship kind="action" name="editCategory:"/>
-                <relationship kind="action" name="editPhoto:"/>
-                <relationship kind="action" name="submitPost:"/>
-                <relationship kind="action" name="toggleFacebook"/>
-                <relationship kind="action" name="togglePrivate"/>
-                <relationship kind="outlet" name="addPhotoLabel" candidateClass="UILabel"/>
-                <relationship kind="outlet" name="captionTextView" candidateClass="UITextView"/>
-                <relationship kind="outlet" name="deleteButton" candidateClass="UIButton"/>
-                <relationship kind="outlet" name="facebookButton" candidateClass="UIButton"/>
-                <relationship kind="outlet" name="foodiaObjectButton" candidateClass="UIButton"/>
-                <relationship kind="outlet" name="foodiaObjectLabel" candidateClass="UILabel"/>
-                <relationship kind="outlet" name="foursquareButton" candidateClass="UIButton"/>
-                <relationship kind="outlet" name="friendsButton" candidateClass="UIButton"/>
-                <relationship kind="outlet" name="friendsScrollView" candidateClass="UIScrollView"/>
-                <relationship kind="outlet" name="instagramButton" candidateClass="UIButton"/>
-                <relationship kind="outlet" name="locationButton" candidateClass="UIButton"/>
-                <relationship kind="outlet" name="locationLabel" candidateClass="UILabel"/>
-                <relationship kind="outlet" name="lockButton" candidateClass="UIButton"/>
-                <relationship kind="outlet" name="photoBackgroundView" candidateClass="UIImageView"/>
-                <relationship kind="outlet" name="photoButton" candidateClass="UIButton"/>
-                <relationship kind="outlet" name="postButtonItem" candidateClass="UIBarButtonItem"/>
-                <relationship kind="outlet" name="posterImageView" candidateClass="UIImageView"/>
-                <relationship kind="outlet" name="searchResultsTableView" candidateClass="UITableView"/>
-                <relationship kind="outlet" name="tagButton" candidateClass="UIButton"/>
-                <relationship kind="outlet" name="tagScrollView" candidateClass="UIScrollView"/>
-                <relationship kind="outlet" name="tagTitleLabel" candidateClass="UILabel"/>
-                <relationship kind="outlet" name="takePhotoButton" candidateClass="UIButton"/>
-                <relationship kind="outlet" name="twitterButton" candidateClass="UIButton"/>
-            </relationships>
-        </class>
-        <class className="FDPeopleTableViewController" superclassName="UITableViewController">
-            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDPeopleTableViewController.h"/>
-        </class>
-        <class className="FDPhotoLibraryViewController" superclassName="UITableViewController">
-            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDPhotoLibraryViewController.h"/>
-        </class>
-        <class className="FDPlaceViewController" superclassName="UIViewController">
-            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDPlaceViewController.h"/>
-            <relationships>
-                <relationship kind="action" name="getReservation:"/>
-                <relationship kind="outlet" name="categoryTextField" candidateClass="UITextField"/>
-                <relationship kind="outlet" name="cityStateCountry" candidateClass="UILabel"/>
-                <relationship kind="outlet" name="directionsButton" candidateClass="UIButton"/>
-                <relationship kind="outlet" name="foodiaPosts" candidateClass="UILabel"/>
-                <relationship kind="outlet" name="hoursTextView" candidateClass="UITextView"/>
-                <relationship kind="outlet" name="infoContainerView" candidateClass="UIView"/>
-                <relationship kind="outlet" name="mapView" candidateClass="MKMapView"/>
-                <relationship kind="outlet" name="menuLink" candidateClass="UIButton"/>
-                <relationship kind="outlet" name="placeLabel" candidateClass="UILabel"/>
-                <relationship kind="outlet" name="postsContainerTableView" candidateClass="UITableView"/>
-                <relationship kind="outlet" name="reservationsLink" candidateClass="UIButton"/>
-                <relationship kind="outlet" name="streetAddress" candidateClass="UILabel"/>
-                <relationship kind="outlet" name="totalCheckinsLabel" candidateClass="UILabel"/>
-            </relationships>
-        </class>
-        <class className="FDPostCategoryViewController" superclassName="UIViewController">
-            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDPostCategoryViewController.h"/>
-            <relationships>
-                <relationship kind="action" name="cancel:"/>
-                <relationship kind="action" name="clearTextField:"/>
-                <relationship kind="action" name="quickPost"/>
-                <relationship kind="action" name="textFieldDidChange:"/>
-                <relationship kind="outlet" name="clearButton" candidateClass="UIButton"/>
-                <relationship kind="outlet" name="drinkingContainerView" candidateClass="UIView"/>
-                <relationship kind="outlet" name="drinkingTitleView" candidateClass="UILabel"/>
-                <relationship kind="outlet" name="dummyView" candidateClass="UIImageView"/>
-                <relationship kind="outlet" name="eatingContainerView" candidateClass="UIView"/>
-                <relationship kind="outlet" name="eatingTitleView" candidateClass="UILabel"/>
-                <relationship kind="outlet" name="makingContainerView" candidateClass="UIView"/>
-                <relationship kind="outlet" name="makingTitleView" candidateClass="UILabel"/>
-                <relationship kind="outlet" name="objectTextField" candidateClass="UITextField"/>
-                <relationship kind="outlet" name="quickPostButtonItem" candidateClass="UIBarButtonItem"/>
-                <relationship kind="outlet" name="searchResultsTableView" candidateClass="UITableView"/>
-                <relationship kind="outlet" name="shoppingContainerView" candidateClass="UIView"/>
-                <relationship kind="outlet" name="shoppingTitleView" candidateClass="UILabel"/>
-                <relationship kind="outlet" name="textFieldImageView" candidateClass="UIImageView"/>
-            </relationships>
-        </class>
-        <class className="FDPostViewController" superclassName="UIViewController">
-            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDPostViewController.h"/>
-            <relationships>
-                <relationship kind="action" name="expandImage:"/>
-                <relationship kind="action" name="handlePan:" candidateClass="UIPanGestureRecognizer"/>
-                <relationship kind="action" name="handlePhotoPinch:" candidateClass="UIPinchGestureRecognizer"/>
-                <relationship kind="action" name="recommend"/>
-                <relationship kind="action" name="showPlace:" candidateClass="UIButton"/>
-                <relationship kind="action" name="tapToLike"/>
-                <relationship kind="outlet" name="captionTextView" candidateClass="UITextView"/>
-                <relationship kind="outlet" name="likeButton" candidateClass="UIButton"/>
-                <relationship kind="outlet" name="likeCountLabel" candidateClass="UILabel"/>
-                <relationship kind="outlet" name="likeNotificationContainer" candidateClass="UIView"/>
-                <relationship kind="outlet" name="likeNotificationImageView" candidateClass="UIImageView"/>
-                <relationship kind="outlet" name="likersScrollView" candidateClass="UIScrollView"/>
-                <relationship kind="outlet" name="locationButton" candidateClass="UIButton"/>
-                <relationship kind="outlet" name="panGesture" candidateClass="UIPanGestureRecognizer"/>
-                <relationship kind="outlet" name="photoBackground" candidateClass="UIImageView"/>
-                <relationship kind="outlet" name="photoButton" candidateClass="UIButton"/>
-                <relationship kind="outlet" name="photoImageView" candidateClass="UIImageView"/>
-                <relationship kind="outlet" name="pinchGesture" candidateClass="UIPinchGestureRecognizer"/>
-                <relationship kind="outlet" name="postTitle" candidateClass="UILabel"/>
-                <relationship kind="outlet" name="posterButton" candidateClass="UIButton"/>
-                <relationship kind="outlet" name="progressView" candidateClass="UIProgressView"/>
-                <relationship kind="outlet" name="recButton" candidateClass="UIButton"/>
-                <relationship kind="outlet" name="recCountLabel" candidateClass="UILabel"/>
-                <relationship kind="outlet" name="socialLabel" candidateClass="UITextView"/>
-                <relationship kind="outlet" name="tableHeaderView" candidateClass="UIView"/>
-                <relationship kind="outlet" name="tableView" candidateClass="UITableView"/>
-                <relationship kind="outlet" name="tagsScrollView" candidateClass="UIScrollView"/>
-                <relationship kind="outlet" name="whiteCaption" candidateClass="UITextView"/>
-            </relationships>
-        </class>
-        <class className="FDPostsTagsViewController" superclassName="UITableViewController">
-            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDPostsTagsViewController.h"/>
-        </class>
-        <class className="FDProfileMapViewController" superclassName="UIViewController">
-            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDProfileMapViewController.h"/>
-            <relationships>
-                <relationship kind="outlet" name="mapView" candidateClass="MKMapView"/>
-            </relationships>
-        </class>
-        <class className="FDProfileNavigationController" superclassName="UINavigationController">
-            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDProfileNavigationController.h"/>
-        </class>
-        <class className="FDProfileViewController" superclassName="UIViewController">
-            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDProfileViewController.h"/>
-            <relationships>
-                <relationship kind="action" name="activateSearch"/>
-                <relationship kind="action" name="followButtonTapped"/>
-                <relationship kind="action" name="showFollowers:"/>
-                <relationship kind="action" name="showFollowing:"/>
-                <relationship kind="outlet" name="activateSearchButton" candidateClass="UIBarButtonItem"/>
-                <relationship kind="outlet" name="followerCountLabel" candidateClass="UILabel"/>
-                <relationship kind="outlet" name="followersButton" candidateClass="UIButton"/>
-                <relationship kind="outlet" name="followersButtonBackground" candidateClass="UIView"/>
-                <relationship kind="outlet" name="followingButton" candidateClass="UIButton"/>
-                <relationship kind="outlet" name="followingButtonBackground" candidateClass="UIView"/>
-                <relationship kind="outlet" name="followingCountLabel" candidateClass="UILabel"/>
-                <relationship kind="outlet" name="inactiveLabel" candidateClass="UILabel"/>
-                <relationship kind="outlet" name="locationSearchBar" candidateClass="UISearchBar"/>
-                <relationship kind="outlet" name="philosophyTextView" candidateClass="UITextView"/>
-                <relationship kind="outlet" name="postButton" candidateClass="UIButton"/>
-                <relationship kind="outlet" name="postCountLabel" candidateClass="UILabel"/>
-                <relationship kind="outlet" name="postList" candidateClass="UITableView"/>
-                <relationship kind="outlet" name="postsButtonBackground" candidateClass="UIView"/>
-                <relationship kind="outlet" name="profileButton" candidateClass="UIButton"/>
-                <relationship kind="outlet" name="profileDetailsContainerView" candidateClass="UIView"/>
-                <relationship kind="outlet" name="searchBar" candidateClass="UISearchBar"/>
-                <relationship kind="outlet" name="socialButton" candidateClass="UIButton"/>
-                <relationship kind="outlet" name="userNameLabel" candidateClass="UILabel"/>
-            </relationships>
-        </class>
-        <class className="FDQuickPostViewController" superclassName="UIViewController">
-            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDQuickPostViewController.h"/>
-            <relationships>
-                <relationship kind="action" name="post"/>
-                <relationship kind="outlet" name="postBarButton" candidateClass="UIBarButtonItem"/>
-                <relationship kind="outlet" name="tableView" candidateClass="UITableView"/>
-            </relationships>
-        </class>
-        <class className="FDRecommendViewController" superclassName="FDPeopleTableViewController">
-            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDRecommendViewController.h"/>
-            <relationships>
-                <relationship kind="outlet" name="rightBarButton" candidateClass="UIBarButtonItem"/>
-            </relationships>
-        </class>
-        <class className="FDSettingsNavigationController" superclassName="UINavigationController">
-            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDSettingsNavigationController.h"/>
-        </class>
-        <class className="FDSettingsViewController" superclassName="UITableViewController">
-            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDSettingsViewController.h"/>
-            <relationships>
-                <relationship kind="action" name="revealMenu:" candidateClass="UIBarButtonItem"/>
-                <relationship kind="action" name="save"/>
-            </relationships>
-        </class>
-        <class className="FDSlidingViewController" superclassName="ECSlidingViewController">
-            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDSlidingViewController.h"/>
-        </class>
-        <class className="FDSocialNavigationController" superclassName="UINavigationController">
-            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDSocialNavigationController.h"/>
-        </class>
-        <class className="FDSocialViewController" superclassName="FDPeopleTableViewController">
-            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDSocialViewController.h"/>
-            <relationships>
-                <relationship kind="action" name="revealMenu:" candidateClass="UIBarButtonItem"/>
-            </relationships>
-        </class>
-        <class className="FDTagFriendsViewController" superclassName="FDPeopleTableViewController">
-            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDTagFriendsViewController.h"/>
-        </class>
-        <class className="FDWebViewController" superclassName="UIViewController">
-            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDWebViewController.h"/>
-            <relationships>
-                <relationship kind="outlet" name="webView" candidateClass="UIWebView"/>
-            </relationships>
-        </class>
-        <class className="GPUImageView" superclassName="UIView">
-            <source key="sourceIdentifier" type="project" relativePath="./Classes/GPUImageView.h"/>
-        </class>
-    </classes>
     <simulatedMetricsContainer key="defaultSimulatedMetrics">
         <simulatedStatusBarMetrics key="statusBar"/>
         <simulatedOrientationMetrics key="orientation"/>
         <simulatedScreenMetrics key="destination" type="retina4"/>
     </simulatedMetricsContainer>
     <inferredMetricsTieBreakers>
-        <segue reference="n2I-9e-igY"/>
-        <segue reference="wY5-Cf-Zjc"/>
-        <segue reference="PFm-Dz-5YW"/>
-        <segue reference="Gdx-Lc-QrM"/>
         <segue reference="AkI-fa-Shb"/>
-        <segue reference="SQ7-Sr-bqR"/>
+        <segue reference="xTD-uL-ChC"/>
+        <segue reference="jdK-Fe-BEE"/>
+        <segue reference="B26-Xf-QKD"/>
         <segue reference="Mia-RT-mcR"/>
-        <segue reference="0gE-BN-3hW"/>
+        <segue reference="PfF-WD-5In"/>
         <segue reference="hLd-A2-Vcq"/>
-        <segue reference="Fgh-VY-fSj"/>
+        <segue reference="XlU-2y-kuv"/>
+        <segue reference="BE1-Zd-SkR"/>
+        <segue reference="Gdx-Lc-QrM"/>
     </inferredMetricsTieBreakers>
 </document>

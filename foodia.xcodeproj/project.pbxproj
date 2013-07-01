@@ -152,7 +152,6 @@
 		F2234DB81719D5B000958E5F /* NSData+Base64.m in Sources */ = {isa = PBXBuildFile; fileRef = F2234DAA1719D5B000958E5F /* NSData+Base64.m */; };
 		F2234DB91719D5B000958E5F /* OAuth+Additions.m in Sources */ = {isa = PBXBuildFile; fileRef = F2234DAC1719D5B000958E5F /* OAuth+Additions.m */; };
 		F2234DBA1719D5B000958E5F /* OAuthCore.m in Sources */ = {isa = PBXBuildFile; fileRef = F2234DAE1719D5B000958E5F /* OAuthCore.m */; };
-		F2234DBB1719D5B000958E5F /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = F2234DAF1719D5B000958E5F /* README.md */; };
 		F2234DBC1719D5B000958E5F /* TWAPIManager.m in Sources */ = {isa = PBXBuildFile; fileRef = F2234DB11719D5B000958E5F /* TWAPIManager.m */; };
 		F2234DBD1719D5B000958E5F /* TwitterReverseOAuthResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = F2234DB31719D5B000958E5F /* TwitterReverseOAuthResponse.m */; };
 		F2234DBE1719D5B000958E5F /* TWSignedRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = F2234DB51719D5B000958E5F /* TWSignedRequest.m */; };
@@ -162,15 +161,6 @@
 		F2234DC8171B5C2B00958E5F /* lookup_soft_elegance_2.png in Resources */ = {isa = PBXBuildFile; fileRef = F2234DC3171B5C2B00958E5F /* lookup_soft_elegance_2.png */; };
 		F2234DC9171B5C2B00958E5F /* lookup.png in Resources */ = {isa = PBXBuildFile; fileRef = F2234DC4171B5C2B00958E5F /* lookup.png */; };
 		F2234DCB171C15AA00958E5F /* grapes.jpg in Resources */ = {isa = PBXBuildFile; fileRef = F2234DCA171C15AA00958E5F /* grapes.jpg */; };
-		F22AA2D91720690200C33E52 /* FOODIA-app-icon-20.png in Resources */ = {isa = PBXBuildFile; fileRef = F22AA2D01720690200C33E52 /* FOODIA-app-icon-20.png */; };
-		F22AA2DA1720690200C33E52 /* FOODIA-app-icon-29.png in Resources */ = {isa = PBXBuildFile; fileRef = F22AA2D11720690200C33E52 /* FOODIA-app-icon-29.png */; };
-		F22AA2DB1720690200C33E52 /* FOODIA-app-icon-40.png in Resources */ = {isa = PBXBuildFile; fileRef = F22AA2D21720690200C33E52 /* FOODIA-app-icon-40.png */; };
-		F22AA2DC1720690200C33E52 /* FOODIA-app-icon-57.png in Resources */ = {isa = PBXBuildFile; fileRef = F22AA2D31720690200C33E52 /* FOODIA-app-icon-57.png */; };
-		F22AA2DD1720690200C33E52 /* FOODIA-app-icon-58.png in Resources */ = {isa = PBXBuildFile; fileRef = F22AA2D41720690200C33E52 /* FOODIA-app-icon-58.png */; };
-		F22AA2DE1720690200C33E52 /* FOODIA-app-icon-114.png in Resources */ = {isa = PBXBuildFile; fileRef = F22AA2D51720690200C33E52 /* FOODIA-app-icon-114.png */; };
-		F22AA2DF1720690200C33E52 /* FOODIA-app-icon-256.png in Resources */ = {isa = PBXBuildFile; fileRef = F22AA2D61720690200C33E52 /* FOODIA-app-icon-256.png */; };
-		F22AA2E01720690200C33E52 /* FOODIA-app-icon-512.png in Resources */ = {isa = PBXBuildFile; fileRef = F22AA2D71720690200C33E52 /* FOODIA-app-icon-512.png */; };
-		F22AA2E11720690200C33E52 /* FOODIA-app-icon-1024.png in Resources */ = {isa = PBXBuildFile; fileRef = F22AA2D81720690200C33E52 /* FOODIA-app-icon-1024.png */; };
 		F22AA32E1721589F00C33E52 /* background4.png in Resources */ = {isa = PBXBuildFile; fileRef = F22AA32D1721589F00C33E52 /* background4.png */; };
 		F22AA3311721599A00C33E52 /* background.png in Resources */ = {isa = PBXBuildFile; fileRef = F22AA32F1721599A00C33E52 /* background.png */; };
 		F22AA3321721599A00C33E52 /* background@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F22AA3301721599A00C33E52 /* background@2x.png */; };
@@ -242,8 +232,6 @@
 		F26296A3171FDB4E000AA0E0 /* lookup_bright.png in Resources */ = {isa = PBXBuildFile; fileRef = F26296A2171FDB4E000AA0E0 /* lookup_bright.png */; };
 		F26296AE171FE5BA000AA0E0 /* bright.jpg in Resources */ = {isa = PBXBuildFile; fileRef = F26296AC171FE5B8000AA0E0 /* bright.jpg */; };
 		F26296AF171FE5BA000AA0E0 /* bright@2x.jpg in Resources */ = {isa = PBXBuildFile; fileRef = F26296AD171FE5B9000AA0E0 /* bright@2x.jpg */; };
-		F26296B7171FE7EC000AA0E0 /* experiment@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F26296B6171FE7EB000AA0E0 /* experiment@2x.png */; };
-		F26296B9171FE7EF000AA0E0 /* experiment.png in Resources */ = {isa = PBXBuildFile; fileRef = F26296B8171FE7EE000AA0E0 /* experiment.png */; };
 		F26296BD171FE95C000AA0E0 /* foodiaBackground4.png in Resources */ = {isa = PBXBuildFile; fileRef = F26296BC171FE95C000AA0E0 /* foodiaBackground4.png */; };
 		F26296C0171FE9E4000AA0E0 /* foodiaBackground.png in Resources */ = {isa = PBXBuildFile; fileRef = F26296BE171FE9E2000AA0E0 /* foodiaBackground.png */; };
 		F26296C1171FE9E4000AA0E0 /* foodiaBackground@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F26296BF171FE9E3000AA0E0 /* foodiaBackground@2x.png */; };
@@ -315,6 +303,16 @@
 		F297304B16A86BD4009976B7 /* FDGoogleAPIClient.m in Sources */ = {isa = PBXBuildFile; fileRef = F297304A16A86BD4009976B7 /* FDGoogleAPIClient.m */; };
 		F2A3035B170F4FDC008C8DF3 /* light-bulb-icon.png in Resources */ = {isa = PBXBuildFile; fileRef = F2A3035A170F4FDC008C8DF3 /* light-bulb-icon.png */; };
 		F2A34C97160625E4001D2A63 /* FDProfileViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F2A34C95160625E4001D2A63 /* FDProfileViewController.m */; };
+		F2A388C01774FD6C002EBB7E /* FOODIA-app-icon-120.png in Resources */ = {isa = PBXBuildFile; fileRef = F2A388B61774FD67002EBB7E /* FOODIA-app-icon-120.png */; };
+		F2A388C11774FD6C002EBB7E /* FOODIA-app-icon-512.png in Resources */ = {isa = PBXBuildFile; fileRef = F2A388B71774FD67002EBB7E /* FOODIA-app-icon-512.png */; };
+		F2A388C21774FD6C002EBB7E /* FOODIA-app-icon-256.png in Resources */ = {isa = PBXBuildFile; fileRef = F2A388B81774FD67002EBB7E /* FOODIA-app-icon-256.png */; };
+		F2A388C31774FD6C002EBB7E /* FOODIA-app-icon-58.png in Resources */ = {isa = PBXBuildFile; fileRef = F2A388B91774FD68002EBB7E /* FOODIA-app-icon-58.png */; };
+		F2A388C41774FD6C002EBB7E /* FOODIA-app-icon-40.png in Resources */ = {isa = PBXBuildFile; fileRef = F2A388BA1774FD68002EBB7E /* FOODIA-app-icon-40.png */; };
+		F2A388C51774FD6C002EBB7E /* FOODIA-app-icon-29.png in Resources */ = {isa = PBXBuildFile; fileRef = F2A388BB1774FD69002EBB7E /* FOODIA-app-icon-29.png */; };
+		F2A388C61774FD6C002EBB7E /* FOODIA-app-icon-20.png in Resources */ = {isa = PBXBuildFile; fileRef = F2A388BC1774FD69002EBB7E /* FOODIA-app-icon-20.png */; };
+		F2A388C71774FD6C002EBB7E /* FOODIA-app-icon-114.png in Resources */ = {isa = PBXBuildFile; fileRef = F2A388BD1774FD6A002EBB7E /* FOODIA-app-icon-114.png */; };
+		F2A388C81774FD6C002EBB7E /* FOODIA-app-icon-57.png in Resources */ = {isa = PBXBuildFile; fileRef = F2A388BE1774FD6A002EBB7E /* FOODIA-app-icon-57.png */; };
+		F2A388C91774FD6C002EBB7E /* FOODIA-app-icon-1024.png in Resources */ = {isa = PBXBuildFile; fileRef = F2A388BF1774FD6B002EBB7E /* FOODIA-app-icon-1024.png */; };
 		F2A42780161C0845009C2DB5 /* iPhone5.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F2A4277F161C0845009C2DB5 /* iPhone5.storyboard */; };
 		F2A5E13E16A92ADF0083B454 /* magnifier.png in Resources */ = {isa = PBXBuildFile; fileRef = F2A5E13C16A92ADF0083B454 /* magnifier.png */; };
 		F2A5E13F16A92ADF0083B454 /* magnifier@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F2A5E13D16A92ADF0083B454 /* magnifier@2x.png */; };
@@ -346,8 +344,6 @@
 		F2B1DCBA1755374400244662 /* right_arrow.png in Resources */ = {isa = PBXBuildFile; fileRef = F2B1DCB81755374400244662 /* right_arrow.png */; };
 		F2B1DCBB1755374400244662 /* right_arrow@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F2B1DCB91755374400244662 /* right_arrow@2x.png */; };
 		F2BDA95D176A4B9B002CE56C /* libTestFlight.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F2BDA959176A4B9B002CE56C /* libTestFlight.a */; };
-		F2BDA95E176A4B9B002CE56C /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = F2BDA95A176A4B9B002CE56C /* README.md */; };
-		F2BDA95F176A4B9B002CE56C /* release_notes.md in Resources */ = {isa = PBXBuildFile; fileRef = F2BDA95B176A4B9B002CE56C /* release_notes.md */; };
 		F2BDA963176A4CF5002CE56C /* libFlurry.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F2BDA962176A4CF5002CE56C /* libFlurry.a */; };
 		F2C1092416897BB200E5F933 /* foursquare.png in Resources */ = {isa = PBXBuildFile; fileRef = F2C1092016897BB200E5F933 /* foursquare.png */; };
 		F2C1092516897BB200E5F933 /* foursquareGray.png in Resources */ = {isa = PBXBuildFile; fileRef = F2C1092116897BB200E5F933 /* foursquareGray.png */; };
@@ -742,15 +738,6 @@
 		F2234DC3171B5C2B00958E5F /* lookup_soft_elegance_2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = lookup_soft_elegance_2.png; sourceTree = "<group>"; };
 		F2234DC4171B5C2B00958E5F /* lookup.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = lookup.png; sourceTree = "<group>"; };
 		F2234DCA171C15AA00958E5F /* grapes.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = grapes.jpg; sourceTree = "<group>"; };
-		F22AA2D01720690200C33E52 /* FOODIA-app-icon-20.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "FOODIA-app-icon-20.png"; sourceTree = "<group>"; };
-		F22AA2D11720690200C33E52 /* FOODIA-app-icon-29.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "FOODIA-app-icon-29.png"; sourceTree = "<group>"; };
-		F22AA2D21720690200C33E52 /* FOODIA-app-icon-40.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "FOODIA-app-icon-40.png"; sourceTree = "<group>"; };
-		F22AA2D31720690200C33E52 /* FOODIA-app-icon-57.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "FOODIA-app-icon-57.png"; sourceTree = "<group>"; };
-		F22AA2D41720690200C33E52 /* FOODIA-app-icon-58.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "FOODIA-app-icon-58.png"; sourceTree = "<group>"; };
-		F22AA2D51720690200C33E52 /* FOODIA-app-icon-114.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "FOODIA-app-icon-114.png"; sourceTree = "<group>"; };
-		F22AA2D61720690200C33E52 /* FOODIA-app-icon-256.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "FOODIA-app-icon-256.png"; sourceTree = "<group>"; };
-		F22AA2D71720690200C33E52 /* FOODIA-app-icon-512.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "FOODIA-app-icon-512.png"; sourceTree = "<group>"; };
-		F22AA2D81720690200C33E52 /* FOODIA-app-icon-1024.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "FOODIA-app-icon-1024.png"; sourceTree = "<group>"; };
 		F22AA32D1721589F00C33E52 /* background4.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = background4.png; sourceTree = "<group>"; };
 		F22AA32F1721599A00C33E52 /* background.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = background.png; sourceTree = "<group>"; };
 		F22AA3301721599A00C33E52 /* background@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "background@2x.png"; sourceTree = "<group>"; };
@@ -823,8 +810,6 @@
 		F26296A2171FDB4E000AA0E0 /* lookup_bright.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = lookup_bright.png; sourceTree = "<group>"; };
 		F26296AC171FE5B8000AA0E0 /* bright.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = bright.jpg; sourceTree = "<group>"; };
 		F26296AD171FE5B9000AA0E0 /* bright@2x.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = "bright@2x.jpg"; sourceTree = "<group>"; };
-		F26296B6171FE7EB000AA0E0 /* experiment@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "experiment@2x.png"; sourceTree = "<group>"; };
-		F26296B8171FE7EE000AA0E0 /* experiment.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = experiment.png; sourceTree = "<group>"; };
 		F26296BC171FE95C000AA0E0 /* foodiaBackground4.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = foodiaBackground4.png; sourceTree = "<group>"; };
 		F26296BE171FE9E2000AA0E0 /* foodiaBackground.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = foodiaBackground.png; sourceTree = "<group>"; };
 		F26296BF171FE9E3000AA0E0 /* foodiaBackground@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "foodiaBackground@2x.png"; sourceTree = "<group>"; };
@@ -950,6 +935,17 @@
 		F2A3035A170F4FDC008C8DF3 /* light-bulb-icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "light-bulb-icon.png"; sourceTree = "<group>"; };
 		F2A34C94160625E4001D2A63 /* FDProfileViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FDProfileViewController.h; sourceTree = "<group>"; };
 		F2A34C95160625E4001D2A63 /* FDProfileViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FDProfileViewController.m; sourceTree = "<group>"; };
+		F2A388B61774FD67002EBB7E /* FOODIA-app-icon-120.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "FOODIA-app-icon-120.png"; sourceTree = "<group>"; };
+		F2A388B71774FD67002EBB7E /* FOODIA-app-icon-512.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "FOODIA-app-icon-512.png"; sourceTree = "<group>"; };
+		F2A388B81774FD67002EBB7E /* FOODIA-app-icon-256.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "FOODIA-app-icon-256.png"; sourceTree = "<group>"; };
+		F2A388B91774FD68002EBB7E /* FOODIA-app-icon-58.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "FOODIA-app-icon-58.png"; sourceTree = "<group>"; };
+		F2A388BA1774FD68002EBB7E /* FOODIA-app-icon-40.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "FOODIA-app-icon-40.png"; sourceTree = "<group>"; };
+		F2A388BB1774FD69002EBB7E /* FOODIA-app-icon-29.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "FOODIA-app-icon-29.png"; sourceTree = "<group>"; };
+		F2A388BC1774FD69002EBB7E /* FOODIA-app-icon-20.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "FOODIA-app-icon-20.png"; sourceTree = "<group>"; };
+		F2A388BD1774FD6A002EBB7E /* FOODIA-app-icon-114.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "FOODIA-app-icon-114.png"; sourceTree = "<group>"; };
+		F2A388BE1774FD6A002EBB7E /* FOODIA-app-icon-57.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "FOODIA-app-icon-57.png"; sourceTree = "<group>"; };
+		F2A388BF1774FD6B002EBB7E /* FOODIA-app-icon-1024.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "FOODIA-app-icon-1024.png"; sourceTree = "<group>"; };
+		F2A388CA1774FD7A002EBB7E /* FOODIA-app-icon-114.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "FOODIA-app-icon-114.png"; path = "../Dropbox/FOODIA/FOODIA - Design/Mobile UI/FOODIA Mobile Assets/FOODIA-app-icon-114.png"; sourceTree = "<group>"; };
 		F2A4277F161C0845009C2DB5 /* iPhone5.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = iPhone5.storyboard; sourceTree = "<group>"; };
 		F2A5E13C16A92ADF0083B454 /* magnifier.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = magnifier.png; sourceTree = "<group>"; };
 		F2A5E13D16A92ADF0083B454 /* magnifier@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "magnifier@2x.png"; sourceTree = "<group>"; };
@@ -1432,17 +1428,17 @@
 		897CB91915BB68F900DB53F7 = {
 			isa = PBXGroup;
 			children = (
-				F22AA2D01720690200C33E52 /* FOODIA-app-icon-20.png */,
-				F22AA2D11720690200C33E52 /* FOODIA-app-icon-29.png */,
-				F22AA2D21720690200C33E52 /* FOODIA-app-icon-40.png */,
-				F22AA2D31720690200C33E52 /* FOODIA-app-icon-57.png */,
-				F22AA2D41720690200C33E52 /* FOODIA-app-icon-58.png */,
-				F22AA2D51720690200C33E52 /* FOODIA-app-icon-114.png */,
-				F22AA2D61720690200C33E52 /* FOODIA-app-icon-256.png */,
-				F22AA2D71720690200C33E52 /* FOODIA-app-icon-512.png */,
-				F22AA2D81720690200C33E52 /* FOODIA-app-icon-1024.png */,
-				F26296B8171FE7EE000AA0E0 /* experiment.png */,
-				F26296B6171FE7EB000AA0E0 /* experiment@2x.png */,
+				F2A388CA1774FD7A002EBB7E /* FOODIA-app-icon-114.png */,
+				F2A388B61774FD67002EBB7E /* FOODIA-app-icon-120.png */,
+				F2A388B71774FD67002EBB7E /* FOODIA-app-icon-512.png */,
+				F2A388B81774FD67002EBB7E /* FOODIA-app-icon-256.png */,
+				F2A388B91774FD68002EBB7E /* FOODIA-app-icon-58.png */,
+				F2A388BA1774FD68002EBB7E /* FOODIA-app-icon-40.png */,
+				F2A388BB1774FD69002EBB7E /* FOODIA-app-icon-29.png */,
+				F2A388BC1774FD69002EBB7E /* FOODIA-app-icon-20.png */,
+				F2A388BD1774FD6A002EBB7E /* FOODIA-app-icon-114.png */,
+				F2A388BE1774FD6A002EBB7E /* FOODIA-app-icon-57.png */,
+				F2A388BF1774FD6B002EBB7E /* FOODIA-app-icon-1024.png */,
 				F2234D981719D48800958E5F /* GPUImage.xcodeproj */,
 				F25599C2171096560065E42B /* FacebookSDK.framework */,
 				F26A32D0170A33C3000AE066 /* iAd.framework */,
@@ -2440,7 +2436,6 @@
 				F2FE146D16C5D5CC006F8ACD /* FOODIA-black@2x.png in Resources */,
 				F2FE147416C5DB41006F8ACD /* loading.png in Resources */,
 				F2FE147516C5DB41006F8ACD /* loading@2x.png in Resources */,
-				F2BDA95E176A4B9B002CE56C /* README.md in Resources */,
 				F23D45DD16C6C60C003B63B4 /* plusButtonv2.png in Resources */,
 				F23D45DE16C6C60C003B63B4 /* plusButtonv2@2x.png in Resources */,
 				F2C249AC16E566EF00B86D76 /* overlay4.png in Resources */,
@@ -2479,7 +2474,6 @@
 				F22349031718A92A00958E5F /* up_arrow@2x.png in Resources */,
 				F2234DB61719D5B000958E5F /* .gitignore in Resources */,
 				F2234DB71719D5B000958E5F /* LICENSE in Resources */,
-				F2234DBB1719D5B000958E5F /* README.md in Resources */,
 				F2234DC5171B5C2B00958E5F /* lookup_miss_etikate.png in Resources */,
 				F2234DC6171B5C2B00958E5F /* lookup_soft_elegance_1.png in Resources */,
 				F2234DC7171B5C2B00958E5F /* lookup_amatorka.png in Resources */,
@@ -2520,20 +2514,9 @@
 				F26296A3171FDB4E000AA0E0 /* lookup_bright.png in Resources */,
 				F26296AE171FE5BA000AA0E0 /* bright.jpg in Resources */,
 				F26296AF171FE5BA000AA0E0 /* bright@2x.jpg in Resources */,
-				F26296B7171FE7EC000AA0E0 /* experiment@2x.png in Resources */,
-				F26296B9171FE7EF000AA0E0 /* experiment.png in Resources */,
 				F26296BD171FE95C000AA0E0 /* foodiaBackground4.png in Resources */,
 				F26296C0171FE9E4000AA0E0 /* foodiaBackground.png in Resources */,
 				F26296C1171FE9E4000AA0E0 /* foodiaBackground@2x.png in Resources */,
-				F22AA2D91720690200C33E52 /* FOODIA-app-icon-20.png in Resources */,
-				F22AA2DA1720690200C33E52 /* FOODIA-app-icon-29.png in Resources */,
-				F22AA2DB1720690200C33E52 /* FOODIA-app-icon-40.png in Resources */,
-				F22AA2DC1720690200C33E52 /* FOODIA-app-icon-57.png in Resources */,
-				F22AA2DD1720690200C33E52 /* FOODIA-app-icon-58.png in Resources */,
-				F22AA2DE1720690200C33E52 /* FOODIA-app-icon-114.png in Resources */,
-				F22AA2DF1720690200C33E52 /* FOODIA-app-icon-256.png in Resources */,
-				F22AA2E01720690200C33E52 /* FOODIA-app-icon-512.png in Resources */,
-				F22AA2E11720690200C33E52 /* FOODIA-app-icon-1024.png in Resources */,
 				F22AA32E1721589F00C33E52 /* background4.png in Resources */,
 				F22AA3311721599A00C33E52 /* background.png in Resources */,
 				F22AA3321721599A00C33E52 /* background@2x.png in Resources */,
@@ -2546,7 +2529,6 @@
 				F285201217298D04004A9DE0 /* refresh.png in Resources */,
 				F285201317298D04004A9DE0 /* refresh@2x.png in Resources */,
 				F2D49A09172DB8660059988C /* FDPhotoLibraryCell.xib in Resources */,
-				F2BDA95F176A4B9B002CE56C /* release_notes.md in Resources */,
 				F2D49A32172F12B70059988C /* newFoodiaHeader.png in Resources */,
 				F2D49A33172F12B70059988C /* newFoodiaHeader@2x.png in Resources */,
 				F2D49A43172F2B650059988C /* cameraButton.png in Resources */,
@@ -2599,6 +2581,16 @@
 				F2FCE0F01770D8E8004A4BC6 /* sidewaysIcon.png in Resources */,
 				F2FCE0F31770D99A004A4BC6 /* upsideDownIcon.png in Resources */,
 				F2FCE0F41770D99A004A4BC6 /* upsideDownIcon@2x.png in Resources */,
+				F2A388C01774FD6C002EBB7E /* FOODIA-app-icon-120.png in Resources */,
+				F2A388C11774FD6C002EBB7E /* FOODIA-app-icon-512.png in Resources */,
+				F2A388C21774FD6C002EBB7E /* FOODIA-app-icon-256.png in Resources */,
+				F2A388C31774FD6C002EBB7E /* FOODIA-app-icon-58.png in Resources */,
+				F2A388C41774FD6C002EBB7E /* FOODIA-app-icon-40.png in Resources */,
+				F2A388C51774FD6C002EBB7E /* FOODIA-app-icon-29.png in Resources */,
+				F2A388C61774FD6C002EBB7E /* FOODIA-app-icon-20.png in Resources */,
+				F2A388C71774FD6C002EBB7E /* FOODIA-app-icon-114.png in Resources */,
+				F2A388C81774FD6C002EBB7E /* FOODIA-app-icon-57.png in Resources */,
+				F2A388C91774FD6C002EBB7E /* FOODIA-app-icon-1024.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2893,6 +2885,7 @@
 				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "foodia/foodia-Prefix.pch";
+				GCC_WARN_UNDECLARED_SELECTOR = NO;
 				HEADER_SEARCH_PATHS = (
 					"\"$(BUILT_PRODUCTS_DIR)/../../Headers\"",
 					/usr/include/libxml2,
@@ -2902,12 +2895,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"\\\\\\\"$(SRCROOT)/foodia/Flurry\\\\\\\"",
-					"\\\\\\\"$(SDKROOT)/usr/lib/system\\\\\\\"",
 					"$(SRCROOT)",
-					"\\\\\\\"$(SRCROOT)/../Library/Developer/Xcode/DerivedData/foodia-gawumybaondiakgcdngvdxrpkgfe/Build/Products/Debug-iphoneos\\\\\\\"",
-					"\\\\\\\"$(SRCROOT)/foodia/GoogleAnalytics\\\\\\\"",
-					"\\\\\\\"$(SRCROOT)/foodia\\\\\\\"",
 					"$(SRCROOT)/foodia/TestFlightSDK1.2.6",
 					"$(SRCROOT)/foodia/Flurry",
 					"$(SRCROOT)/foodia/GoogleAnalytics",
@@ -2940,6 +2928,7 @@
 				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "foodia/foodia-Prefix.pch";
+				GCC_WARN_UNDECLARED_SELECTOR = NO;
 				HEADER_SEARCH_PATHS = (
 					"\"$(BUILT_PRODUCTS_DIR)/../../Headers\"",
 					/usr/include/libxml2,
@@ -2949,12 +2938,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"\\\\\\\"$(SRCROOT)/foodia/Flurry\\\\\\\"",
-					"\\\\\\\"$(SDKROOT)/usr/lib/system\\\\\\\"",
 					"$(SRCROOT)",
-					"\\\\\\\"$(SRCROOT)/../Library/Developer/Xcode/DerivedData/foodia-gawumybaondiakgcdngvdxrpkgfe/Build/Products/Debug-iphoneos\\\\\\\"",
-					"\\\\\\\"$(SRCROOT)/foodia/GoogleAnalytics\\\\\\\"",
-					"\\\\\\\"$(SRCROOT)/foodia\\\\\\\"",
 					"$(SRCROOT)/foodia/TestFlightSDK1.2.6",
 					"$(SRCROOT)/foodia/Flurry",
 					"$(SRCROOT)/foodia/GoogleAnalytics",
@@ -3069,6 +3053,7 @@
 				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "foodia/foodia-Prefix.pch";
+				GCC_WARN_UNDECLARED_SELECTOR = NO;
 				HEADER_SEARCH_PATHS = (
 					"\"$(BUILT_PRODUCTS_DIR)/../../Headers\"",
 					/usr/include/libxml2,
@@ -3078,12 +3063,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"\\\\\\\"$(SRCROOT)/foodia/Flurry\\\\\\\"",
-					"\\\\\\\"$(SDKROOT)/usr/lib/system\\\\\\\"",
 					"$(SRCROOT)",
-					"\\\\\\\"$(SRCROOT)/../Library/Developer/Xcode/DerivedData/foodia-gawumybaondiakgcdngvdxrpkgfe/Build/Products/Debug-iphoneos\\\\\\\"",
-					"\\\\\\\"$(SRCROOT)/foodia/GoogleAnalytics\\\\\\\"",
-					"\\\\\\\"$(SRCROOT)/foodia\\\\\\\"",
 					"$(SRCROOT)/foodia/TestFlightSDK1.2.6",
 					"$(SRCROOT)/foodia/Flurry",
 					"$(SRCROOT)/foodia/GoogleAnalytics",

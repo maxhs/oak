@@ -99,19 +99,13 @@
     //if ([FDCache isPeopleCacheStale] || self.people == nil) {
     [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
     self.peopleRequestOperation = [[FDAPIClient sharedClient] getPeopleListSuccess:^(id result) {
-
-            self.people = result;
-            //[FDCache cachePeople:result];
-            [self.tableView reloadData];
-            [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
-        
+        self.people = result;
+        //[FDCache cachePeople:result];
+        [self.tableView reloadData];
     } failure:^(NSError *error) {
         [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
         NSLog(@"failed to get people! %@", error.description);
     }];
-    //} else {
-    //    [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
-    //}
 }
 
 -(void)viewWillDisappear:(BOOL)animated {
@@ -219,7 +213,14 @@
         [cell configureForUser:person];
         return cell;
     }
-    
+}
+
+-(void)tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    if([indexPath row] == ((NSIndexPath*)[[tableView indexPathsForVisibleRows] lastObject]).row && tableView == self.tableView){
+        //end of loading
+        [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
+    }
 }
 
 - (void)inviteUser:(id)sender {

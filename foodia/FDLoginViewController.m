@@ -138,6 +138,7 @@ static NSArray *tagLines;
 }
 
 - (void)loginEmailUser {
+    [(FDAppDelegate*)[UIApplication sharedApplication].delegate showLoadingOverlay];
     [self performSegueWithIdentifier:@"ShowFeed" sender:self];
 }
 
@@ -283,7 +284,7 @@ static NSArray *tagLines;
             [self presentViewController:vc animated:YES completion:nil];
         } failure:^(NSError *error) {
             [(FDAppDelegate*)[UIApplication sharedApplication].delegate hideLoadingOverlay];
-            [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"But it looks like there's already an existing account for that email address. Try logging in instead." delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+            [[[UIAlertView alloc] initWithTitle:nil message:@"It looks like there's already an existing account for that email address. Try logging in instead." delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
         }];
     } else {
         [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Please make sure you've filled out all the fields before continuing" delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
@@ -380,16 +381,14 @@ static NSArray *tagLines;
 }
 
 - (void)showPreview {
-    
-    CGSize viewSize;
-    
+
     [self.previewScrollView.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
     for (FDPost *post in self.previewPosts) {
         NSUInteger index = [self.previewPosts indexOfObject:post];
         FDPreviewPostView *view = [[[NSBundle mainBundle] loadNibNamed:@"FDPreviewPostView" owner:self options:nil] lastObject];
         CGRect frame = CGRectMake(index * view.frame.size.width, 0, view.frame.size.width, view.frame.size.height);
         view.frame = frame;
-        viewSize = frame.size;
+
         FDPost *post = [self.previewPosts objectAtIndex:index];
         [view.photoView setImageWithURLRequest:[NSURLRequest requestWithURL:post.feedImageURL] placeholderImage:nil success:^(NSURLRequest *request, NSHTTPURLResponse *response, UIImage *image) {
             [UIView animateWithDuration:.75f delay:0.0 options:UIViewAnimationOptionCurveEaseInOut animations:^{

@@ -26,6 +26,7 @@
     BOOL goToComment;
     int rowToReload;
     BOOL canLoadMore;
+    BOOL justLiked;
 }
 @property (nonatomic, strong) NSMutableArray *swipedCells;
 @property (nonatomic, strong) AFJSONRequestOperation *feedRequestOperation;
@@ -43,9 +44,7 @@
     [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleNone];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(swipedCells:) name:@"CellOpened" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(swipedCells:) name:@"CellClosed" object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(loadTags) name:@"RefreshFeed" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(updatePostNotification:) name:@"UpdatePostNotification" object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(setRowToReload:) name:@"RowToReloadFromMenu" object:nil];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -265,6 +264,71 @@
         FDPlaceViewController *placeView = [segue destinationViewController];
         FDPost *post = (FDPost *) sender;
         [placeView setVenueId:post.foursquareid];
+    }
+}
+
+// like or unlike the post
+- (void)likeButtonTapped:(UIButton *)button {
+    FDPost *post = [self.posts objectAtIndex:button.tag];
+    [self.swipedCells addObject:post.identifier];
+    if ([post isLikedByUser]) {
+        [UIView animateWithDuration:.35 animations:^{
+            [button setBackgroundImage:[UIImage imageNamed:@"recBubble"] forState:UIControlStateNormal];
+        }];
+        [[FDAPIClient sharedClient] unlikePost:post
+                                        detail:NO
+                                       success:^(FDPost *newPost) {
+                                           justLiked = NO;
+                                           [self.posts replaceObjectAtIndex:button.tag withObject:newPost];
+                                           if (self.tableView.numberOfSections < 2) {
+                                               NSIndexPath *path = [NSIndexPath indexPathForRow:button.tag inSection:0];
+                                               [self.tableView reloadRowsAtIndexPaths:[NSArray arrayWithObject:path] withRowAnimation:UITableViewRowAnimationFade];
+                                           } else {
+                                               NSIndexPath *path = [NSIndexPath indexPathForRow:button.tag inSection:1];
+                                               [self.tableView reloadRowsAtIndexPaths:[NSArray arrayWithObject:path] withRowAnimation:UITableViewRowAnimationFade];
+                                           }
+                                       }
+                                       failure:^(NSError *error) {
+                                           NSLog(@"unlike failed! %@", error.description);
+                                           if (error.description){
+                                               
+                                           }
+                                       }
+         ];
+        
+    } else {
+        [UIView animateWithDuration:.35 animations:^{
+            [button setBackgroundImage:[UIImage imageNamed:@"likeBubbleSelected"] forState:UIControlStateNormal];
+        }];
+        [[FDAPIClient sharedClient] likePost:post
+                                      detail:NO
+                                     success:^(FDPost *newPost) {
+                                         [self.posts replaceObjectAtIndex:button.tag withObject:newPost];
+                                         //conditionally change the like count number
+                                         int t = [newPost.likeCount intValue] + 1;
+                                         if (!justLiked) [newPost setLikeCount:[[NSNumber alloc] initWithInt:t]];
+                                         justLiked = YES;
+                                         
+                                         if (self.tableView.numberOfSections == 1) {
+                                             NSIndexPath *path = [NSIndexPath indexPathForRow:button.tag inSection:0];
+                                             [self.tableView reloadRowsAtIndexPaths:[NSArray arrayWithObject:path] withRowAnimation:UITableViewRowAnimationFade];
+                                         } else {
+                                             NSIndexPath *path = [NSIndexPath indexPathForRow:button.tag inSection:1];
+                                             [self.tableView reloadRowsAtIndexPaths:[NSArray arrayWithObject:path] withRowAnimation:UITableViewRowAnimationFade];
+                                         }
+                                     } failure:^(NSError *error) {
+                                         NSLog(@"like failed! %@", error.description);
+                                     }
+         ];
+    }
+}
+
+-(void)showPlace:(UIButton*)button {
+    if ([button.titleLabel.text isEqualToString:@"Home"] || [button.titleLabel.text isEqualToString:@"home"]) {
+        [[[UIAlertView alloc] initWithTitle:@"" message:@"Sorry, but we don't collect information about your home on FOODIA." delegate:self cancelButtonTitle:@"Okay" otherButtonTitles: nil] show];
+    } else {
+        [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
+        [self performSegueWithIdentifier:@"ShowPlace" sender:[self.posts objectAtIndex:button.tag]];
     }
 }
 
