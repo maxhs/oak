@@ -13,10 +13,10 @@
     GPUImageStillCamera *stillCamera;
     GPUImageOutput<GPUImageInput> *filter/*, *secondFilter, *terminalFilter*/;
 }
-@property (nonatomic,weak) AVCamCaptureManager *captureManager;
+@property (nonatomic,strong) AVCamCaptureManager *captureManager;
 @property (nonatomic, strong) IBOutlet UIImageView *photoPreviewImageView;
 @property (strong, nonatomic) UIImage *originalImage;
-@property (nonatomic,weak) AVCaptureVideoPreviewLayer *captureVideoPreviewLayer;
+@property (nonatomic,strong) AVCaptureVideoPreviewLayer *captureVideoPreviewLayer;
 @property (nonatomic,weak) IBOutlet UIButton *takePhotoButton;
 @property (nonatomic,weak) IBOutlet UIButton *cancelButton;
 @property (nonatomic,weak) IBOutlet UIButton *useButton;

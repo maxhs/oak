@@ -17,7 +17,7 @@
 #import "Flurry.h"
 #import "FDQuickPostViewController.h"
 
-@interface FDPostCategoryViewController () <UITextFieldDelegate> {
+@interface FDPostCategoryViewController () <UITextFieldDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate> {
     NSString *activeCategoryString;
 }
 @property (nonatomic, weak) IBOutlet UIImageView *dummyView;
@@ -537,11 +537,47 @@
         self.objectTextField.text = [self.searchResults objectAtIndex:indexPath.row];
     }
     if (self.isEditingPost == NO){
-        [self performSegueWithIdentifier:@"TakePhotoFromCategory" sender:nil];
+        /*if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 7.0) {
+            NSLog(@"ios7");
+            [self takePhoto];
+        } else {*/
+            [self performSegueWithIdentifier:@"TakePhotoFromCategory" sender:nil];
+        //}
     } else {
         FDPost.userPost.foodiaObject = self.objectTextField.text;
         [self.navigationController popViewControllerAnimated:YES];
     }
 }
+
+- (void)takePhoto {
+    [self.view endEditing:YES];
+    UIImagePickerController *vc = [[UIImagePickerController alloc] init];
+    [vc setSourceType:UIImagePickerControllerSourceTypeCamera];
+    [vc setDelegate:self];
+    vc.showsCameraControls = YES;
+    [vc setAllowsEditing:YES];
+    vc.wantsFullScreenLayout = YES;
+    [self presentViewController:vc animated:YES completion:nil];
+}
+
+- (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info {
+    
+    [picker dismissViewControllerAnimated:YES completion:nil];
+    
+    /*UIImage* originalImage = nil;
+    originalImage = [info objectForKey:UIImagePickerControllerEditedImage];
+    if(originalImage==nil)
+    {
+        originalImage = [info objectForKey:UIImagePickerControllerOriginalImage];
+    }
+    if(originalImage==nil)
+    {
+        originalImage = [info objectForKey:UIImagePickerControllerCropRect];
+    }*/
+    //At this point you have the selected image in originalImage
+    [FDPost.userPost setPhotoImage:[info objectForKey:UIImagePickerControllerEditedImage]];
+    [self performSegueWithIdentifier:@"NativeCameraSegue" sender:self];
+}
+
 
 @end

@@ -74,7 +74,6 @@
     FDPost.userPost.withFriends = [[NSSet setWithArray:self.people] objectsPassingTest:^BOOL(id obj, BOOL *stop) {
         return ([self.taggedFriendIds containsObject:[obj userId]] || [self.taggedFriendFacebookIds containsObject:[obj fbid]]);
     }];
-    NSLog(@"friends: %@",FDPost.userPost.withFriends);
 }
 
 #pragma mark - UITableViewDelegate/DataSource Methods

@@ -16,7 +16,7 @@
 #define kEdit @"Edit"
 #define kPost @"Post"
 #define kCancel @"Cancel"
-#define kCancel @"Done"
+#define kDone @"Done"
 
 //Location Constants
 #define kHome @"Home"
@@ -64,12 +64,17 @@
 
 //ColorString
 #define kColorGreenString @"green"
-#define kColorLiquorString @"liquor"
-#define kColorMeatString @"meat"
-#define kColorGrainString @"grain"
+//#define kColorLiquorString @"liquor"
+#define kColorBlackString @"black"
+//#define kColorMeatString @"meat"
+#define kColorRedString @"red"
+//#define kColorGrainString @"grain"
+#define kColorYellowString @"yellow"
 #define kColorPurpleString @"purple"
 #define kColorOrangeString @"orange"
-#define kColorLiquidString @"liquid"
+//#define kColorLiquidString @"liquid"
+#define kColorLightBlueString @"light_blue"
+#define kColorBrownString @"brown"
 
 #define kColorLightBlack [UIColor colorWithWhite:.18 alpha:1.0]
 

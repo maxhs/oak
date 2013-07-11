@@ -115,7 +115,7 @@
                 break;
             case 1:
                 [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
-                cell.textLabel.text = @"Show FEATURED first?";
+                cell.textLabel.text = @"Show featured first?";
                 self.featuredFeedSwitch = [[UISwitch alloc] init];
                 if ([[NSUserDefaults standardUserDefaults] objectForKey:kShouldShowFeaturedFirst]){
                     [self.featuredFeedSwitch setOn:[[NSUserDefaults standardUserDefaults] boolForKey:kShouldShowFeaturedFirst]];

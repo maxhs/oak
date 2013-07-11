@@ -59,6 +59,7 @@
 - (NSDate *)postedAt;
 - (NSURL *)feedImageURL;
 - (NSURL *)detailImageURL;
+- (void)setDetailImageURL:(NSURL*)detailImageUrl;
 - (NSURL *)featuredImageURL;
 - (NSURL *)originalImageURL;
 - (void)setLocation:(CLLocation *)location;

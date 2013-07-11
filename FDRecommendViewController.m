@@ -28,7 +28,7 @@
 {
     [super viewDidLoad];
     if (!self.postingToFacebook){
-        [self.rightBarButton setTitle:@"SEND"];
+        [self.rightBarButton setTitle:@"Send"];
     }
     [self.navigationController setNavigationBarHidden:NO animated:YES];
     self.recommendees = [NSMutableSet set];
@@ -197,13 +197,11 @@
         NSLog(@"new recommendees list: %@",self.recommendees);
         NSLog(@"non member set: %@", nonMembers);
         if (nonMembers.count != 0) [[[UIAlertView alloc] initWithTitle:@"Uh-oh!" message:@"Looks like one or more of your friends isn't on FOODIA. You should send them an invite to join!" delegate:self cancelButtonTitle:@"No Thanks" otherButtonTitles:@"Send Invite",nil] show];*/
-        NSLog(@"self.recommendees: %@",self.recommendees);
         [[FDAPIClient sharedClient] recommendPost:self.post onFacebook:NO toRecommendees:self.recommendees withMessage:self.post.caption success:^(id result) {
-            NSLog(@"success recommending to FOODIA api: %@",result);
             [[[UIAlertView alloc] initWithTitle:@"Thanks!" message:@"Isn't it fun helping your friends find great food?" delegate:self cancelButtonTitle:@"Yup!" otherButtonTitles:nil] show];
         } failure:^(NSError *error) {
             [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"But we weren't able to send your recommendation right now." delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
-            NSLog(@"error recommending to FOODIA api: %@",error.description);
+            NSLog(@"Error recommending through FOODIA api: %@",error.description);
         }];
     }
     [self.recommendees removeAllObjects];
@@ -211,7 +209,7 @@
 }
 
 - (void)dialog:(FBDialog*)dialog didFailWithError:(NSError *)error {
-    NSLog(@"error: %@", error.description);
+    NSLog(@"Error with FB Dialog: %@", error.description);
 }
 
 /*- (void)dialogDidNotComplete:(FBDialog *)dialog {

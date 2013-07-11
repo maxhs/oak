@@ -12,6 +12,7 @@
 #import "FDPost.h"
 #import <QuartzCore/QuartzCore.h>
 #import "Flurry.h"
+#import "FDAppDelegate.h"
 
 NSString *const kPlaceholderTagPrompt = @"Add a tag...";
 
@@ -21,10 +22,12 @@ NSString *const kPlaceholderTagPrompt = @"Add a tag...";
     int previousButtonSize;
     UIButton *tagButtonToRemove;
     NSMutableArray *tagSearchResults;
+    NSMutableArray *suggestedTagsResults;
     UISearchBar *searchBar;
 }
 @property (strong, nonatomic) AFHTTPRequestOperation *tagSearchRequestOperation;
 @property (weak, nonatomic) IBOutlet UIView *tagContainerView;
+@property (weak, nonatomic) IBOutlet UIView *suggestedTagContainerView;
 @end
 
 @implementation FDFoodiaTagsViewController
@@ -41,8 +44,9 @@ NSString *const kPlaceholderTagPrompt = @"Add a tag...";
         [self refreshTags];
     } else {
         self.allTags = [NSMutableArray array];
-        [self getTags];
     }
+    suggestedTagsResults = [NSMutableArray array];
+    [self getTags];
     
     searchBar = [[UISearchBar alloc] init];
     self.navigationItem.titleView = searchBar;
@@ -77,9 +81,12 @@ NSString *const kPlaceholderTagPrompt = @"Add a tag...";
 }
 
 - (void)getTags {
-    [[FDAPIClient sharedClient] getTagsForFoodiaObject:FDPost.userPost.foodiaObject success:^(NSArray *result) {
-        [self.allTags addObjectsFromArray:result];
-        [self refreshTags];
+    [(FDAppDelegate*)[UIApplication sharedApplication].delegate showLoadingOverlay];
+    NSString *removeArticles = [[[FDPost.userPost.foodiaObject stringByReplacingOccurrencesOfString:@"an " withString:@""] stringByReplacingOccurrencesOfString:@"a " withString:@""] stringByReplacingOccurrencesOfString:@"the " withString:@""];
+    NSString *stringForTag = [removeArticles stringByReplacingOccurrencesOfString:@" " withString:@"|"];
+    [[FDAPIClient sharedClient] getTagsForFoodiaObject:stringForTag success:^(NSArray *result) {
+        [suggestedTagsResults addObjectsFromArray:result];
+        [self suggestTags];
     } failure:^(NSError *error) {
         
     }];
@@ -132,7 +139,8 @@ NSString *const kPlaceholderTagPrompt = @"Add a tag...";
             previousButtonSize = 0;
             previousOriginY += 44;
             [tagButton setFrame:CGRectMake(0,previousOriginY,stringSize.width+20,34)];
-            if (self.tagContainerView.frame.size.height < tagButton.frame.origin.y+34) [self expandContainerView];
+            if (self.tagContainerView.frame.size.height < tagButton.frame.origin.y+34) [self expandContainerView:self.tagContainerView];
+            else if (self.tagContainerView.frame.size.height > tagButton.frame.origin.y + 39) [self retractContainerView:self.tagContainerView];
         }
         previousButtonSize = tagButton.frame.size.width + 5;
         previousOriginX = tagButton.frame.origin.x;
@@ -140,14 +148,80 @@ NSString *const kPlaceholderTagPrompt = @"Add a tag...";
     }
 }
 
-- (void)expandContainerView {
+- (void)suggestTags {
+    previousOriginX = 0;
+    previousButtonSize = 0;
+    previousOriginY = 31;
+    [self.suggestedTagContainerView.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
+    UILabel *suggestedTagLabel = [[UILabel alloc] initWithFrame:CGRectMake(6,0,300,26)];
+    [suggestedTagLabel setText:@"Suggested tags:"];
+    [suggestedTagLabel setFont:[UIFont fontWithName:kHelveticaNeueThin size:14]];
+    [suggestedTagLabel setTextColor:[UIColor lightGrayColor]];
+    [self.suggestedTagContainerView addSubview:suggestedTagLabel];
+    for (FDFoodiaTag *tag in suggestedTagsResults){
+        UIButton *tagButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        tagButton.reversesTitleShadowWhenHighlighted = YES;
+        tagButton.showsTouchWhenHighlighted = YES;
+        [tagButton setTitle:[NSString stringWithFormat:@"#%@",tag.name] forState:UIControlStateNormal];
+        [tagButton addTarget:self action:@selector(addTag:) forControlEvents:UIControlEventTouchUpInside];
+        [tagButton setBackgroundColor:[UIColor colorWithWhite:.95 alpha:1]];
+        tagButton.layer.shadowColor = [UIColor lightGrayColor].CGColor;
+        tagButton.layer.shadowRadius = 2.5f;
+        tagButton.layer.shadowOffset = CGSizeMake(0,0);
+        tagButton.layer.shadowOpacity = .4f;
+        tagButton.layer.borderColor = [UIColor colorWithWhite:.90 alpha:1].CGColor;
+        tagButton.layer.borderWidth = 1.0f;
+        tagButton.layer.cornerRadius = 17.0f;
+        [tagButton.titleLabel setTextAlignment:NSTextAlignmentCenter];
+        [tagButton.titleLabel setFont:[UIFont fontWithName:kHelveticaNeueThin size:15]];
+        CGSize stringSize = [tagButton.titleLabel.text sizeWithFont:[UIFont fontWithName:kHelveticaNeueThin size:15]];
+        [tagButton setTitleColor:[UIColor darkGrayColor] forState:UIControlStateNormal];
+        if (previousOriginX+previousButtonSize+stringSize.width+20 < 320){
+            [tagButton setFrame:CGRectMake(previousOriginX+previousButtonSize,previousOriginY,stringSize.width+20,34)];
+        } else {
+            previousOriginX = 0;
+            previousButtonSize = 0;
+            previousOriginY += 44;
+            [tagButton setFrame:CGRectMake(0,previousOriginY,stringSize.width+20,34)];
+            if (self.suggestedTagContainerView.frame.size.height < tagButton.frame.origin.y+34) [self expandContainerView:self.suggestedTagContainerView];
+        }
+        previousButtonSize = tagButton.frame.size.width + 5;
+        previousOriginX = tagButton.frame.origin.x;
+        [self.suggestedTagContainerView addSubview:tagButton];
+    }
+    self.tableView.tableHeaderView = self.tagContainerView;
+    self.tableView.tableFooterView = self.suggestedTagContainerView;
+    [(FDAppDelegate*)[UIApplication sharedApplication].delegate hideLoadingOverlay];
+}
+
+- (void)expandContainerView:(UIView*)expandView {
     [UIView animateWithDuration:.15 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-        [self.tagContainerView setFrame:CGRectMake(0, 0, 320, self.tagContainerView.frame.size.height+44)];
-        [self.tableView setFrame:CGRectMake(0, self.tagContainerView.frame.size.height, 320, self.tableView.frame.size.height-44)];
+        [expandView setFrame:CGRectMake(0, 0, 320, expandView.frame.size.height+44)];
+        //if (expandView == self.tagContainerView) [self.tableView setFrame:CGRectMake(0, self.tagContainerView.frame.size.height, 320, self.tableView.frame.size.height-44)];
     } completion:^(BOOL finished) {
-        
+        self.tableView.tableHeaderView = self.tagContainerView;
+        self.tableView.tableFooterView = self.suggestedTagContainerView;
     }];
-    
+}
+
+- (void)retractContainerView:(UIView*)retractView {
+    [UIView animateWithDuration:.15 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        [retractView setFrame:CGRectMake(0, 0, 320, retractView.frame.size.height-44)];
+        //if (retractView == self.tagContainerView) [self.tableView setFrame:CGRectMake(0, self.tagContainerView.frame.size.height, 320, self.tableView.frame.size.height+44)];
+    } completion:^(BOOL finished) {
+        self.tableView.tableHeaderView = self.tagContainerView;
+        self.tableView.tableFooterView = self.suggestedTagContainerView;
+    }];
+}
+
+- (void)addTag:(UIButton *)button {
+    for (FDFoodiaTag *tag in suggestedTagsResults){
+        if ([[NSString stringWithFormat:@"#%@",tag.name] isEqualToString:button.titleLabel.text]) {
+            [self.allTags addObject:tag];
+            break;
+        }
+    }
+    [self refreshTags];
 }
 
 - (void)removeTag:(UIButton*)button {
@@ -176,6 +250,7 @@ NSString *const kPlaceholderTagPrompt = @"Add a tag...";
         } else {
             [tagSearchResults removeAllObjects];
         }
+        if (self.tableView.separatorStyle != UITableViewCellSeparatorStyleSingleLine) self.tableView.separatorStyle = UITableViewCellSeparatorStyleSingleLine;
         [self.tableView reloadData];
     };
     RequestFailure failure = ^(NSError *error) {
@@ -273,7 +348,7 @@ NSString *const kPlaceholderTagPrompt = @"Add a tag...";
 
 - (void)viewWillDisappear:(BOOL)animated {
     [searchBar endEditing:YES];
-    [FDPost.userPost setTagArray:self.allTags];
+    FDPost.userPost.tagArray = self.allTags;
     [super viewWillDisappear:animated];
 }
 

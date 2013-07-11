@@ -110,6 +110,7 @@ static NSDictionary *placeholderImages;
     [Flurry logEvent:@"ViewingPost" timed:YES];
     [self.navigationController setNavigationBarHidden:NO animated:NO];
     [self.view setBackgroundColor:[UIColor colorWithWhite:.95 alpha:1.0]];
+    //self.automaticallyAdjustsScrollViewInsets = YES;
     _holdLabel = [[UILabel alloc] init];
     _loadingOverlay = [[UIImageView alloc] init];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(willShowKeyboard:) name:UIKeyboardWillShowNotification object:nil];
@@ -217,7 +218,6 @@ static NSDictionary *placeholderImages;
         [newPostVC.postButtonItem setTitle:kSave];
         [newPostVC setIsEditingPost:YES];
         [FDPost setUserPost:self.post];
-        [newPostVC.photoButton setImageWithURL:self.post.originalImageURL forState:UIControlStateNormal];
         //[FDPost.userPost setPhotoImage:[UIImage imageWithData:[NSData dataWithContentsOfURL:self.post.originalImageURL]]];
     } else if ([segue.identifier isEqualToString:@"Recommend"]) {
         if ([FBSession.activeSession.permissions

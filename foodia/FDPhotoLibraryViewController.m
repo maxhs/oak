@@ -55,7 +55,7 @@
     }];
     UILabel *navTitle = [[UILabel alloc] init];
     navTitle.frame = CGRectMake(0,0,180,44);
-    navTitle.text = @"My Photos";
+    navTitle.text = @"My photos";
     navTitle.font = [UIFont fontWithName:kHelveticaNeueThin size:20];
     navTitle.backgroundColor = [UIColor clearColor];
     navTitle.textColor = [UIColor blackColor];

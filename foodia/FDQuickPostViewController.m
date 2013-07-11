@@ -171,6 +171,7 @@
         case 2:
             if (FDPost.userPost.tagArray.count == 0){
                 [cell.textLabel setText:@"Do you want to add tags?"];
+                if (cell.textLabel.isHidden) [cell.textLabel setHidden:NO];
                 UIButton *tagButton = [UIButton buttonWithType:UIButtonTypeCustom];
                 [tagButton setFrame:cell.frame];
                 [tagButton addTarget:self action:@selector(goToTagController) forControlEvents:UIControlEventTouchUpInside];
@@ -182,8 +183,8 @@
                     tagScrollView.delegate = self;
                     [cell addSubview:tagScrollView];
                 }
-                [self loadTagArray];
             }
+            [self loadTagArray];
             break;
         default:
             break;
@@ -217,12 +218,13 @@
 }
 
 - (void)loadTagArray{
+    
+    allTags = FDPost.userPost.tagArray;
+    previousTagOriginX = 3;
+    previousTagButtonSize = 0;
+    tagScrollViewContentSize = 0;
+    [tagScrollView.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
     if (FDPost.userPost.tagArray.count){
-        allTags = FDPost.userPost.tagArray;
-        previousTagOriginX = 3;
-        previousTagButtonSize = 0;
-        tagScrollViewContentSize = 0;
-        [tagScrollView.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
         for (FDFoodiaTag *tag in allTags){
             UIButton *tagButton = [UIButton buttonWithType:UIButtonTypeCustom];
             [tagButton addTarget:self action:@selector(goToTagController) forControlEvents:UIControlEventTouchUpInside];
@@ -246,7 +248,8 @@
             [tagScrollView addSubview:tagButton];
         }
         [tagScrollView setContentSize:CGSizeMake(tagScrollViewContentSize,42)];
-    }
+        [tagScrollView setHidden:NO];
+    } else [tagScrollView setHidden:YES];
 }
 
 - (IBAction)post{

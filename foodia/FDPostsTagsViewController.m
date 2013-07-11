@@ -516,4 +516,9 @@
     
 }
 
+- (void)viewWillDisappear:(BOOL)animated {
+    [super viewWillDisappear:animated];
+    [(FDAppDelegate*)[UIApplication sharedApplication].delegate hideLoadingOverlay];
+}
+
 @end

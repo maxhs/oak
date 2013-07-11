@@ -11,7 +11,7 @@
 #import "FDMenuViewController.h"
 #import "FDSlidingViewController.h"
 
-@interface FDFoodViewController : UIViewController <MKMapViewDelegate, CLLocationManagerDelegate, UITableViewDataSource, UITableViewDelegate>
+@interface FDFoodViewController : UIViewController <MKMapViewDelegate, CLLocationManagerDelegate, UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate, UISearchDisplayDelegate, UIAlertViewDelegate>
 @property (weak, nonatomic) IBOutlet UIView *mapContainerView;
 @property (weak, nonatomic) IBOutlet MKMapView *mapView;
 @property (weak, nonatomic) IBOutlet UITableView *tableView;

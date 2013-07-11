@@ -31,6 +31,7 @@
 #import <MessageUI/MessageUI.h>
 #import "FDCustomSheet.h"
 #import "FDRecommendViewController.h"
+#import <Crashlytics/Crashlytics.h>
 #define kSearchBarPlaceholder @"Find food, drinks or places"
 #define kInitialSliderHideConstant 150
 
@@ -91,6 +92,9 @@
     [super viewDidLoad];
     [Flurry logEvent:@"Looking at Feed View" timed:YES];
     //self.trackedViewName = @"Initial Feed View";
+    //if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 7) {
+    //    [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleLightContent];
+    //}
     self.sliderButtonItem.tintColor = [UIColor blackColor];
     _accountStore = [[ACAccountStore alloc] init];
     _apiManager = [[TWAPIManager alloc] init];
@@ -198,7 +202,6 @@
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(refresh)
                                                  name:@"RefreshFeed" object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(newPostTimedOut) name:@"NewPostTimedOut" object:nil];
     
     UIImage *emptyBarButton = [UIImage imageNamed:@"emptyBarButton.png"];
     //[self.searchButtonItem setBackgroundImage:emptyBarButton forState:UIControlStateNormal barMetrics:UIBarMetricsDefault];
@@ -240,10 +243,6 @@
             self.navigationController.navigationBar.shadowImage = originalShadowImage;
         }
     }
-}
-
-- (void)newPostTimedOut {
-    [[[UIAlertView alloc] initWithTitle:@"Uh-oh" message:@"Sorry, but we weren't able to send your post. If you gave us permission to access your photo album, we saved your post photo there." delegate:self cancelButtonTitle:@"Okey Dokey" otherButtonTitles:nil] show];
 }
 
 - (void) locationManager:(CLLocationManager *)manager didFailWithError:(NSError *)error {

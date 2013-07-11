@@ -110,7 +110,7 @@ static void *AVCamFocusModeObserverContext = &AVCamFocusModeObserverContext;
     [self.view addGestureRecognizer:doubleTap];
     
     [self.cancelButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
-    [self.useButton setTitle:@"USE" forState:UIControlStateNormal];
+    [self.useButton setTitle:@"Use" forState:UIControlStateNormal];
     [self.useButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
     self.useButton.clipsToBounds = YES;
     [self.useButton addTarget:self action:@selector(useImage) forControlEvents:UIControlEventTouchUpInside];
@@ -168,7 +168,7 @@ static void *AVCamFocusModeObserverContext = &AVCamFocusModeObserverContext;
     [self.view setBackgroundColor:[UIColor colorWithWhite:.3 alpha:1]];
     if (self.isPreview) {
         [self.filterScrollView setHidden:NO];
-        [self.cancelButton setTitle:@"RETAKE" forState:UIControlStateNormal];
+        [self.cancelButton setTitle:@"Retake" forState:UIControlStateNormal];
         [self.cancelButton removeTarget:self action:@selector(cancel) forControlEvents:UIControlEventTouchUpInside];
         [self.cancelButton addTarget:self action:@selector(retake) forControlEvents:UIControlEventTouchUpInside];
         [self.useButton setAlpha:1.0];
@@ -222,7 +222,7 @@ static void *AVCamFocusModeObserverContext = &AVCamFocusModeObserverContext;
         [self.takePhotoButton setAlpha:0.0];
     }];
 
-    [self.cancelButton setTitle:@"RETAKE" forState:UIControlStateNormal];
+    [self.cancelButton setTitle:@"Retake" forState:UIControlStateNormal];
     [self.cancelButton removeTarget:self action:@selector(cancel) forControlEvents:UIControlEventTouchUpInside];
     [self.cancelButton addTarget:self action:@selector(retake) forControlEvents:UIControlEventTouchUpInside];
     // Capture a still image
@@ -290,7 +290,7 @@ static void *AVCamFocusModeObserverContext = &AVCamFocusModeObserverContext;
     [filter addTarget:(GPUImageView *)self.view];
     [filter prepareForImageCapture];
     
-    [self.cancelButton setTitle:@"BACK" forState:UIControlStateNormal];
+    [self.cancelButton setTitle:@"Back" forState:UIControlStateNormal];
     [self.cancelButton removeTarget:self action:@selector(retake) forControlEvents:UIControlEventTouchUpInside];
     [self.cancelButton addTarget:self action:@selector(cancel) forControlEvents:UIControlEventTouchUpInside];
 }

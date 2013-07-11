@@ -49,6 +49,9 @@
 #define TAGS_POSTS_PATH @"foodia_tags/tags_posts.json"
 #define POSTS_TAGS_PATH @"foodia_tags/posts_tags.json"
 #define FOOD_OBJECT_TAGS_PATH @"foodia_tags/foodia_objects.json"
+#define TAGS_PATH @"foodia_tags/tags.json"
+#define TRACK_TAG_PATH @"foodia_tags/track_tag"
+#define TRACKED_TAGS_PATH @"foodia_tags/tracked_tags"
 #define POST_SUBMISSION_PATH @"posts"
 #define QUICK_POST_SUBMISSION_PATH @"posts/quick_post"
 #define POST_UPDATE_PATH @"posts"
@@ -1039,7 +1042,7 @@ AFJSONRequestOperation *op = (AFJSONRequestOperation *)[self HTTPRequestOperatio
 - (AFJSONRequestOperation *)getTagsForFoodiaObject:(NSString *)foodiaObject
                                        success:(RequestSuccess)success
                                        failure:(RequestFailure)failure {
-    NSDictionary *parameters = @{@"foodia_object":foodiaObject,@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]};
+    NSDictionary *parameters = @{@"foodia_objects":foodiaObject,@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]};
     OperationFailure opFailure = ^(AFHTTPRequestOperation *operation, NSError *error)
     {
         NSLog(@"Error getting tags for %@: %@",foodiaObject, error.description);
@@ -1052,6 +1055,87 @@ AFJSONRequestOperation *op = (AFJSONRequestOperation *)[self HTTPRequestOperatio
     
     return [self requestOperationWithMethod:@"GET"
                                        path:FOOD_OBJECT_TAGS_PATH
+                                 parameters:parameters
+                                    success:opSuccess
+                                    failure:opFailure];
+}
+
+- (AFJSONRequestOperation *)getTagsForUserSuccess:(RequestSuccess)success
+                                          failure:(RequestFailure)failure {
+    NSDictionary *parameters = @{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]};
+    OperationFailure opFailure = ^(AFHTTPRequestOperation *operation, NSError *error)
+    {
+        //NSLog(@"Error getting tags for current user: %@",error.description);
+        failure(error);
+    };
+    OperationSuccess opSuccess = ^(AFHTTPRequestOperation *operation, id responseObject)
+    {
+        success([self tagsFromJSONArray:[responseObject objectForKey:@"tags"]]);
+    };
+    
+    return [self requestOperationWithMethod:@"GET"
+                                       path:TAGS_PATH
+                                 parameters:parameters
+                                    success:opSuccess
+                                    failure:opFailure];
+}
+
+- (AFJSONRequestOperation *)trackTag:(NSString*)tagName
+                             success:(RequestSuccess)success
+                             failure:(RequestFailure)failure {
+    NSDictionary *parameters = @{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId],@"tag_name":tagName};
+    OperationFailure opFailure = ^(AFHTTPRequestOperation *operation, NSError *error)
+    {
+        //NSLog(@"Error getting tags for current user: %@",error.description);
+        failure(error);
+    };
+    OperationSuccess opSuccess = ^(AFHTTPRequestOperation *operation, id responseObject)
+    {
+        success(responseObject);
+    };
+    
+    return [self requestOperationWithMethod:@"POST"
+                                       path:TRACK_TAG_PATH
+                                 parameters:parameters
+                                    success:opSuccess
+                                    failure:opFailure];
+}
+
+
+- (AFJSONRequestOperation *)removeTrackedTag:(NSString *)tagIdentifier
+                                     success:(RequestSuccess)success
+                                     failure:(RequestFailure)failure {
+    
+    return [self requestOperationWithMethod:@"DELETE"
+                                       path:[NSString stringWithFormat:@"foodia_tags/%@",tagIdentifier]
+                                 parameters:nil
+                                    success:^(AFHTTPRequestOperation *operation, id result) {
+                                        success(result);
+                                    }
+                                    failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+                                        NSLog(@"Error removing tracked tag: %@",error.description);
+                                        failure(error);
+                                    }
+            ];
+}
+
+- (AFJSONRequestOperation *)getTrackedTagsForTimePeriod:(NSString*)timePeriod
+                                                success:(RequestSuccess)success
+                                                failure:(RequestFailure)failure {
+    NSDictionary *parameters = @{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId],timePeriod:timePeriod};
+    OperationFailure opFailure = ^(AFHTTPRequestOperation *operation, NSError *error)
+    {
+        NSLog(@"Error getting tracked tags for current user: %@",error.description);
+        failure(error);
+    };
+    OperationSuccess opSuccess = ^(AFHTTPRequestOperation *operation, id responseObject)
+    {
+        //NSLog(@"succesffuly got tracked tags: %@", responseObject);
+        success([self tagsFromJSONArray:[responseObject objectForKey:@"tags"]]);
+    };
+    
+    return [self requestOperationWithMethod:@"GET"
+                                       path:TRACKED_TAGS_PATH
                                  parameters:parameters
                                     success:opSuccess
                                     failure:opFailure];
@@ -1337,7 +1421,9 @@ AFJSONRequestOperation *op = (AFJSONRequestOperation *)[self HTTPRequestOperatio
         [parameters setObject:post.FDVenueId forKey:@"post[foursquareid]"];
     }
     OperationSuccess opSuccess = ^(AFHTTPRequestOperation *operation, id result) {
-        [[NSUserDefaults standardUserDefaults] setBool:NO forKey:kIsPosting];
+        //[[NSUserDefaults standardUserDefaults] setBool:NO forKey:kIsPosting];
+        [(FDAppDelegate*)[UIApplication sharedApplication].delegate hideLoadingOverlay];
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"RefreshFeed" object:nil];
         success(result);
     };
     
@@ -1348,7 +1434,7 @@ AFJSONRequestOperation *op = (AFJSONRequestOperation *)[self HTTPRequestOperatio
     NSURLRequest *request;
     if (post.photoImage) {
         UIImage *imageToPost = [self fixOrientation:post.photoImage];
-        NSData *imageData = UIImageJPEGRepresentation(imageToPost, 0.5);
+        NSData *imageData = UIImageJPEGRepresentation(imageToPost, 0.25);
         request = [self multipartFormRequestWithMethod:@"POST"
                                                                 path:POST_SUBMISSION_PATH
                                                           parameters:parameters
@@ -1362,10 +1448,26 @@ AFJSONRequestOperation *op = (AFJSONRequestOperation *)[self HTTPRequestOperatio
             request = [self requestWithMethod:@"POST" path:POST_SUBMISSION_PATH parameters:parameters];
         }
     
-    self.postOp = (AFJSONRequestOperation *)[self HTTPRequestOperationWithRequest:request
-                                                                 success:opSuccess
-                                                                 failure:opFailure];
-    [self.postOp start];
+    UIApplication*    app = [UIApplication sharedApplication];
+    
+    __block UIBackgroundTaskIdentifier bgTask = [app beginBackgroundTaskWithExpirationHandler:^{
+        [app endBackgroundTask:bgTask];
+        bgTask = UIBackgroundTaskInvalid;
+    }];
+    
+    // Start the long-running task and return immediately.
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        
+        // Do the work associated with the task.
+        self.postOp = (AFJSONRequestOperation *)[self HTTPRequestOperationWithRequest:request
+                                                                              success:opSuccess
+                                                                              failure:opFailure];
+        [self.postOp start];
+        [app endBackgroundTask:bgTask];
+        bgTask = UIBackgroundTaskInvalid;
+
+    });
+
     return self.postOp;
 }
 
@@ -1451,7 +1553,7 @@ AFJSONRequestOperation *op = (AFJSONRequestOperation *)[self HTTPRequestOperatio
 
 - (void)savePostToLibrary:(UIImage*)originalImage {
     NSString *albumName = @"FOODIA";
-    UIImage *imageToSave = [UIImage imageWithCGImage:originalImage.CGImage scale:1.0 orientation:UIImageOrientationUp];
+    UIImage *imageToSave = [UIImage imageWithCGImage:originalImage.CGImage scale:0.5 orientation:UIImageOrientationUp];
     ALAssetsLibrary *library = [[ALAssetsLibrary alloc]init];
     [library addAssetsGroupAlbumWithName:albumName
                              resultBlock:^(ALAssetsGroup *group) {
@@ -1782,7 +1884,7 @@ AFJSONRequestOperation *op = (AFJSONRequestOperation *)[self HTTPRequestOperatio
     if (detail){
         parameters = @{@"post_id":post.identifier,@"detail":@"true"};
     } else {
-        parameters = [NSDictionary dictionaryWithObject:post.identifier forKey:@"post_id"];  
+        parameters = [NSDictionary dictionaryWithObject:post.identifier forKey:@"post_id"];
     }
     return [self requestOperationWithMethod:@"DELETE"
                                        path:[NSString stringWithFormat:@"%@/%@",LIKE_PATH,post.identifier]

@@ -19,6 +19,7 @@
 #import <MessageUI/MessageUI.h>
 #import <Accounts/Accounts.h>
 #import "Constants.h"
+#import <Crashlytics/Crashlytics.h>
 //#import "GAI.h"
 
 #define kFlurryAPIKey @"W5U7NXYMMQ8RJQR7WI9A"
@@ -39,6 +40,7 @@
 {
     //Yay FOODIA!
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
+    
     [self customizeAppearance];
     self.facebook.sessionDelegate = self;
     [[UIApplication sharedApplication] registerForRemoteNotificationTypes:(UIRemoteNotificationTypeAlert | UIRemoteNotificationTypeBadge | UIRemoteNotificationTypeSound)];
@@ -61,8 +63,8 @@
     [GAI sharedInstance].debug = YES;
     // Create tracker instance.
     id<GAITracker> tracker = [[GAI sharedInstance] trackerWithTrackingId:@"UA-40164626-1"];*/
-    
     //[AFNetworkActivityIndicatorManager sharedManager].enabled = YES;
+    [Crashlytics startWithAPIKey:@"00391aa71543f39c51bda5481890fb61655af9d0"];
     return YES;
 }
 
@@ -301,7 +303,7 @@ void uncaughtExceptionHandler(NSException *exception) {
 {
     // Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.
     // Use this method to pause ongoing tasks, disable timers, and throttle down OpenGL ES frame rates. Games should use this method to pause the game.
-    if ([[NSUserDefaults standardUserDefaults] boolForKey:kIsPosting]) {
+    /*if ([[NSUserDefaults standardUserDefaults] boolForKey:kIsPosting]) {
         [(AFJSONRequestOperation*)[[FDAPIClient sharedClient] postOp] cancel];
         [FDAPIClient sharedClient].postOp = nil;
         NSLog(@"Canceling a new post request operation");
@@ -309,7 +311,7 @@ void uncaughtExceptionHandler(NSException *exception) {
         NSLog(@"Canceling an existing edit post request operation");
         [(AFJSONRequestOperation*)[[FDAPIClient sharedClient] editPostOp] cancel];
         [FDAPIClient sharedClient].postOp = nil;
-    }
+    }*/
     if (self.isTakingPhoto) [[NSNotificationCenter defaultCenter] postNotificationName:@"CleanupCameraCapture" object:nil];
 }
 
@@ -317,6 +319,9 @@ void uncaughtExceptionHandler(NSException *exception) {
 {
     // Use this method to release shared resources, save user data, invalidate timers, and store enough application state information to restore your application to its current state in case it is terminated later. 
     // If your application supports background execution, this method is called instead of applicationWillTerminate: when the user quits.
+}
+
+- (void)submitPost{
     UIApplication*    app = [UIApplication sharedApplication];
     
     __block UIBackgroundTaskIdentifier bgTask = [app beginBackgroundTaskWithExpirationHandler:^{
@@ -404,7 +409,9 @@ void uncaughtExceptionHandler(NSException *exception) {
     
     UIImage *emptyBarButton = [UIImage imageNamed:@"emptyBarButton"];
 
-    [[UIBarButtonItem appearance] setTintColor:[UIColor whiteColor]];
+    //if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 7.0){
+    //    self.window.tintColor = [UIColor blackColor];
+    //}
     if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 6) {
         [[UIBarButtonItem appearance] setTitleTextAttributes:@{
                                         UITextAttributeFont : [UIFont fontWithName:kHelveticaNeueThin size:14],

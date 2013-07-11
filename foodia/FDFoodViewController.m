@@ -24,19 +24,24 @@
     int homeCount;
     NSMutableDictionary *categoryCountDict;
     NSMutableArray *posts;
-    NSMutableArray *tags;
+    NSMutableArray *tagsForTimePeriod;
     FDFoodiaTag *maxTag;
     int maxTagCount;
     FDFoodiaTag *secondTag;
     int secondTagCount;
+    int trackedTagCount;
+    NSMutableArray *tagsForTagNames;
+    NSMutableArray *tagsForTracking;
+    NSMutableArray *filteredTagsForTagNames;
+    int totalRowNumber;
+    FDFoodiaTag *tagToTrack;
+    FDFoodiaTag *tagForRemoval;
 }
 
 @property (weak, nonatomic) IBOutlet UIButton *weekButton;
 @property (weak, nonatomic) IBOutlet UIButton *monthButton;
 @property (weak, nonatomic) IBOutlet UIButton *yearButton;
 @property (weak, nonatomic) IBOutlet UIView *tagContainerView;
-@property (weak, nonatomic) IBOutlet UILabel *homeStatsLabel;
-@property (weak, nonatomic) IBOutlet UILabel *maxTagLabel;
 -(IBAction)week;
 -(IBAction)month;
 -(IBAction)year;
@@ -49,39 +54,28 @@
 
 - (void)viewDidLoad
 {
-    self.tableView.tableHeaderView = self.mapContainerView;
-    self.tableView.tableFooterView = self.tagContainerView;
     [super viewDidLoad];
-	// Do any additional setup after loading the view.
-    [Flurry logEvent:@"Viewing My Digest" timed:YES];
-    UILabel *navTitle = [[UILabel alloc] init];
-    navTitle.frame = CGRectMake(0,0,180,44);
-    navTitle.text = @"Digest";
-    navTitle.font = [UIFont fontWithName:kHelveticaNeueThin size:20];
-    navTitle.backgroundColor = [UIColor clearColor];
-    navTitle.textColor = [UIColor blackColor];
-    navTitle.textAlignment = NSTextAlignmentCenter;
     categoryCountDict = [NSMutableDictionary dictionary];
-    posts = [NSMutableArray array];
-    tags = [NSMutableArray array];
+    if (!posts) posts = [NSMutableArray array];
+    if (!tagsForTimePeriod) tagsForTimePeriod = [NSMutableArray array];
+    if (!tagsForTagNames) tagsForTagNames = [NSMutableArray array];
+    if (!tagsForTracking) tagsForTracking = [NSMutableArray array];
+    if (!filteredTagsForTagNames) filteredTagsForTagNames = [NSMutableArray array];
+	
+    [Flurry logEvent:@"Viewing My Digest" timed:YES];
     
     if ([UIScreen mainScreen].bounds.size.height == 568) iPhone5 = YES;
     else iPhone5 = NO;
-
-    // Set label as titleView
-    self.navigationItem.titleView = navTitle;
-    
+    self.tableView.tableHeaderView = self.mapContainerView;
     [self resetMapForTimePeriod:kWeek];
     [self getCategoryCountsForTimePeriod:kWeek];
-    [self getTagsForTimePeriod:kWeek];
+
     _timePeriod = kWeek;
     [self selectTimeButton:self.weekButton];
     rowIndex = 1;
+    [self getTags];
 }
-- (void)viewWillAppear:(BOOL)animated {
-    [super viewWillAppear:animated];
-    
-}
+
 - (IBAction)rightBarButtonAction {
     
     if (self.mapView.frame.origin.y == 0){
@@ -161,15 +155,30 @@
         [self showPostsOnMap];
         [(FDAppDelegate*)[UIApplication sharedApplication].delegate hideLoadingOverlay];
     } failure:^(NSError *error) {
-        NSLog(@"Failure from time period method: %@",error.description);
+        //NSLog(@"Failure from time period method: %@",error.description);
     }];
     [self getTagsForTimePeriod:timePeriod];
 }
 
+- (void)getTags {
+    [[FDAPIClient sharedClient] getTagsForUserSuccess:^(id result) {
+        tagsForTagNames = [result mutableCopy];
+    } failure:^(NSError *error) {
+        
+    }];
+}
+
 - (void)getTagsForTimePeriod:(NSString*)timePeriod{
     [[FDAPIClient sharedClient] getTagsForTimePeriod:timePeriod success:^(id result) {
-        tags = result;
+        tagsForTimePeriod = result;
         [self refreshTags];
+        [[FDAPIClient sharedClient] getTrackedTagsForTimePeriod:timePeriod success:^(id result) {
+            tagsForTracking = [result mutableCopy];
+            totalRowNumber = 4 + tagsForTracking.count;
+            [self.tableView reloadData];
+        } failure:^(NSError *error) {
+            [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while trying to fetch your tags. Please try again soon." delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+        }];
     } failure:^(NSError *error) {
         NSLog(@"error from getTagsForTimePeriods method: %@",error.description);
     }];
@@ -187,9 +196,9 @@
     UIImageView *tagImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"tag"]];
     [self.tagContainerView addSubview:tagImageView];
     [tagImageView setFrame:CGRectMake(6, 4, 26, 26)];
-    if (tags.count){
+    if (tagsForTimePeriod.count){
         CGFloat rowHeight = 34;
-        for (FDFoodiaTag *tag in tags){
+        for (FDFoodiaTag *tag in tagsForTimePeriod){
             //reset alpha to baseline for each tag
             CGFloat alpha = 0.5f;
             
@@ -211,7 +220,7 @@
             alpha += (.1 * [tag.postsCount floatValue]);
             [tagButton setBackgroundColor:[self setTagColor:tag.color andAlpha:alpha]];
             [tagButton addTarget:self action:@selector(showPostsForTag:) forControlEvents:UIControlEventTouchUpInside];
-            if ([tag.color isEqualToString:@""] || [tag.color isEqualToString:kColorGrainString] || [tag.color isEqualToString:kColorLiquidString]) {
+            if ([tag.color isEqualToString:@""] || [tag.color isEqualToString:kColorYellowString] || [tag.color isEqualToString:kColorLightBlueString]) {
                 tagButton.layer.borderColor = [UIColor colorWithWhite:.90 alpha:1].CGColor;
                 [tagButton setTitleColor:[UIColor darkGrayColor] forState:UIControlStateNormal];
             } else {
@@ -248,40 +257,30 @@
             tagButton.layer.rasterizationScale = [UIScreen mainScreen].scale;
             [self.tagContainerView addSubview:tagButton];
         }
-        if (maxTag){
+        /*if (maxTag){
             [self.maxTagLabel setText:[NSString stringWithFormat:@"\"%@\" was a running theme (%i times). \"%@\" wasn't far behind (%i times).",maxTag.name,maxTagCount,secondTag.name,secondTagCount]];
-        }
-        
+        }*/
         [self setRows:rowIndex];
-    } else {
-        UILabel *tagLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, previousOriginY,320,34)];
-        [tagLabel setFont:[UIFont fontWithName:kHelveticaNeueThin size:15]];
-        [tagLabel setTextAlignment:NSTextAlignmentCenter];
-        [tagLabel setTextColor:[UIColor lightGrayColor]];
-        [tagLabel setText:@"Your tag cloud is empty right now!"];
-        [tagLabel setBackgroundColor:[UIColor clearColor]];
-        [self.tagContainerView addSubview:tagLabel];
-        [self.maxTagLabel setTextColor:[UIColor darkGrayColor]];
-        [self.maxTagLabel setTextAlignment:NSTextAlignmentCenter];
-        [self.maxTagLabel setText:@"Tap the \"+\" button on your home screen and start organizing your food life."];
     }
 }
 
 - (UIColor*)setTagColor:(NSString*)tagColor andAlpha:(CGFloat)alpha {
-    if ([tagColor isEqualToString:kColorLiquorString]){
+    if ([tagColor isEqualToString:kColorBlackString]){
         return [UIColor colorWithRed:61/255.0f green:57/255.0f blue:80/255.0f alpha:alpha];
-    } else if ([tagColor isEqualToString:kColorGrainString]){
+    } else if ([tagColor isEqualToString:kColorYellowString]){
         return [UIColor colorWithRed:247/255.0f green:231/255.0f blue:181/255.0f alpha:alpha];
-    } else if ([tagColor isEqualToString:kColorMeatString]){
+    } else if ([tagColor isEqualToString:kColorRedString]){
         return [UIColor colorWithRed:220/255.0f green:79/255.0f blue:35/255.0f alpha:alpha];
     } else if ([tagColor isEqualToString:kColorGreenString]){
         return [UIColor colorWithRed:111/255.0f green:182/255.0f blue:86/255.0f alpha:alpha];
     } else if ([tagColor isEqualToString:kColorPurpleString]){
         return [UIColor colorWithRed:111/255.0f green:57/255.0f blue:142/255.0f alpha:alpha];
     } else if ([tagColor isEqualToString:kColorOrangeString]) {
-        return [UIColor colorWithRed:255/255.0f green:156/255.0f blue:62/255.0f alpha:1.0f];
-    } else if ([tagColor isEqualToString:kColorLiquidString]) {
-        return [UIColor colorWithRed:165/255.0f green:215/255.0f blue:254/255.0f alpha:1.0f];
+        return [UIColor colorWithRed:255/255.0f green:156/255.0f blue:62/255.0f alpha:alpha];
+    } else if ([tagColor isEqualToString:kColorLightBlueString]) {
+        return [UIColor colorWithRed:165/255.0f green:215/255.0f blue:254/255.0f alpha:alpha];
+    } else if ([tagColor isEqualToString:kColorBrownString]) {
+        return [UIColor colorWithRed:126/255.0f green:86/255.0f blue:66/255.0f alpha:alpha];
     } else return [UIColor colorWithWhite:.95 alpha:alpha];
 }
 
@@ -291,8 +290,8 @@
 
 - (void)setRows:(int)index {
     [self.tagContainerView setFrame:CGRectMake(0, self.tagContainerView.frame.origin.y, 320, 44*index+1)];
-    self.tableView.tableHeaderView = self.mapContainerView;
     self.tableView.tableFooterView = self.tagContainerView;
+    self.tableView.tableHeaderView = self.mapContainerView;
 }
 
 - (void)showPostsOnMap {
@@ -301,19 +300,16 @@
     [self.mapView removeAnnotations:self.mapView.annotations];
     if (posts.count == 0) {
         [(FDAppDelegate*)[UIApplication sharedApplication].delegate hideLoadingOverlay];
-        [self.homeStatsLabel setText:@"There's nothing to show you yet!"];
-        [self.homeStatsLabel setTextAlignment:NSTextAlignmentCenter];
-        [self.homeStatsLabel setTextColor:[UIColor darkGrayColor]];
     } else {
         [self.mapView addAnnotations:posts];
         for (FDPost *post in posts) {
             if ([post.locationName isEqualToString:@"Home"]) homeCount++;
         }
-        if (homeCount == 1){
+        /*if (homeCount == 1){
             [self.homeStatsLabel setText:[NSString stringWithFormat:@"I had %i meal at home in the last %@.",homeCount,self.timePeriod]];
         } else if(homeCount > 1) {
             [self.homeStatsLabel setText:[NSString stringWithFormat:@"I had %i meals at home in the last %@.",homeCount,self.timePeriod]];
-        }
+        }*/
         CLLocationCoordinate2D topLeftCoord;
         topLeftCoord.latitude = -90;
         topLeftCoord.longitude = 180;
@@ -341,18 +337,25 @@
         [self.mapView setRegion:region animated:YES];
         [self setRows:rowIndex];
     }
+    [self.tableView reloadData];
 }
 
 #pragma mark - Table view data source
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
 {
-    return 1;
+    if (tableView == self.searchDisplayController.searchResultsTableView) return 1;
+    else return 2;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-    return 4;
+    if (tableView == self.searchDisplayController.searchResultsTableView) return filteredTagsForTagNames.count;
+    else if (section == 0) return 4;
+    else {
+        totalRowNumber = 4 + tagsForTracking.count;
+        return totalRowNumber;
+    }
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -361,45 +364,207 @@
     UITableViewCell *cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CellIdentifier];
     [cell.textLabel setFont:[UIFont fontWithName:kHelveticaNeueThin size:16]];
     [cell.textLabel setTextAlignment:NSTextAlignmentCenter];
+    cell.textLabel.numberOfLines = 0;
     cell.selectionStyle = UITableViewCellSelectionStyleNone;
     cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
-    if ([categoryCountDict objectForKey:@"eating_count"]){
-        switch (indexPath.row) {
-            case 0:
-                cell.textLabel.text = [NSString stringWithFormat:@"EATING - %@ posts", [categoryCountDict objectForKey:@"eating_count"]];
-                break;
-            case 1:
-                cell.textLabel.text = [NSString stringWithFormat:@"DRINKING - %@ posts", [categoryCountDict objectForKey:@"drinking_count"]];
-                break;
-            case 2:
-                cell.textLabel.text = [NSString stringWithFormat:@"MAKING - %@ posts", [categoryCountDict objectForKey:@"making_count"]];
-                break;
-            case 3:
-                cell.textLabel.text = [NSString stringWithFormat:@"SHOPPING - %@ posts", [categoryCountDict objectForKey:@"shopping_count"]];
-            default:
-                break;
+    cell.editingAccessoryType = UITableViewCellEditingStyleDelete;
+    if (tableView == self.searchDisplayController.searchResultsTableView) {
+        [cell.textLabel setText:[[filteredTagsForTagNames objectAtIndex:indexPath.row] name]];
+    } else if (indexPath.section == 0){
+        if ([categoryCountDict objectForKey:@"eating_count"]) {
+            switch (indexPath.row) {
+                case 0:
+                    cell.textLabel.text = [NSString stringWithFormat:@"Eating: %@ posts", [categoryCountDict objectForKey:@"eating_count"]];
+                    break;
+                case 1:
+                    cell.textLabel.text = [NSString stringWithFormat:@"Drinking: %@ posts", [categoryCountDict objectForKey:@"drinking_count"]];
+                    break;
+                case 2:
+                    cell.textLabel.text = [NSString stringWithFormat:@"Making: %@ posts", [categoryCountDict objectForKey:@"making_count"]];
+                    break;
+                case 3:
+                    cell.textLabel.text = [NSString stringWithFormat:@"Shopping: %@ posts", [categoryCountDict objectForKey:@"shopping_count"]];
+                default:
+                    break;
+            }
+        }
+    } else {
+        if (indexPath.row <= 2) {
+            [cell.textLabel setTextColor:[UIColor darkGrayColor]];
+            switch (indexPath.row) {
+                case 0:
+                    //home count should have already been set when the map was drawn
+                    if (homeCount == 1){
+                        [cell.textLabel setText:[NSString stringWithFormat:@"I had %i meal at home in the last %@.",homeCount,self.timePeriod]];
+                    } else if(homeCount > 1) {
+                        [cell.textLabel setText:[NSString stringWithFormat:@"I had %i meals at home in the last %@.",homeCount,self.timePeriod]];
+                    }
+                    cell.accessoryType = UITableViewCellAccessoryNone;
+                    break;
+                case 1:
+                    if (maxTag){
+                        cell.textLabel.text = [NSString stringWithFormat:@"\"%@\" was a running theme (%i times).",maxTag.name,maxTagCount];
+                        //[cell.textLabel setFont:[UIFont fontWithName:kHelveticaNeueThin size:15]];
+                    } else {
+                        [cell.textLabel setText:@"Your tag cloud is empty right now!"];
+                    }
+                    cell.accessoryType = UITableViewCellAccessoryNone;
+                    break;
+                case 2:
+                    if (secondTag) {
+                        cell.textLabel.text = [NSString stringWithFormat:@"\"%@\" wasn't far behind (%i times).",secondTag.name, secondTagCount];
+                        //[cell.textLabel setFont:[UIFont fontWithName:kHelveticaNeueThin size:15]];
+                    } else {
+                        [cell.textLabel setText:@"Tap the \"+\" button on your home screen and start organizing your food life."];
+                    }
+                    cell.accessoryType = UITableViewCellAccessoryNone;
+                default:
+                    break;
+            }
+        } else if (indexPath.row == totalRowNumber - 1){
+            [cell.textLabel setText:@"Tap to track a specific tag"];
+            [cell.textLabel setTextColor:[UIColor lightGrayColor]];
+        } else {
+            FDFoodiaTag *thisTag = [tagsForTracking objectAtIndex:(indexPath.row - 3)];
+            if (thisTag.postsCount == [NSNumber numberWithInt:0]){
+                [cell.textLabel setText:[NSString stringWithFormat:@"I haven't had any %@ in the past %@.",thisTag.name,self.timePeriod]];
+            } else if (thisTag.postsCount == [NSNumber numberWithInt:1]) {
+                [cell.textLabel setText:[NSString stringWithFormat:@"I've had %@ once in the past %@.",thisTag.name,self.timePeriod]];
+            } else {
+                [cell.textLabel setText:[NSString stringWithFormat:@"I've had %@ %@ times in the last %@.",thisTag.name,thisTag.postsCount, self.timePeriod]];
+            }
+            
         }
     }
     return cell;
 }
 
+-(CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
+    if (tableView == self.searchDisplayController.searchResultsTableView)return 60;
+    else return 66;
+}
+
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    switch (indexPath.row) {
-        case 0:
-            _categoryName = kEating;
-            break;
-        case 1:
-            _categoryName = kDrinking;
-            break;
-        case 2:
-            _categoryName = kMaking;
-            break;
-        case 3:
-            _categoryName = kShopping;
-        default:
-            break;
+    if (tableView == self.searchDisplayController.searchResultsTableView) {
+        tagToTrack = [filteredTagsForTagNames objectAtIndex:indexPath.row];
+        [[[UIAlertView alloc] initWithTitle:@"Just to confirm..." message:[NSString stringWithFormat:@"Do you want to start tracking \"%@\"?", tagToTrack.name] delegate:self cancelButtonTitle:@"Nope" otherButtonTitles:@"Yes", nil] show];
+    } else if (indexPath.section == 0){
+        switch (indexPath.row) {
+            case 0:
+                _categoryName = kEating;
+                break;
+            case 1:
+                _categoryName = kDrinking;
+                break;
+            case 2:
+                _categoryName = kMaking;
+                break;
+            case 3:
+                _categoryName = kShopping;
+            default:
+                break;
+        }
+        [self performSegueWithIdentifier:@"ShowPostsForCategory" sender:self];
+    } else if (indexPath.row == totalRowNumber - 1) {
+        [UIView animateWithDuration:.2 animations:^{
+            self.searchDisplayController.searchBar.transform = CGAffineTransformMakeTranslation(-320, 0);
+            self.searchDisplayController.searchResultsTableView.transform = CGAffineTransformMakeTranslation(-320, 0);
+            [self.searchDisplayController.searchBar becomeFirstResponder];
+        } completion:^(BOOL finished) {
+            
+        }];
+    } else if (indexPath.row > 2) {
+        /*tagForRemoval = [tagsForTracking objectAtIndex:(indexPath.row - 3)];
+        [[[UIAlertView alloc] initWithTitle:@"Whoa there!" message:[NSString stringWithFormat:@"Are you sure you want to stop tracking \"%@\"?",tagForRemoval.name] delegate:self cancelButtonTitle:@"Nevermind" otherButtonTitles:@"I'm sure", nil] show];*/
+        UIButton *dummyButton = [[UIButton alloc] init];
+        [dummyButton setTitle:[[tagsForTracking objectAtIndex:(indexPath.row - 3)] name] forState:UIControlStateNormal];
+        [self performSegueWithIdentifier:@"ShowPostsForTag" sender:dummyButton];
     }
-    [self performSegueWithIdentifier:@"ShowPostsForCategory" sender:self];
+}
+
+- (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
+    if (indexPath.section == 1 && indexPath.row > 2 && indexPath.row != totalRowNumber - 1)
+        return YES;
+    else
+        return NO;
+}
+
+- (UITableViewCellEditingStyle) tableView:(UITableView *)tableView editingStyleForRowAtIndexPath:(NSIndexPath *)indexPath {
+    return UITableViewCellEditingStyleDelete;
+}
+
+- (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    if (editingStyle == UITableViewCellEditingStyleDelete)
+    {
+        tagForRemoval = [tagsForTracking objectAtIndex:indexPath.row-3];
+        [[[UIAlertView alloc] initWithTitle:@"Whoa there!" message:[NSString stringWithFormat:@"Are you sure you want to stop tracking \"%@\"?",tagForRemoval.name] delegate:self cancelButtonTitle:@"Nevermind" otherButtonTitles:@"I'm sure", nil] show];
+    }
+}
+
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
+    if ([[alertView buttonTitleAtIndex:buttonIndex] isEqualToString:@"Yes"]){
+        [[FDAPIClient sharedClient] trackTag:tagToTrack.name success:^(id result) {
+            [[FDAPIClient sharedClient] getTrackedTagsForTimePeriod:self.timePeriod success:^(id result) {
+                tagsForTracking = [result mutableCopy];
+                [self.tableView reloadData];
+            } failure:^(NSError *error) {}];
+        } failure:^(NSError *error) {}];
+        [self.searchDisplayController setActive:NO animated:NO];
+        self.searchDisplayController.searchBar.transform = CGAffineTransformIdentity;
+        self.searchDisplayController.searchResultsTableView.transform = CGAffineTransformIdentity;
+    } else if ([[alertView buttonTitleAtIndex:buttonIndex] isEqualToString:@"I'm sure"]){
+        [[FDAPIClient sharedClient] removeTrackedTag:tagForRemoval.identifier success:^(id result) {
+            [tagsForTracking removeObject:tagForRemoval];
+            totalRowNumber --;
+            tagForRemoval = nil;
+            [self.tableView reloadData];
+        } failure:^(NSError *error) {
+            
+        }];
+    }
+}
+
+#pragma mark UISearchDisplayController Delegate Methods
+
+- (BOOL)searchDisplayController:(UISearchDisplayController *)controller shouldReloadTableForSearchString:(NSString *)searchString
+{
+    [self filterContentForSearchText:searchString scope:[[self.searchDisplayController.searchBar scopeButtonTitles] objectAtIndex:[self.searchDisplayController.searchBar selectedScopeButtonIndex]]];
+    
+    // Return YES to cause the search result table view to be reloaded.
+    return YES;
+}
+
+
+- (BOOL)searchDisplayController:(UISearchDisplayController *)controller shouldReloadTableForSearchScope:(NSInteger)searchOption
+{
+    //[self filterContentForSearchText:[self.searchDisplayController.searchBar text] scope:
+    //[[self.searchDisplayController.searchBar scopeButtonTitles] objectAtIndex:searchOption]];
+    
+    // Return YES to cause the search result table view to be reloaded.
+    return YES;
+}
+- (void)searchBarCancelButtonClicked:(UISearchBar *)searchBar {
+    [UIView animateWithDuration:.2 animations:^{
+        self.searchDisplayController.searchBar.transform = CGAffineTransformIdentity;
+        self.searchDisplayController.searchResultsTableView.transform = CGAffineTransformIdentity;
+    } completion:^(BOOL finished) {
+        
+    }];
+}
+
+- (void)filterContentForSearchText:(NSString*)searchText scope:(NSString*)scope {
+    
+    //Update the filtered array based on the search text and scope.
+    [filteredTagsForTagNames removeAllObjects]; // First clear the filtered array.
+    
+    // Search the main list for products whose type matches the scope (if selected) and whose name matches searchText; add items that match to the filtered array.
+    for (FDFoodiaTag *tag in tagsForTagNames) {
+        NSPredicate *predicate = [NSPredicate predicateWithFormat:@"(SELF contains[cd] %@)", searchText];
+        if([predicate evaluateWithObject:tag.name]) {
+            [filteredTagsForTagNames addObject:tag];
+        }
+    }
 }
 
 #pragma mark - MKMapViewDelegate

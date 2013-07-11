@@ -53,6 +53,11 @@ static FDPost *userPost;
         NSString *tempString = [self.detailImageUrlString stringByReplacingOccurrencesOfString:@"s3.amazonaws.com/foodia-uploads" withString:@"d39yp5dq001uwq.cloudfront.net"];
     return [NSURL URLWithString:tempString];
 }
+
+- (void)setDetailImageURL:(NSURL*)detailImageUrl {
+    self.detailImageURL = detailImageUrl;
+}
+
 - (NSURL *)featuredImageURL {
         NSString *tempString = [self.featuredImageUrlString stringByReplacingOccurrencesOfString:@"s3.amazonaws.com/foodia-uploads" withString:@"d39yp5dq001uwq.cloudfront.net"];
     return [NSURL URLWithString:tempString];

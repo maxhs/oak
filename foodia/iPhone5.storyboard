@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="2.0" toolsVersion="3084" systemVersion="12E55" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" initialViewController="gE2-gg-n0F">
     <dependencies>
-        <deployment version="1280" defaultVersion="1552" identifier="iOS"/>
+        <deployment version="1280" identifier="iOS"/>
         <development version="4600" identifier="xcode"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="2083"/>
     </dependencies>
@@ -461,7 +461,7 @@
                                 <rect key="frame" x="170" y="86" width="100" height="44"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <fontDescription key="fontDescription" name="HelveticaNeue-Light" family="Helvetica Neue" pointSize="17"/>
-                                <state key="normal" title="LOG IN" backgroundImage="whiteButton.png">
+                                <state key="normal" title="Log in" backgroundImage="whiteButton.png">
                                     <color key="titleColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
                                     <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
@@ -473,7 +473,7 @@
                                 <rect key="frame" x="50" y="86" width="100" height="44"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <fontDescription key="fontDescription" name="HelveticaNeue-Light" family="Helvetica Neue" pointSize="17"/>
-                                <state key="normal" title="SIGN UP" backgroundImage="whiteButton.png">
+                                <state key="normal" title="Sign up" backgroundImage="whiteButton.png">
                                     <color key="titleColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
                                     <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
@@ -500,6 +500,7 @@
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                     </view>
                     <navigationItem key="navigationItem" id="s1C-8S-JlY"/>
+                    <simulatedStatusBarMetrics key="simulatedStatusBarMetrics"/>
                     <connections>
                         <outlet property="cancelEmailButton" destination="ruq-Ir-JeM" id="3hF-fM-TGH"/>
                         <outlet property="dummyStuff" destination="JIn-3l-s9o" id="21o-qr-AEd"/>
@@ -527,7 +528,7 @@
         <!--Menu View Controller-->
         <scene sceneID="Vg6-0R-5uU">
             <objects>
-                <tableViewController storyboardIdentifier="Menu" id="4RI-IN-gU0" customClass="FDMenuViewController" sceneMemberID="viewController">
+                <tableViewController storyboardIdentifier="Menu" wantsFullScreenLayout="YES" id="4RI-IN-gU0" customClass="FDMenuViewController" sceneMemberID="viewController">
                     <tableView key="view" opaque="NO" clipsSubviews="YES" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" alwaysBounceVertical="YES" scrollEnabled="NO" dataMode="prototypes" style="plain" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="9H2-1G-Yz8">
                         <rect key="frame" x="0.0" y="20" width="320" height="548"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES" heightSizable="YES"/>
@@ -559,7 +560,7 @@
                             <outlet property="delegate" destination="4RI-IN-gU0" id="EX4-ee-ZTk"/>
                         </connections>
                     </tableView>
-                    <simulatedStatusBarMetrics key="simulatedStatusBarMetrics"/>
+                    <simulatedStatusBarMetrics key="simulatedStatusBarMetrics" statusBarStyle="blackOpaque"/>
                     <connections>
                         <segue destination="LZE-XF-kth" kind="push" identifier="ShowPost" id="XaP-VH-khe"/>
                         <segue destination="MIu-0K-XDF" kind="push" identifier="ViewProfile" id="rQV-CB-LoU"/>
@@ -690,17 +691,22 @@
                         <rect key="frame" x="0.0" y="64" width="320" height="504"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
-                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="grouped" separatorStyle="singleLineEtched" rowHeight="44" sectionHeaderHeight="10" sectionFooterHeight="10" id="1Zp-8z-xej">
+                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="1Zp-8z-xej">
                                 <rect key="frame" x="0.0" y="0.0" width="320" height="504"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES" flexibleMaxY="YES"/>
-                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <connections>
                                     <outlet property="dataSource" destination="tcY-wT-K4O" id="Oxg-rj-mgb"/>
                                     <outlet property="delegate" destination="tcY-wT-K4O" id="aKU-RY-wbs"/>
                                 </connections>
                             </tableView>
+                            <view contentMode="scaleToFill" id="UEj-9q-m0R">
+                                <rect key="frame" x="0.0" y="460" width="320" height="44"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+                            </view>
                             <view contentMode="scaleToFill" id="qcS-su-iRw">
-                                <rect key="frame" x="0.0" y="0.0" width="320" height="268"/>
+                                <rect key="frame" x="0.0" y="0.0" width="320" height="190"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES" flexibleMaxY="YES"/>
                                 <subviews>
                                     <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="Sort by past:" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="kdG-WQ-F7q">
@@ -762,26 +768,17 @@
                                             <outlet property="delegate" destination="tcY-wT-K4O" id="Ogv-fG-ttx"/>
                                         </connections>
                                     </mapView>
-                                    <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="FtL-OH-eQK">
-                                        <rect key="frame" x="8" y="201" width="312" height="21"/>
-                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                        <fontDescription key="fontDescription" name="HelveticaNeue-Light" family="Helvetica Neue" pointSize="15"/>
-                                        <nil key="highlightedColor"/>
-                                    </label>
-                                    <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="3Vr-5t-VUY">
-                                        <rect key="frame" x="8" y="227" width="308" height="42"/>
-                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                        <fontDescription key="fontDescription" name="HelveticaNeue-Light" family="Helvetica Neue" pointSize="15"/>
-                                        <nil key="highlightedColor"/>
-                                    </label>
                                 </subviews>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                             </view>
-                            <view contentMode="scaleToFill" id="UEj-9q-m0R">
-                                <rect key="frame" x="0.0" y="230" width="320" height="44"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
-                            </view>
+                            <searchBar contentMode="redraw" barStyle="blackOpaque" id="1M8-oB-OfW">
+                                <rect key="frame" x="320" y="0.0" width="320" height="44"/>
+                                <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
+                                <textInputTraits key="textInputTraits"/>
+                                <connections>
+                                    <outlet property="delegate" destination="tcY-wT-K4O" id="Jqc-pd-Hc4"/>
+                                </connections>
+                            </searchBar>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                     </view>
@@ -798,11 +795,10 @@
                         </barButtonItem>
                     </navigationItem>
                     <connections>
-                        <outlet property="homeStatsLabel" destination="FtL-OH-eQK" id="FbE-k2-Q6O"/>
                         <outlet property="mapContainerView" destination="qcS-su-iRw" id="oxX-Jo-AAV"/>
                         <outlet property="mapView" destination="Yxu-rI-Lds" id="rhR-ym-ju8"/>
-                        <outlet property="maxTagLabel" destination="3Vr-5t-VUY" id="uBh-Ae-vlD"/>
                         <outlet property="monthButton" destination="7HQ-S4-JiX" id="ZLr-8c-ilY"/>
+                        <outlet property="searchDisplayController" destination="j4O-3G-vFa" id="Ywv-3i-R0R"/>
                         <outlet property="tableView" destination="1Zp-8z-xej" id="QUS-6P-iDC"/>
                         <outlet property="tagContainerView" destination="UEj-9q-m0R" id="wrY-2m-bdR"/>
                         <outlet property="weekButton" destination="wfh-tO-r0P" id="Fhw-LA-TbT"/>
@@ -813,6 +809,15 @@
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="JEa-nW-szU" userLabel="First Responder" sceneMemberID="firstResponder"/>
+                <searchDisplayController id="j4O-3G-vFa">
+                    <connections>
+                        <outlet property="delegate" destination="tcY-wT-K4O" id="nmm-fk-23i"/>
+                        <outlet property="searchBar" destination="1M8-oB-OfW" id="6Kc-DK-U7I"/>
+                        <outlet property="searchContentsController" destination="tcY-wT-K4O" id="SJa-yR-KgG"/>
+                        <outlet property="searchResultsDataSource" destination="tcY-wT-K4O" id="vWO-B2-Vyg"/>
+                        <outlet property="searchResultsDelegate" destination="tcY-wT-K4O" id="1kp-aV-hxI"/>
+                    </connections>
+                </searchDisplayController>
             </objects>
             <point key="canvasLocation" x="-1839" y="3044"/>
         </scene>
@@ -1131,6 +1136,11 @@
                         <rect key="frame" x="0.0" y="64" width="320" height="504"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
+                            <view contentMode="scaleToFill" id="GNo-Um-jF1">
+                                <rect key="frame" x="0.0" y="-64" width="320" height="64"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+                            </view>
                             <view contentMode="scaleToFill" id="5vS-fq-lRb">
                                 <rect key="frame" x="0.0" y="1" width="320" height="504"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
@@ -1203,7 +1213,7 @@
                             </scrollView>
                             <tableView clipsSubviews="YES" alpha="0.0" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="none" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="iO6-Ww-cpN">
                                 <rect key="frame" x="0.0" y="0.0" width="320" height="504"/>
-                                <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES" heightSizable="YES"/>
+                                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <connections>
                                     <outlet property="dataSource" destination="Bvi-Le-G9O" id="EaR-Wn-Hqs"/>
@@ -1250,7 +1260,6 @@
                             </connections>
                         </barButtonItem>
                     </navigationItem>
-                    <simulatedStatusBarMetrics key="simulatedStatusBarMetrics"/>
                     <connections>
                         <outlet property="_scrollView" destination="sp8-df-YlL" id="r8w-5f-UXj"/>
                         <outlet property="addPostButton" destination="VdG-MF-CZv" id="vfH-4O-GJb"/>
@@ -1818,6 +1827,7 @@
                         <outlet property="textFieldImageView" destination="XDP-4f-yfY" id="PIt-R8-H11"/>
                         <segue destination="4xr-Qy-Eta" kind="push" identifier="TakePhotoFromCategory" id="hLd-A2-Vcq"/>
                         <segue destination="DoK-WK-qkD" kind="push" identifier="QuickPost" id="Uzy-kk-urh"/>
+                        <segue destination="i81-4z-gaU" kind="push" identifier="NativeCameraSegue" id="TiE-Da-lxl"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="aLq-EB-OmM" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -1829,11 +1839,11 @@
             <objects>
                 <viewController wantsFullScreenLayout="YES" id="i81-4z-gaU" customClass="FDNewPostViewController" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="JX2-xA-Pck">
-                        <rect key="frame" x="0.0" y="64" width="320" height="504"/>
+                        <rect key="frame" x="0.0" y="64" width="320" height="524"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" scrollEnabled="NO" showsVerticalScrollIndicator="NO" dataMode="prototypes" style="plain" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="Wrj-yQ-05c">
-                                <rect key="frame" x="0.0" y="0.0" width="320" height="504"/>
+                                <rect key="frame" x="0.0" y="0.0" width="320" height="524"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <view key="tableHeaderView" contentMode="scaleToFill" id="enB-qD-WqZ">
@@ -2075,8 +2085,8 @@
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                     </view>
                     <navigationItem key="navigationItem" id="7BD-Rt-Rqo">
-                        <barButtonItem key="rightBarButtonItem" title="Post" style="done" id="2xJ-GP-vHZ">
-                            <color key="tintColor" red="1" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                        <barButtonItem key="backBarButtonItem" title="Done" id="fuD-S6-kY6"/>
+                        <barButtonItem key="rightBarButtonItem" title="Post" id="2xJ-GP-vHZ">
                             <connections>
                                 <action selector="submitPost:" destination="i81-4z-gaU" id="rmY-7P-EWD"/>
                             </connections>
@@ -2120,18 +2130,18 @@
             <objects>
                 <viewController wantsFullScreenLayout="YES" id="2Qv-FQ-W8B" customClass="FDAddLocationViewController" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="Otf-8K-9pk">
-                        <rect key="frame" x="0.0" y="64" width="320" height="504"/>
+                        <rect key="frame" x="0.0" y="20" width="320" height="548"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
                             <mapView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" mapType="standard" showsUserLocation="YES" id="dJ7-i2-cCZ">
-                                <rect key="frame" x="0.0" y="0.0" width="320" height="199"/>
+                                <rect key="frame" x="0.0" y="0.0" width="320" height="243"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <connections>
                                     <outlet property="delegate" destination="2Qv-FQ-W8B" id="Aop-7j-IuV"/>
                                 </connections>
                             </mapView>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="e61-sR-Npw" userLabel="remove location button">
-                                <rect key="frame" x="275" y="152" width="44" height="44"/>
+                                <rect key="frame" x="275" y="166" width="44" height="44"/>
                                 <fontDescription key="fontDescription" type="boldSystem" pointSize="15"/>
                                 <state key="normal" image="cancelPin.png">
                                     <color key="titleColor" red="0.19607843459999999" green="0.30980393290000002" blue="0.52156865600000002" alpha="1" colorSpace="calibratedRGB"/>
@@ -2254,11 +2264,11 @@
             <objects>
                 <viewController id="ARN-zh-kRb" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="l6R-qo-RGf">
-                        <rect key="frame" x="0.0" y="64" width="320" height="504"/>
+                        <rect key="frame" x="0.0" y="20" width="320" height="524"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
                             <webView contentMode="scaleToFill" id="nGn-hQ-TXc">
-                                <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
+                                <rect key="frame" x="0.0" y="0.0" width="320" height="588"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                                 <dataDetectorType key="dataDetectorTypes"/>
@@ -2277,7 +2287,7 @@
             <objects>
                 <viewController storyboardIdentifier="QuickPost" wantsFullScreenLayout="YES" id="DoK-WK-qkD" customClass="FDQuickPostViewController" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="nkW-Hv-xEP">
-                        <rect key="frame" x="0.0" y="64" width="320" height="504"/>
+                        <rect key="frame" x="0.0" y="20" width="320" height="504"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="grouped" separatorStyle="singleLineEtched" rowHeight="44" sectionHeaderHeight="10" sectionFooterHeight="10" id="svR-fy-IQQ">
@@ -2320,7 +2330,7 @@
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                     </view>
                     <navigationItem key="navigationItem" id="oBd-hz-2Yp">
-                        <barButtonItem key="backBarButtonItem" title="BACK" id="e6B-3a-Bfz"/>
+                        <barButtonItem key="backBarButtonItem" title="Done" id="i3y-Vv-hJ8"/>
                         <barButtonItem key="rightBarButtonItem" title="Post" id="uNf-W4-4Ht">
                             <connections>
                                 <action selector="post" destination="DoK-WK-qkD" id="iTh-nx-P8X"/>
@@ -2344,7 +2354,7 @@
             <objects>
                 <tableViewController id="p7Y-Uw-T4O" customClass="FDTagFriendsViewController" sceneMemberID="viewController">
                     <tableView key="view" opaque="NO" clipsSubviews="YES" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="clt-qb-FZI">
-                        <rect key="frame" x="0.0" y="64" width="320" height="504"/>
+                        <rect key="frame" x="0.0" y="64" width="320" height="524"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <searchBar key="tableHeaderView" contentMode="redraw" barStyle="blackTranslucent" placeholder="Search for a friend's name" id="sRz-7f-gBC">
@@ -2381,8 +2391,9 @@
                         </connections>
                     </tableView>
                     <navigationItem key="navigationItem" id="Bkq-vt-Jbi">
-                        <barButtonItem key="backBarButtonItem" title="SAVE" id="hty-27-BlD"/>
+                        <barButtonItem key="backBarButtonItem" title="Done" id="hty-27-BlD"/>
                     </navigationItem>
+                    <simulatedNavigationBarMetrics key="simulatedTopBarMetrics" barStyle="blackOpaque" prompted="NO"/>
                     <connections>
                         <outlet property="searchDisplayController" destination="3bd-Gh-gSB" id="8NT-S4-LAY"/>
                     </connections>
@@ -2442,7 +2453,7 @@
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="H6B-dT-nbs" userLabel="Cancel Button">
                                         <rect key="frame" x="10" y="25" width="100" height="44"/>
                                         <fontDescription key="fontDescription" name="HelveticaNeue-Light" family="Helvetica Neue" pointSize="14"/>
-                                        <state key="normal" title="BACK" backgroundImage="cameraButton.png">
+                                        <state key="normal" title="Back" backgroundImage="cameraButton.png">
                                             <color key="titleColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
                                             <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                         </state>
@@ -2498,7 +2509,7 @@
                         <color key="backgroundColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
                     </view>
                     <navigationItem key="navigationItem" id="6Sf-kS-Tbm">
-                        <barButtonItem key="backBarButtonItem" title="BACK" id="iaO-CF-oVc"/>
+                        <barButtonItem key="backBarButtonItem" id="iaO-CF-oVc"/>
                     </navigationItem>
                     <nil key="simulatedStatusBarMetrics"/>
                     <nil key="simulatedTopBarMetrics"/>
@@ -2522,7 +2533,7 @@
             <objects>
                 <tableViewController storyboardIdentifier="PhotoLibrary" useStoryboardIdentifierAsRestorationIdentifier="YES" clearsSelectionOnViewWillAppear="NO" id="8gr-gJ-90M" customClass="FDPhotoLibraryViewController" sceneMemberID="viewController">
                     <tableView key="view" opaque="NO" clipsSubviews="YES" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="none" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="Xmj-y1-VFF">
-                        <rect key="frame" x="0.0" y="44" width="320" height="524"/>
+                        <rect key="frame" x="0.0" y="64" width="320" height="524"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <connections>
@@ -2542,7 +2553,7 @@
             <objects>
                 <viewController storyboardIdentifier="FoodiaTags" wantsFullScreenLayout="YES" id="tG1-fF-3Dw" customClass="FDFoodiaTagsViewController" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="sBx-YF-2gM">
-                        <rect key="frame" x="0.0" y="64" width="320" height="504"/>
+                        <rect key="frame" x="0.0" y="20" width="320" height="504"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
                             <view contentMode="scaleToFill" id="0h6-D6-hw2">
@@ -2555,8 +2566,8 @@
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                             </view>
-                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="5Xa-jQ-sTv">
-                                <rect key="frame" x="0.0" y="44" width="320" height="460"/>
+                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="none" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="5Xa-jQ-sTv">
+                                <rect key="frame" x="0.0" y="0.0" width="320" height="504"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <prototypes>
@@ -2602,12 +2613,20 @@
                                     <outlet property="delegate" destination="tG1-fF-3Dw" id="dzr-L8-Wpu"/>
                                 </connections>
                             </tableView>
+                            <view contentMode="scaleToFill" id="zo5-Gr-y9k">
+                                <rect key="frame" x="0.0" y="332" width="320" height="172"/>
+                                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+                            </view>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                     </view>
-                    <navigationItem key="navigationItem" id="zRp-ki-beS"/>
+                    <navigationItem key="navigationItem" id="zRp-ki-beS">
+                        <barButtonItem key="backBarButtonItem" title="Done" id="hnd-DC-H3S"/>
+                    </navigationItem>
                     <simulatedStatusBarMetrics key="simulatedStatusBarMetrics"/>
                     <connections>
+                        <outlet property="suggestedTagContainerView" destination="zo5-Gr-y9k" id="ZPd-8v-D1u"/>
                         <outlet property="tableView" destination="5Xa-jQ-sTv" id="hDz-l6-QFC"/>
                         <outlet property="tagContainerView" destination="vhb-kv-C3n" id="QXG-9T-HQe"/>
                     </connections>
@@ -2621,7 +2640,6 @@
             <objects>
                 <navigationController storyboardIdentifier="FeedNavigation" wantsFullScreenLayout="YES" useStoryboardIdentifierAsRestorationIdentifier="YES" id="AFv-Vg-IeZ" customClass="FDFeedNavigationViewController" sceneMemberID="viewController">
                     <toolbarItems/>
-                    <simulatedStatusBarMetrics key="simulatedStatusBarMetrics"/>
                     <simulatedNavigationBarMetrics key="simulatedTopBarMetrics" barStyle="blackOpaque" prompted="NO"/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" barStyle="blackOpaque" id="5NY-87-weI">
                         <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
@@ -2693,21 +2711,368 @@
         <image name="unlocked.png" width="36" height="36"/>
         <image name="whiteButton.png" width="127" height="35"/>
     </resources>
+    <classes>
+        <class className="ECSlidingViewController" superclassName="UIViewController">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/ECSlidingViewController.h"/>
+        </class>
+        <class className="FDAddLocationViewController" superclassName="UIViewController">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDAddLocationViewController.h"/>
+            <relationships>
+                <relationship kind="action" name="removeLocation:"/>
+                <relationship kind="action" name="selectHome"/>
+                <relationship kind="outlet" name="foursquareLogoView" candidateClass="UIImageView"/>
+                <relationship kind="outlet" name="mapView" candidateClass="MKMapView"/>
+                <relationship kind="outlet" name="searchBar" candidateClass="UISearchBar"/>
+                <relationship kind="outlet" name="tableContainerView" candidateClass="UIView"/>
+                <relationship kind="outlet" name="tableView" candidateClass="UITableView"/>
+            </relationships>
+        </class>
+        <class className="FDCameraViewController" superclassName="UIViewController">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDCameraViewController.h"/>
+            <relationships>
+                <relationship kind="action" name="cancel"/>
+                <relationship kind="action" name="captureStillImage:"/>
+                <relationship kind="action" name="libraryButtonTapped"/>
+                <relationship kind="outlet" name="backgroundTopFrame" candidateClass="UIImageView"/>
+                <relationship kind="outlet" name="cancelButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="filterScrollView" candidateClass="UIScrollView"/>
+                <relationship kind="outlet" name="filterScrollViewBackground" candidateClass="UIImageView"/>
+                <relationship kind="outlet" name="libraryButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="photoPreviewImageView" candidateClass="UIImageView"/>
+                <relationship kind="outlet" name="takePhotoButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="useButton" candidateClass="UIButton"/>
+            </relationships>
+        </class>
+        <class className="FDCategoryPostsViewController" superclassName="UIViewController">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDCategoryPostsViewController.h"/>
+            <relationships>
+                <relationship kind="outlet" name="tableView" candidateClass="UITableView"/>
+            </relationships>
+        </class>
+        <class className="FDClipView" superclassName="UIView">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDClipView.h"/>
+            <relationships>
+                <relationship kind="outlet" name="_scrollView" candidateClass="UIScrollView"/>
+            </relationships>
+        </class>
+        <class className="FDEditProfileViewController" superclassName="UIViewController">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDEditProfileViewController.h"/>
+            <relationships>
+                <relationship kind="action" name="back"/>
+                <relationship kind="action" name="cancel"/>
+                <relationship kind="action" name="editPhoto"/>
+                <relationship kind="action" name="submitDetails"/>
+                <relationship kind="outlet" name="backButton" candidateClass="UIBarButtonItem"/>
+                <relationship kind="outlet" name="cancelButton" candidateClass="UIBarButtonItem"/>
+                <relationship kind="outlet" name="locationTextField" candidateClass="UITextField"/>
+                <relationship kind="outlet" name="nameTextField" candidateClass="UITextField"/>
+                <relationship kind="outlet" name="navBar" candidateClass="UINavigationBar"/>
+                <relationship kind="outlet" name="passwordBackground" candidateClass="UIImageView"/>
+                <relationship kind="outlet" name="passwordTextField" candidateClass="UITextField"/>
+                <relationship kind="outlet" name="philosophyTextView" candidateClass="UITextView"/>
+                <relationship kind="outlet" name="photoPrompt" candidateClass="UILabel"/>
+                <relationship kind="outlet" name="saveProfileButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="tableView" candidateClass="UITableView"/>
+                <relationship kind="outlet" name="userPhoto" candidateClass="UIButton"/>
+            </relationships>
+        </class>
+        <class className="FDFeedNavigationViewController" superclassName="UINavigationController">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDFeedNavigationViewController.h"/>
+        </class>
+        <class className="FDFeedViewController" superclassName="UIViewController">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDFeedViewController.h"/>
+            <relationships>
+                <relationship kind="action" name="revealMenu:" candidateClass="UIBarButtonItem"/>
+                <relationship kind="action" name="rightBarButtonAction"/>
+                <relationship kind="outlet" name="_scrollView" candidateClass="UIScrollView"/>
+                <relationship kind="outlet" name="addPostButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="clipView" candidateClass="UIView"/>
+                <relationship kind="outlet" name="clipViewBackground" candidateClass="UIImageView"/>
+                <relationship kind="outlet" name="featuredLabel" candidateClass="UILabel"/>
+                <relationship kind="outlet" name="feedContainerView" candidateClass="UIView"/>
+                <relationship kind="outlet" name="feedLabel" candidateClass="UILabel"/>
+                <relationship kind="outlet" name="keepersLabel" candidateClass="UILabel"/>
+                <relationship kind="outlet" name="menuButtonItem" candidateClass="UIBarButtonItem"/>
+                <relationship kind="outlet" name="nearbyLabel" candidateClass="UILabel"/>
+                <relationship kind="outlet" name="recLabel" candidateClass="UILabel"/>
+                <relationship kind="outlet" name="resultsTableView" candidateClass="UITableView"/>
+                <relationship kind="outlet" name="sliderButtonItem" candidateClass="UIBarButtonItem"/>
+            </relationships>
+        </class>
+        <class className="FDFoodNavigationController" superclassName="UINavigationController">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDFoodNavigationController.h"/>
+        </class>
+        <class className="FDFoodViewController" superclassName="UIViewController">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDFoodViewController.h"/>
+            <relationships>
+                <relationship kind="action" name="month"/>
+                <relationship kind="action" name="revealMenu:" candidateClass="UIBarButtonItem"/>
+                <relationship kind="action" name="rightBarButtonAction"/>
+                <relationship kind="action" name="week"/>
+                <relationship kind="action" name="year"/>
+                <relationship kind="outlet" name="mapContainerView" candidateClass="UIView"/>
+                <relationship kind="outlet" name="mapView" candidateClass="MKMapView"/>
+                <relationship kind="outlet" name="monthButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="tableView" candidateClass="UITableView"/>
+                <relationship kind="outlet" name="tagContainerView" candidateClass="UIView"/>
+                <relationship kind="outlet" name="weekButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="yearButton" candidateClass="UIButton"/>
+            </relationships>
+        </class>
+        <class className="FDFoodiaTagsViewController" superclassName="UIViewController">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDFoodiaTagsViewController.h"/>
+            <relationships>
+                <relationship kind="outlet" name="suggestedTagContainerView" candidateClass="UIView"/>
+                <relationship kind="outlet" name="tableView" candidateClass="UITableView"/>
+                <relationship kind="outlet" name="tagContainerView" candidateClass="UIView"/>
+            </relationships>
+        </class>
+        <class className="FDLoginViewController" superclassName="UIViewController">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDLoginViewController.h"/>
+            <relationships>
+                <relationship kind="action" name="cancelEmailConnect"/>
+                <relationship kind="action" name="forgotPassword"/>
+                <relationship kind="action" name="login:"/>
+                <relationship kind="action" name="showEmailConnect"/>
+                <relationship kind="outlet" name="cancelEmailButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="dummyStuff" candidateClass="UIView"/>
+                <relationship kind="outlet" name="emailButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="emailContainerView" candidateClass="UIView"/>
+                <relationship kind="outlet" name="emailTextField" candidateClass="UITextField"/>
+                <relationship kind="outlet" name="forgotPasswordButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="loginButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="loginEmailButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="logoImageView" candidateClass="UIImageView"/>
+                <relationship kind="outlet" name="nameBackground" candidateClass="UIImageView"/>
+                <relationship kind="outlet" name="nameTextField" candidateClass="UITextField"/>
+                <relationship kind="outlet" name="pageControl" candidateClass="UIPageControl"/>
+                <relationship kind="outlet" name="passwordTextField" candidateClass="UITextField"/>
+                <relationship kind="outlet" name="previewScrollView" candidateClass="UIScrollView"/>
+                <relationship kind="outlet" name="signupEmailButton" candidateClass="UIButton"/>
+            </relationships>
+        </class>
+        <class className="FDMenuViewController" superclassName="UITableViewController">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDMenuViewController.h"/>
+        </class>
+        <class className="FDNewPostViewController" superclassName="UIViewController">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDNewPostViewController.h"/>
+            <relationships>
+                <relationship kind="action" name="addPhoto:"/>
+                <relationship kind="action" name="editCategory:"/>
+                <relationship kind="action" name="editPhoto:"/>
+                <relationship kind="action" name="submitPost:"/>
+                <relationship kind="action" name="toggleFacebook"/>
+                <relationship kind="action" name="togglePrivate"/>
+                <relationship kind="outlet" name="addPhotoLabel" candidateClass="UILabel"/>
+                <relationship kind="outlet" name="captionTextView" candidateClass="UITextView"/>
+                <relationship kind="outlet" name="deleteButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="facebookButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="foodiaObjectButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="foodiaObjectLabel" candidateClass="UILabel"/>
+                <relationship kind="outlet" name="foursquareButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="friendsButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="friendsScrollView" candidateClass="UIScrollView"/>
+                <relationship kind="outlet" name="instagramButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="locationButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="locationLabel" candidateClass="UILabel"/>
+                <relationship kind="outlet" name="lockButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="photoBackgroundView" candidateClass="UIImageView"/>
+                <relationship kind="outlet" name="photoButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="postButtonItem" candidateClass="UIBarButtonItem"/>
+                <relationship kind="outlet" name="posterImageView" candidateClass="UIImageView"/>
+                <relationship kind="outlet" name="searchResultsTableView" candidateClass="UITableView"/>
+                <relationship kind="outlet" name="tagButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="tagScrollView" candidateClass="UIScrollView"/>
+                <relationship kind="outlet" name="tagTitleLabel" candidateClass="UILabel"/>
+                <relationship kind="outlet" name="takePhotoButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="twitterButton" candidateClass="UIButton"/>
+            </relationships>
+        </class>
+        <class className="FDPeopleTableViewController" superclassName="UITableViewController">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDPeopleTableViewController.h"/>
+        </class>
+        <class className="FDPhotoLibraryViewController" superclassName="UITableViewController">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDPhotoLibraryViewController.h"/>
+        </class>
+        <class className="FDPlaceViewController" superclassName="UIViewController">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDPlaceViewController.h"/>
+            <relationships>
+                <relationship kind="action" name="getReservation:"/>
+                <relationship kind="outlet" name="categoryTextField" candidateClass="UITextField"/>
+                <relationship kind="outlet" name="cityStateCountry" candidateClass="UILabel"/>
+                <relationship kind="outlet" name="directionsButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="foodiaPosts" candidateClass="UILabel"/>
+                <relationship kind="outlet" name="hoursTextView" candidateClass="UITextView"/>
+                <relationship kind="outlet" name="infoContainerView" candidateClass="UIView"/>
+                <relationship kind="outlet" name="mapView" candidateClass="MKMapView"/>
+                <relationship kind="outlet" name="menuLink" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="placeLabel" candidateClass="UILabel"/>
+                <relationship kind="outlet" name="postsContainerTableView" candidateClass="UITableView"/>
+                <relationship kind="outlet" name="reservationsLink" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="streetAddress" candidateClass="UILabel"/>
+                <relationship kind="outlet" name="totalCheckinsLabel" candidateClass="UILabel"/>
+            </relationships>
+        </class>
+        <class className="FDPostCategoryViewController" superclassName="UIViewController">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDPostCategoryViewController.h"/>
+            <relationships>
+                <relationship kind="action" name="cancel:"/>
+                <relationship kind="action" name="clearTextField:"/>
+                <relationship kind="action" name="quickPost"/>
+                <relationship kind="action" name="textFieldDidChange:"/>
+                <relationship kind="outlet" name="clearButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="drinkingContainerView" candidateClass="UIView"/>
+                <relationship kind="outlet" name="drinkingTitleView" candidateClass="UILabel"/>
+                <relationship kind="outlet" name="dummyView" candidateClass="UIImageView"/>
+                <relationship kind="outlet" name="eatingContainerView" candidateClass="UIView"/>
+                <relationship kind="outlet" name="eatingTitleView" candidateClass="UILabel"/>
+                <relationship kind="outlet" name="makingContainerView" candidateClass="UIView"/>
+                <relationship kind="outlet" name="makingTitleView" candidateClass="UILabel"/>
+                <relationship kind="outlet" name="objectTextField" candidateClass="UITextField"/>
+                <relationship kind="outlet" name="quickPostButtonItem" candidateClass="UIBarButtonItem"/>
+                <relationship kind="outlet" name="searchResultsTableView" candidateClass="UITableView"/>
+                <relationship kind="outlet" name="shoppingContainerView" candidateClass="UIView"/>
+                <relationship kind="outlet" name="shoppingTitleView" candidateClass="UILabel"/>
+                <relationship kind="outlet" name="textFieldImageView" candidateClass="UIImageView"/>
+            </relationships>
+        </class>
+        <class className="FDPostViewController" superclassName="UIViewController">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDPostViewController.h"/>
+            <relationships>
+                <relationship kind="action" name="expandImage:"/>
+                <relationship kind="action" name="handlePan:" candidateClass="UIPanGestureRecognizer"/>
+                <relationship kind="action" name="handlePhotoPinch:" candidateClass="UIPinchGestureRecognizer"/>
+                <relationship kind="action" name="recommend"/>
+                <relationship kind="action" name="showPlace:" candidateClass="UIButton"/>
+                <relationship kind="action" name="tapToLike"/>
+                <relationship kind="outlet" name="captionTextView" candidateClass="UITextView"/>
+                <relationship kind="outlet" name="likeButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="likeCountLabel" candidateClass="UILabel"/>
+                <relationship kind="outlet" name="likeNotificationContainer" candidateClass="UIView"/>
+                <relationship kind="outlet" name="likeNotificationImageView" candidateClass="UIImageView"/>
+                <relationship kind="outlet" name="likersScrollView" candidateClass="UIScrollView"/>
+                <relationship kind="outlet" name="locationButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="panGesture" candidateClass="UIPanGestureRecognizer"/>
+                <relationship kind="outlet" name="photoBackground" candidateClass="UIImageView"/>
+                <relationship kind="outlet" name="photoButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="photoImageView" candidateClass="UIImageView"/>
+                <relationship kind="outlet" name="pinchGesture" candidateClass="UIPinchGestureRecognizer"/>
+                <relationship kind="outlet" name="postTitle" candidateClass="UILabel"/>
+                <relationship kind="outlet" name="posterButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="progressView" candidateClass="UIProgressView"/>
+                <relationship kind="outlet" name="recButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="recCountLabel" candidateClass="UILabel"/>
+                <relationship kind="outlet" name="socialLabel" candidateClass="UITextView"/>
+                <relationship kind="outlet" name="tableHeaderView" candidateClass="UIView"/>
+                <relationship kind="outlet" name="tableView" candidateClass="UITableView"/>
+                <relationship kind="outlet" name="tagsScrollView" candidateClass="UIScrollView"/>
+                <relationship kind="outlet" name="whiteCaption" candidateClass="UITextView"/>
+            </relationships>
+        </class>
+        <class className="FDPostsTagsViewController" superclassName="UITableViewController">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDPostsTagsViewController.h"/>
+        </class>
+        <class className="FDProfileMapViewController" superclassName="UIViewController">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDProfileMapViewController.h"/>
+            <relationships>
+                <relationship kind="outlet" name="mapView" candidateClass="MKMapView"/>
+            </relationships>
+        </class>
+        <class className="FDProfileNavigationController" superclassName="UINavigationController">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDProfileNavigationController.h"/>
+        </class>
+        <class className="FDProfileViewController" superclassName="UIViewController">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDProfileViewController.h"/>
+            <relationships>
+                <relationship kind="action" name="activateSearch"/>
+                <relationship kind="action" name="followButtonTapped"/>
+                <relationship kind="action" name="showFollowers:"/>
+                <relationship kind="action" name="showFollowing:"/>
+                <relationship kind="outlet" name="activateSearchButton" candidateClass="UIBarButtonItem"/>
+                <relationship kind="outlet" name="followerCountLabel" candidateClass="UILabel"/>
+                <relationship kind="outlet" name="followersButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="followersButtonBackground" candidateClass="UIView"/>
+                <relationship kind="outlet" name="followingButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="followingButtonBackground" candidateClass="UIView"/>
+                <relationship kind="outlet" name="followingCountLabel" candidateClass="UILabel"/>
+                <relationship kind="outlet" name="inactiveLabel" candidateClass="UILabel"/>
+                <relationship kind="outlet" name="locationSearchBar" candidateClass="UISearchBar"/>
+                <relationship kind="outlet" name="philosophyTextView" candidateClass="UITextView"/>
+                <relationship kind="outlet" name="postButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="postCountLabel" candidateClass="UILabel"/>
+                <relationship kind="outlet" name="postList" candidateClass="UITableView"/>
+                <relationship kind="outlet" name="postsButtonBackground" candidateClass="UIView"/>
+                <relationship kind="outlet" name="profileButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="profileDetailsContainerView" candidateClass="UIView"/>
+                <relationship kind="outlet" name="searchBar" candidateClass="UISearchBar"/>
+                <relationship kind="outlet" name="socialButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="userNameLabel" candidateClass="UILabel"/>
+            </relationships>
+        </class>
+        <class className="FDQuickPostViewController" superclassName="UIViewController">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDQuickPostViewController.h"/>
+            <relationships>
+                <relationship kind="action" name="post"/>
+                <relationship kind="outlet" name="postBarButton" candidateClass="UIBarButtonItem"/>
+                <relationship kind="outlet" name="tableView" candidateClass="UITableView"/>
+            </relationships>
+        </class>
+        <class className="FDRecommendViewController" superclassName="FDPeopleTableViewController">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDRecommendViewController.h"/>
+            <relationships>
+                <relationship kind="outlet" name="rightBarButton" candidateClass="UIBarButtonItem"/>
+            </relationships>
+        </class>
+        <class className="FDSettingsNavigationController" superclassName="UINavigationController">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDSettingsNavigationController.h"/>
+        </class>
+        <class className="FDSettingsViewController" superclassName="UITableViewController">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDSettingsViewController.h"/>
+            <relationships>
+                <relationship kind="action" name="revealMenu:" candidateClass="UIBarButtonItem"/>
+                <relationship kind="action" name="save"/>
+            </relationships>
+        </class>
+        <class className="FDSlidingViewController" superclassName="ECSlidingViewController">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDSlidingViewController.h"/>
+        </class>
+        <class className="FDSocialNavigationController" superclassName="UINavigationController">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDSocialNavigationController.h"/>
+        </class>
+        <class className="FDSocialViewController" superclassName="FDPeopleTableViewController">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDSocialViewController.h"/>
+            <relationships>
+                <relationship kind="action" name="revealMenu:" candidateClass="UIBarButtonItem"/>
+            </relationships>
+        </class>
+        <class className="FDTagFriendsViewController" superclassName="FDPeopleTableViewController">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDTagFriendsViewController.h"/>
+        </class>
+        <class className="FDWebViewController" superclassName="UIViewController">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/FDWebViewController.h"/>
+            <relationships>
+                <relationship kind="outlet" name="webView" candidateClass="UIWebView"/>
+            </relationships>
+        </class>
+        <class className="GPUImageView" superclassName="UIView">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/GPUImageView.h"/>
+        </class>
+    </classes>
     <simulatedMetricsContainer key="defaultSimulatedMetrics">
         <simulatedStatusBarMetrics key="statusBar"/>
         <simulatedOrientationMetrics key="orientation"/>
         <simulatedScreenMetrics key="destination" type="retina4"/>
     </simulatedMetricsContainer>
     <inferredMetricsTieBreakers>
-        <segue reference="AkI-fa-Shb"/>
-        <segue reference="xTD-uL-ChC"/>
-        <segue reference="jdK-Fe-BEE"/>
-        <segue reference="B26-Xf-QKD"/>
+        <segue reference="LZM-qx-ojh"/>
+        <segue reference="8FS-id-Whp"/>
+        <segue reference="SQ7-Sr-bqR"/>
         <segue reference="Mia-RT-mcR"/>
+        <segue reference="0gE-BN-3hW"/>
         <segue reference="PfF-WD-5In"/>
-        <segue reference="hLd-A2-Vcq"/>
-        <segue reference="XlU-2y-kuv"/>
-        <segue reference="BE1-Zd-SkR"/>
-        <segue reference="Gdx-Lc-QrM"/>
+        <segue reference="hg6-Nx-W1N"/>
+        <segue reference="jdK-Fe-BEE"/>
+        <segue reference="xTD-uL-ChC"/>
+        <segue reference="B26-Xf-QKD"/>
     </inferredMetricsTieBreakers>
 </document>

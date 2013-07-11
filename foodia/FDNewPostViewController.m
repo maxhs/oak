@@ -151,7 +151,7 @@ static NSDictionary *categoryImages = nil;
         }
     } else {
         _isEditingPost = NO;
-        self.navigationItem.backBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:kPost style:UIBarButtonItemStyleBordered target:nil action:nil];
+        self.navigationItem.backBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:kDone style:UIBarButtonItemStyleBordered target:nil action:nil];
     }
     
     if (FDPost.userPost.locationName) {
@@ -280,10 +280,10 @@ static NSDictionary *categoryImages = nil;
         [self.photoButton setImage:FDPost.userPost.photoImage forState:UIControlStateNormal];
         [self.photoBackgroundView setAlpha:1.0];
     } else {
-        UIImageView *imageView = [[UIImageView alloc] init];
-        [imageView setImageWithURL:self.post.detailImageURL];
-        [self.photoButton setImage:imageView.image forState:UIControlStateNormal];
-        self.post.photoImage = imageView.image;
+        [self.photoButton setImageWithURL:self.post.detailImageURL forState:UIControlStateNormal];
+        [self.addPhotoLabel setHidden:YES];
+        [self.cameraButton setHidden:YES];
+        self.post.photoImage = self.photoButton.imageView.image;
     }
     if (self.photoButton.imageView.image) [self.photoBackgroundView setAlpha:1.0];
     
@@ -567,13 +567,13 @@ static NSDictionary *categoryImages = nil;
 - (IBAction)editPhoto:(id)sender
 {
     UIActionSheet *actionSheet = nil;
-    
+    NSLog(@"photo image? %@",FDPost.userPost.photoImage);
     if ([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera]) {
         actionSheet = [[UIActionSheet alloc] initWithTitle:nil
                                                   delegate:self
                                          cancelButtonTitle:@"Cancel"
                                     destructiveButtonTitle:[FDPost.userPost photoImage] ? @"Remove Photo" : nil
-                                         otherButtonTitles:![FDPost.userPost photoImage] ? @"Take Photo" : nil, nil];
+                                         otherButtonTitles:@"Take Photo", nil];
         [actionSheet showInView:self.view];
     } else if([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypePhotoLibrary]) {
         
@@ -589,7 +589,13 @@ static NSDictionary *categoryImages = nil;
 
 - (void)actionSheet:(UIActionSheet *)actionSheet didDismissWithButtonIndex:(NSInteger)buttonIndex
 {
-    switch (buttonIndex) {
+    if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Remove Photo"]) {
+        [self removePhoto];
+    } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Take Photo"]) {
+        [self takePhoto];
+    } else [actionSheet dismissWithClickedButtonIndex:buttonIndex animated:YES];
+    
+    /*switch (buttonIndex) {
         case 0: //remove photo
             if ([FDPost.userPost photoImage])
                 [self removePhoto];
@@ -597,7 +603,7 @@ static NSDictionary *categoryImages = nil;
                 if([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypePhotoLibrary])
                     [self takePhoto];
             }
-            break;
+            break;*/
         /*case 1: // new photo
             if ([FDPost.userPost photoImage]) {
                 if([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypePhotoLibrary])
@@ -607,11 +613,11 @@ static NSDictionary *categoryImages = nil;
                     [self takePhoto];
             }
             break;*/
-        case 1:
+       /* case 1:
             [actionSheet dismissWithClickedButtonIndex:1 animated:YES];
         default:
             break;
-    }
+    }*/
 }
 
 - (void)choosePhoto {
@@ -762,68 +768,55 @@ static NSDictionary *categoryImages = nil;
 }
 
 - (IBAction)submitPost:(id)sender {
-    if ([self.captionTextView.text isEqualToString:kPlaceholderAddPostCommentPrompt]) {
-        [[FDPost userPost] setCaption:@""];
-    } else {
-        [[FDPost userPost] setCaption:self.captionTextView.text];
-    }
-    self.postButtonItem.enabled = NO;
-    self.navigationItem.leftBarButtonItem.enabled = NO;
-    self.navigationItem.rightBarButtonItem.enabled = NO;
-    
-    //adjust for private posts
-    if ([[NSUserDefaults standardUserDefaults] boolForKey:kDefaultsPrivatePost]) {
-        FDPost.userPost.isPrivate = YES;
-    } else {
-        FDPost.userPost.isPrivate = NO;
-    }
-    
-    [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
     if ([self.postButtonItem.title isEqualToString:kPost]){
+        [self.navigationController dismissViewControllerAnimated:YES completion:^{
+        //[self.postButtonItem setEnabled:NO];
+        [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
         
-        //adjust for non-fb users
-        if (![[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookAccessToken] && [[[UIDevice currentDevice] systemVersion] floatValue] >= 6) {
-            [[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"OpenGraph"];
+        if ([self.captionTextView.text isEqualToString:kPlaceholderAddPostCommentPrompt]) {
+            [[FDPost userPost] setCaption:@""];
+        } else {
+            [[FDPost userPost] setCaption:self.captionTextView.text];
         }
-        [[FDAPIClient sharedClient] submitPost:FDPost.userPost success:^(id result) {
-            //if posting to Facebook from an email sign-in account
-            if ([[NSUserDefaults standardUserDefaults] boolForKey:kDefaultsFacebookActive] && ![[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookAccessToken]) {
-                NSDictionary *userInfo = @{@"identifier":[[result objectForKey:@"post"] objectForKey:@"id"]};
-                [[NSNotificationCenter defaultCenter] postNotificationName:@"PostToFacebook" object:nil userInfo:userInfo];
+        
+        //adjust for private posts
+        if ([[NSUserDefaults standardUserDefaults] boolForKey:kDefaultsPrivatePost]) {
+            FDPost.userPost.isPrivate = YES;
+        } else {
+            FDPost.userPost.isPrivate = NO;
+        }
+        
+            //adjust for non-fb users
+            if (![[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookAccessToken] && [[[UIDevice currentDevice] systemVersion] floatValue] >= 6) {
+                [[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"OpenGraph"];
             }
-            
-            //if posting to Foursquare
-            if ([[NSUserDefaults standardUserDefaults] boolForKey:kDefaultsFoursquareActive]) {
-                [[FDFoursquareAPIClient sharedClient] checkInVenue:FDPost.userPost.FDVenueId postCaption:FDPost.userPost.caption withPostId:[[result objectForKey:@"post"] objectForKey:@"id"]];
-            }
-            //if posting to Instagram
-            if ([[NSUserDefaults standardUserDefaults] boolForKey:kDefaultsInstagramActive] && ![[NSUserDefaults standardUserDefaults] boolForKey:kDefaultsTwitterActive]) {
-                [[NSNotificationCenter defaultCenter] postNotificationName:@"PostToInstagram" object:nil];
-            } else if ([[NSUserDefaults standardUserDefaults] boolForKey:kDefaultsTwitterActive]){
-                NSDictionary *userInfo = @{@"identifier":[[result objectForKey:@"post"] objectForKey:@"id"]};
-                [[NSNotificationCenter defaultCenter] postNotificationName:@"PostToTwitter" object:nil userInfo:userInfo];
-            } else {
-                [((FDAppDelegate *)[UIApplication sharedApplication].delegate) hideLoadingOverlay];
-            }
-            
-            //success posting image. now remove loading and notify the feed view to refresh.
-            [[NSNotificationCenter defaultCenter] postNotificationName:@"RefreshFeed" object:nil];
-            
-        } failure:^(NSError *error) {
-             //self.postButtonItem.enabled = YES;
-             //self.navigationItem.leftBarButtonItem.enabled = YES;
-            [((FDAppDelegate *)[UIApplication sharedApplication].delegate) hideLoadingOverlay];
-            if ([error.localizedDescription isEqualToString:@"The request timed out."]){
-                [[NSNotificationCenter defaultCenter] postNotificationName:@"NewPostTimedOut" object:nil];
-            }
+            [[FDAPIClient sharedClient] submitPost:FDPost.userPost success:^(id result) {
+                //if posting to Facebook from an email sign-in account
+                if ([[NSUserDefaults standardUserDefaults] boolForKey:kDefaultsFacebookActive] && ![[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookAccessToken]) {
+                    NSDictionary *userInfo = @{@"identifier":[[result objectForKey:@"post"] objectForKey:@"id"]};
+                    [[NSNotificationCenter defaultCenter] postNotificationName:@"PostToFacebook" object:nil userInfo:userInfo];
+                }
+                
+                //if posting to Foursquare
+                if ([[NSUserDefaults standardUserDefaults] boolForKey:kDefaultsFoursquareActive]) {
+                    [[FDFoursquareAPIClient sharedClient] checkInVenue:FDPost.userPost.FDVenueId postCaption:FDPost.userPost.caption withPostId:[[result objectForKey:@"post"] objectForKey:@"id"]];
+                }
+                //if posting to Instagram
+                if ([[NSUserDefaults standardUserDefaults] boolForKey:kDefaultsInstagramActive] && ![[NSUserDefaults standardUserDefaults] boolForKey:kDefaultsTwitterActive]) {
+                    [[NSNotificationCenter defaultCenter] postNotificationName:@"PostToInstagram" object:nil];
+                } else if ([[NSUserDefaults standardUserDefaults] boolForKey:kDefaultsTwitterActive]){
+                    NSDictionary *userInfo = @{@"identifier":[[result objectForKey:@"post"] objectForKey:@"id"]};
+                    [[NSNotificationCenter defaultCenter] postNotificationName:@"PostToTwitter" object:nil userInfo:userInfo];
+                }
+                
+            } failure:^(NSError *error) {
+                //[((FDAppDelegate *)[UIApplication sharedApplication].delegate) hideLoadingOverlay];
+                
+            }];
         }];
-        
-        [self.navigationController dismissViewControllerAnimated:YES completion:nil];
-        
     } else {
+        [((FDAppDelegate *)[UIApplication sharedApplication].delegate) showLoadingOverlay];
         [[FDAPIClient sharedClient] editPost:FDPost.userPost success:^(id result) {
-            //success editing post. now go back to the post
-
             [((FDAppDelegate *)[UIApplication sharedApplication].delegate) hideLoadingOverlay];
             FDPostViewController *destinationVC = (FDPostViewController*)[self.navigationController.viewControllers objectAtIndex:self.navigationController.viewControllers.count-2];
             [destinationVC setShouldReframe:YES];

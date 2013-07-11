@@ -154,11 +154,11 @@
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-    if (self.searchDisplayController.searchBar.text.length == 0){
+    if (self.searchDisplayController.isActive){
+        return self.filteredPeople.count;
+    } else {
         return self.people.count;
-    } else if (self.searchDisplayController.searchBar.text.length){
-        return [self.filteredPeople count];
-    } else return 0;
+    }
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -168,29 +168,7 @@
     if (cell == nil) {
         cell = [[[NSBundle mainBundle] loadNibNamed:@"FDUserCell" owner:nil options:nil] lastObject];
     }
-    if (self.searchDisplayController.searchBar.text.length == 0){
-        FDUser *person = [self.people objectAtIndex:indexPath.row];
-        if (person.fbid.length) {
-            [cell setInviteButton];
-            [cell.profileButton.titleLabel setText:[NSString stringWithFormat:@"%@",person.fbid]];
-            [cell.profileButton.titleLabel setHidden:YES];
-            [cell.actionButton addTarget:self action:@selector(inviteUser:) forControlEvents:UIControlEventTouchUpInside];
-            [cell.actionButton setTag:indexPath.row];
-        } else {
-            [cell.profileButton setTag:[person.userId integerValue]];
-            [cell.profileButton.titleLabel setText:@""];
-            [cell.profileButton.titleLabel setHidden:NO];
-            [cell.actionButton removeTarget:self action:@selector(inviteUser:) forControlEvents:UIControlEventTouchUpInside];
-            if ([self.follows containsObject:person.userId]) {
-                [cell setUnfollowButton];
-            } else {
-                [cell setFollowButton];
-            }
-        }
-        [cell.profileButton addTarget:self action:@selector(showProfile:) forControlEvents:UIControlEventTouchUpInside];
-        [cell configureForUser:person];
-        return cell;
-    } else {
+    if (self.searchDisplayController.isActive){
         FDUser *person = [self.filteredPeople objectAtIndex:indexPath.row];
         if (person.fbid.length) {
             [cell setInviteButton];
@@ -203,6 +181,28 @@
             [cell.profileButton setTag:[person.userId integerValue]];
             [cell.profileButton.titleLabel setText:@""];
             [cell.profileButton.titleLabel setHidden:NO];
+            if ([self.follows containsObject:person.userId]) {
+                [cell setUnfollowButton];
+            } else {
+                [cell setFollowButton];
+            }
+        }
+        [cell.profileButton addTarget:self action:@selector(showProfile:) forControlEvents:UIControlEventTouchUpInside];
+        [cell configureForUser:person];
+        return cell;
+    } else {
+        FDUser *person = [self.people objectAtIndex:indexPath.row];
+        if (person.fbid.length) {
+            [cell setInviteButton];
+            [cell.profileButton.titleLabel setText:[NSString stringWithFormat:@"%@",person.fbid]];
+            [cell.profileButton.titleLabel setHidden:YES];
+            [cell.actionButton addTarget:self action:@selector(inviteUser:) forControlEvents:UIControlEventTouchUpInside];
+            [cell.actionButton setTag:indexPath.row];
+        } else {
+            [cell.profileButton setTag:[person.userId integerValue]];
+            [cell.profileButton.titleLabel setText:@""];
+            [cell.profileButton.titleLabel setHidden:NO];
+            [cell.actionButton removeTarget:self action:@selector(inviteUser:) forControlEvents:UIControlEventTouchUpInside];
             if ([self.follows containsObject:person.userId]) {
                 [cell setUnfollowButton];
             } else {
@@ -378,6 +378,9 @@
     return YES;
 }
 */
+- (void)searchBarTextDidBeginEditing:(UISearchBar *)searchBar {
+    NSLog(@"beginning editing");
+}
 
 - (void) searchBar:(UISearchBar *)searchBar textDidChange:(NSString *)searchText {
     if ([self isKindOfClass:[FDSocialViewController class]]){
@@ -394,7 +397,7 @@
 
 - (void)searchBarCancelButtonClicked:(UISearchBar *)searchBar {
     [self.filteredPeople removeAllObjects];
-    [self getFollows];
+    //[self getFollows];
 }
 
 #pragma mark - Table view delegate

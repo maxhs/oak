@@ -320,7 +320,7 @@
 - (void)refresh
 {
     [self grow];
-    if (self.notifications.count) {
+    if (self.notifications.count && self.notifications.count < 200) {
         self.feedRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getActivitySinceNotification:[self.notifications objectAtIndex:0] success:^(NSArray *newNotifications) {
             NSArray *tempArray = [newNotifications arrayByAddingObjectsFromArray:[self.notifications copy]];
             self.notifications = [tempArray mutableCopy];

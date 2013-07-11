@@ -83,6 +83,17 @@ typedef void(^RequestSuccess)(id result);
 - (AFJSONRequestOperation *)getTagsForFoodiaObject:(NSString *)foodiaObject
                                            success:(RequestSuccess)success
                                            failure:(RequestFailure)failure;
+- (AFJSONRequestOperation *)getTagsForUserSuccess:(RequestSuccess)success
+                                          failure:(RequestFailure)failure;
+- (AFJSONRequestOperation *)trackTag:(NSString*)tagName
+                             success:(RequestSuccess)success
+                             failure:(RequestFailure)failure;
+- (AFJSONRequestOperation *)removeTrackedTag:(NSString *)tagIdentifier
+                                     success:(RequestSuccess)success
+                                     failure:(RequestFailure)failure;
+- (AFJSONRequestOperation *)getTrackedTagsForTimePeriod:(NSString*)timePeriod
+                                                success:(RequestSuccess)success
+                                                failure:(RequestFailure)failure;
 
 // get a profile feed
 - (AFHTTPRequestOperation *)getFeedForProfile:(NSString *)uid

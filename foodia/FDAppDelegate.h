@@ -30,4 +30,5 @@
 - (void)feedDialogWithParams:(NSMutableDictionary *)params;
 - (void)fbSessionInvalidated;
 - (void)fbDidLogout;
+- (void)submitPost;
 @end

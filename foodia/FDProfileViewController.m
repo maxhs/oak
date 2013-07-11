@@ -1161,29 +1161,27 @@ NSString* const theirLocationBarPlaceholder = @"Search the places they've been";
     }
 }
 
-
-- (void)searchDisplayControllerDidBeginSearch:(UISearchDisplayController *)controller {
-    /*[self.locationSearchDisplayController.searchResultsTableView setHidden:NO];
+/*- (void)searchDisplayControllerDidBeginSearch:(UISearchDisplayController *)controller {
+    [self.locationSearchDisplayController.searchResultsTableView setHidden:NO];
     [UIView animateWithDuration:.25 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
         [self.locationSearchDisplayController.searchResultsTableView setAlpha:1.0];
     } completion:^(BOOL finished) {
         
     }];
-    */
+    
 }
 
 - (void)searchBar:(UISearchBar *)searchBar textDidChange:(NSString *)searchText {
-    /*if (searchBar == self.locationSearchDisplayController.searchBar) {
+    if (searchBar == self.locationSearchDisplayController.searchBar) {
         [self.locationSearchDisplayController.searchResultsTableView setHidden:NO];
         [UIView animateWithDuration:.25 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
             [self.locationSearchDisplayController.searchResultsTableView setAlpha:1.0];
         } completion:^(BOOL finished) {
             
         }];
-    }*/
-}
+    }
+}*/
 
-#pragma mark -
 #pragma mark UISearchDisplayController Delegate Methods
 
 
