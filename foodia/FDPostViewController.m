@@ -29,6 +29,9 @@
 #import "FDFoodiaTag.h"
 #import "FDNewPostViewController.h"
 #import "FDPostsTagsViewController.h"
+#import <Social/Social.h>
+#import <Twitter/Twitter.h>
+
 #define kBlackviewTag 99999992
 
 NSString *const kPlaceholderAddCommentPrompt = @"Add your two cents...";
@@ -76,6 +79,8 @@ static NSDictionary *placeholderImages;
 @property (weak, nonatomic) IBOutlet UIPanGestureRecognizer *panGesture;
 @property (strong, nonatomic) UITapGestureRecognizer *oneTap;
 @property (strong, nonatomic) UIBarButtonItem *editButton;
+@property (strong, nonatomic) UIDocumentInteractionController *documentInteractionController;
+@property (strong, nonatomic) SLComposeViewController *tweetSheet;
 
 -(IBAction)handlePhotoPinch:(UIPinchGestureRecognizer*)pinchGesture;
 - (IBAction)handlePan:(UIPanGestureRecognizer *)recognizer;
@@ -89,6 +94,8 @@ static NSDictionary *placeholderImages;
 @synthesize holdLabel = _holdLabel;
 @synthesize comments = _comments;
 @synthesize shouldShowComment;
+@synthesize documentInteractionController = _documentInteractionController;
+@synthesize tweetSheet = _tweetSheet;
 
 + (void)initialize {
     if (self == [FDPostViewController class]) {
@@ -113,9 +120,26 @@ static NSDictionary *placeholderImages;
     //self.automaticallyAdjustsScrollViewInsets = YES;
     _holdLabel = [[UILabel alloc] init];
     _loadingOverlay = [[UIImageView alloc] init];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(willShowKeyboard:) name:UIKeyboardWillShowNotification object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(willHideKeyboard) name:UIKeyboardWillHideNotification object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(refresh) name:@"RefreshPostView" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(willShowKeyboard:)
+                                                 name:UIKeyboardWillShowNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(willHideKeyboard)
+                                                 name:UIKeyboardWillHideNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(refresh) name:@"RefreshPostView" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(postToInstagram)
+                                                 name:@"PostToInstagram"
+                                               object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(postToTwitter:)
+                                                 name:@"PostToTwitter"
+                                               object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(postToFacebook:)
+                                                 name:@"PostToFacebook"
+                                               object:nil];
     
     [[NSUserDefaults standardUserDefaults] setBool:true
                                             forKey:kDefaultsEnlargePhoto];
@@ -309,6 +333,64 @@ static NSDictionary *placeholderImages;
         [alert show];
     }
     [self dismissViewControllerAnimated:YES completion:nil];
+}
+
+- (void)postToInstagram {
+    NSLog(@"Should be posting to Instagram");
+    NSURL *instagramURL = [NSURL URLWithString:@"instagram://app"];
+    if ([[UIApplication sharedApplication] canOpenURL:instagramURL]) {
+        //now create a file path with an .igo file extension
+        NSString *instaPath = [NSHomeDirectory() stringByAppendingPathComponent:@"Documents/instaImage.igo"];
+        [UIImageJPEGRepresentation(self.post.photoImage,1.0)writeToFile:instaPath atomically:YES];
+        self.documentInteractionController = [UIDocumentInteractionController interactionControllerWithURL:[NSURL fileURLWithPath:instaPath]];
+        self.documentInteractionController.UTI = @"com.instagram.exclusivegram";
+        self.documentInteractionController.annotation = [NSDictionary dictionaryWithObject:@"#FOODIA" forKey:@"InstagramCaption"];
+        //[self performSelector:@selector(showIg) withObject:nil afterDelay:0.75];
+    } else {
+        UIAlertView *errorToShare = [[UIAlertView alloc] initWithTitle:@"Instagram unavailable " message:@"We were unable to connect to Instagram on this device" delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil];
+        [errorToShare show];
+    }
+}
+
+-(void)showIg {
+    NSLog(@"showIg method");
+    [self.documentInteractionController presentOpenInMenuFromRect:self.view.frame inView:self.view animated:YES];
+}
+
+- (void)postToTwitter:(NSNotification*)notification {
+    if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 6.0){
+        __weak SLComposeViewController *tweetSheet = [SLComposeViewController
+                                                      composeViewControllerForServiceType:SLServiceTypeTwitter];
+        NSString *postId = [notification.userInfo objectForKey:@"identifier"];
+        [tweetSheet setInitialText:[NSString stringWithFormat:@"%@ on #FOODIA | http://posts.foodia.com/p/%@", FDPost.userPost.foodiaObject, postId]];
+        if (FDPost.userPost.photoImage){
+            [tweetSheet addImage:FDPost.userPost.photoImage];
+        }
+        tweetSheet.completionHandler = ^(TWTweetComposeViewControllerResult result) {
+            [tweetSheet dismissViewControllerAnimated:YES completion:^{
+                if ([[NSUserDefaults standardUserDefaults] boolForKey:kDefaultsInstagramActive]) {
+                    NSLog(@"Should be posting to instagram");
+                    [self performSelector:@selector(postToInstagram) withObject:nil afterDelay:0.5];
+                }
+            }];
+            /*switch (result) {
+             case TWTweetComposeViewControllerResultCancelled:
+             break;
+             case TWTweetComposeViewControllerResultDone:
+             default:
+             break;
+             }*/
+            
+        };
+        [self presentViewController:tweetSheet animated:YES completion:nil];
+        
+    } else {
+        [[[UIAlertView alloc] initWithTitle:@"Twitter unavailable" message:@"Sorry, but we weren't able to connect to your Twitter account on this device." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+    }
+}
+
+-(void)showTwitter {
+    [self presentViewController:self.tweetSheet animated:YES completion:nil];
 }
 
 #pragma mark - Private Methods
@@ -995,7 +1077,6 @@ static NSDictionary *placeholderImages;
 }
 
 - (void)holdOntoPost {
-    
     if (!isHoldingPost){
         [[FDAPIClient sharedClient] holdPost:self.postIdentifier];
         [self.navigationController setNavigationBarHidden:YES animated:YES];

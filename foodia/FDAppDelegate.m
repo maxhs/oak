@@ -403,15 +403,14 @@ void uncaughtExceptionHandler(NSException *exception) {
 #pragma mark - Private Methods
 
 - (void)customizeAppearance {
-    [[UINavigationBar appearance] setBackgroundImage:[UIImage imageNamed:@"newFoodiaHeader"] forBarMetrics:UIBarMetricsDefault];
+    if ([[[UIDevice currentDevice] systemVersion] floatValue] < 7.0f){
+        [[UINavigationBar appearance] setBackgroundImage:[UIImage imageNamed:@"newFoodiaHeader"] forBarMetrics:UIBarMetricsDefault];
+    } else {
+    }
     [[UIToolbar appearance] setBackgroundImage:[UIImage imageNamed:@"newFoodiaHeader"] forToolbarPosition:UIToolbarPositionAny barMetrics:UIBarMetricsDefault];
     [[UINavigationBar appearance] setTitleTextAttributes: [NSDictionary dictionaryWithObjectsAndKeys: [UIColor blackColor], UITextAttributeTextColor, [UIFont fontWithName:kHelveticaNeueThin size:22], UITextAttributeFont, [UIColor clearColor], UITextAttributeTextShadowColor, nil]];
-    
     UIImage *emptyBarButton = [UIImage imageNamed:@"emptyBarButton"];
 
-    //if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 7.0){
-    //    self.window.tintColor = [UIColor blackColor];
-    //}
     if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 6) {
         [[UIBarButtonItem appearance] setTitleTextAttributes:@{
                                         UITextAttributeFont : [UIFont fontWithName:kHelveticaNeueThin size:14],

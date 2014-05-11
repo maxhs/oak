@@ -16,7 +16,10 @@
 #import "FDSocialViewController.h"
 #import <MessageUI/MessageUI.h>
 
-@interface FDPeopleTableViewController () <UIActionSheetDelegate, UIAlertViewDelegate, MFMailComposeViewControllerDelegate, MFMessageComposeViewControllerDelegate>
+@interface FDPeopleTableViewController () <UIActionSheetDelegate, UIAlertViewDelegate, MFMailComposeViewControllerDelegate, MFMessageComposeViewControllerDelegate> {
+    NSMutableArray *personQueryResults;
+    BOOL isSearching;
+}
 @property (nonatomic, strong) NSArray *follows;
 @property (nonatomic, strong) NSArray *followers;
 @property (nonatomic, strong) AFJSONRequestOperation *followRequestOperation;
@@ -32,6 +35,8 @@
 @synthesize followRequestOperation;
 @synthesize peopleRequestOperation;
 @synthesize facebookId = _facebookId;
+@synthesize people = _people;
+@synthesize filteredPeople = _filteredPeople;
 
 - (id)initWithDelegate:(id)delegate {
     if (self = [super initWithStyle:UITableViewStylePlain]) {
@@ -42,14 +47,12 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    //[self getFollowers];
+    if (!self.filteredPeople) self.filteredPeople = [NSMutableArray array];
     if ([self isKindOfClass:[FDSocialViewController class]]) {
         [self getFollows];
     } else {
         [self loadPeople];
     }
-    
-    _filteredPeople = [NSMutableArray array];
     [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleNone];
 }
 
@@ -82,14 +85,6 @@
         if ([subView isKindOfClass:[UITextField class]]) {
             UITextField *searchField = (UITextField *)subView;
             searchField.font = [UIFont fontWithName:kHelveticaNeueThin size:15];
-        }
-    }
-    //replace ugly search background
-    for (UIView *view in self.searchDisplayController.searchBar.subviews) {
-        if ([view isKindOfClass:NSClassFromString(@"UISearchBarBackground")]){
-            UIImageView *header = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"newFoodiaHeader.png"]];
-            [view addSubview:header];
-            break;
         }
     }
 }
@@ -148,13 +143,12 @@
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
 {
-    // Return the number of sections.
     return 1;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-    if (self.searchDisplayController.isActive){
+    if (self.searchDisplayController.isActive && self.searchDisplayController.searchBar.text.length > 0){
         return self.filteredPeople.count;
     } else {
         return self.people.count;
@@ -168,7 +162,7 @@
     if (cell == nil) {
         cell = [[[NSBundle mainBundle] loadNibNamed:@"FDUserCell" owner:nil options:nil] lastObject];
     }
-    if (self.searchDisplayController.isActive){
+    if (self.searchDisplayController.isActive && self.filteredPeople.count){
         FDUser *person = [self.filteredPeople objectAtIndex:indexPath.row];
         if (person.fbid.length) {
             [cell setInviteButton];
@@ -378,26 +372,24 @@
     return YES;
 }
 */
-- (void)searchBarTextDidBeginEditing:(UISearchBar *)searchBar {
-    NSLog(@"beginning editing");
-}
 
 - (void) searchBar:(UISearchBar *)searchBar textDidChange:(NSString *)searchText {
-    if ([self isKindOfClass:[FDSocialViewController class]]){
-        if (searchText.length == 2){
-            [[FDAPIClient sharedClient] getUsersForQuery:searchText success:^(NSArray *result) {
-                self.people = [result mutableCopy];
-                //[self.tableView reloadData];
-            } failure:^(NSError *error) {
-                NSLog(@"error from user search: %@",error.description);
-            }];
-        }
+    if (searchText.length > 0){
+        [[FDAPIClient sharedClient] getUsersForQuery:searchText success:^(NSArray *result) {
+            [personQueryResults removeAllObjects];
+            personQueryResults = [result mutableCopy];
+            [self.tableView reloadData];
+        } failure:^(NSError *error) {
+            NSLog(@"error from user search: %@",error.description);
+        }];
     }
 }
 
 - (void)searchBarCancelButtonClicked:(UISearchBar *)searchBar {
+    [self.searchDisplayController setActive:NO animated:YES];
     [self.filteredPeople removeAllObjects];
     //[self getFollows];
+    [self.tableView reloadData];
 }
 
 #pragma mark - Table view delegate
@@ -425,11 +417,21 @@
     /*
      Search the main list for products whose type matches the scope (if selected) and whose name matches searchText; add items that match to the filtered array.
      */
-    for (FDUser *person in self.people)
-    { 
-        NSPredicate *predicate = [NSPredicate predicateWithFormat:@"(SELF contains[cd] %@)", searchText];
-        if([predicate evaluateWithObject:person.name]) {
-            [self.filteredPeople addObject:person];
+    if (personQueryResults.count) {
+        for (FDUser *person in personQueryResults)
+        { 
+            NSPredicate *predicate = [NSPredicate predicateWithFormat:@"(SELF contains[cd] %@)", searchText];
+            if([predicate evaluateWithObject:person.name]) {
+                [self.filteredPeople addObject:person];
+            }
+        }
+    } else {
+        for (FDUser *person in self.people)
+        {
+            NSPredicate *predicate = [NSPredicate predicateWithFormat:@"(SELF contains[cd] %@)", searchText];
+            if([predicate evaluateWithObject:person.name]) {
+                [self.filteredPeople addObject:person];
+            }
         }
     }
 }

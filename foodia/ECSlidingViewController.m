@@ -336,7 +336,7 @@ NSString *const ECSlidingViewTopDidReset          = @"ECSlidingViewTopDidReset";
   
   [self topViewHorizontalCenterWillChange:newCenter];
   
-  [UIView animateWithDuration:0.25f animations:^{
+  [UIView animateWithDuration:0.20f delay:0.0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
     if (animations) {
       animations();
     }
@@ -378,7 +378,7 @@ NSString *const ECSlidingViewTopDidReset          = @"ECSlidingViewTopDidReset";
   
   [self topViewHorizontalCenterWillChange:newCenter];
   
-  [UIView animateWithDuration:0.25f animations:^{
+  [UIView animateWithDuration:0.20f delay:0.0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
     if (animations) {
       animations();
     }
@@ -408,7 +408,7 @@ NSString *const ECSlidingViewTopDidReset          = @"ECSlidingViewTopDidReset";
 {
   [self topViewHorizontalCenterWillChange:self.resettedCenter];
   
-  [UIView animateWithDuration:0.25f animations:^{
+  [UIView animateWithDuration:0.20f delay:0.0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
     if (animations) {
       animations();
     }

@@ -29,7 +29,7 @@
 - (id)initWithStyle:(UITableViewStyle)style
 {
     self = [super initWithStyle:style];
-      self.navigationItem.title = @"FRIENDS";
+    self.navigationItem.title = @"FRIENDS";
     if (self) {
         // Custom initialization
     }
@@ -48,7 +48,7 @@
     navTitle.backgroundColor = [UIColor clearColor];
     navTitle.textColor = [UIColor blackColor];
     navTitle.textAlignment = NSTextAlignmentCenter;
-    
+    self.searchDisplayController.searchBar.placeholder = @"Search by name";
     // Set label as titleView
     self.navigationItem.titleView = navTitle;
     
@@ -61,14 +61,6 @@
  
     // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
     // self.navigationItem.rightBarButtonItem = self.editButtonItem;
-    
-    for (UIView *view in self.searchDisplayController.searchBar.subviews) {
-        if ([view isKindOfClass:NSClassFromString(@"UISearchBarBackground")]){
-            UIImageView *header = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"newFoodiaHeader.png"]];
-            [view addSubview:header];
-            break;
-        }
-    }
 }
 
 - (void)didReceiveMemoryWarning

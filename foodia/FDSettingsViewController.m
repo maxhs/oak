@@ -18,7 +18,7 @@
 
 @interface FDSettingsViewController () <MFMailComposeViewControllerDelegate, UIAlertViewDelegate>
 @property (strong, nonatomic) UISwitch *smileSwitch;
-@property (strong, nonatomic) UISwitch *geofenceSwitch;
+//@property (strong, nonatomic) UISwitch *geofenceSwitch;
 @property (strong, nonatomic) UISwitch *followSwitch;
 @property (strong, nonatomic) UISwitch *featureSwitch;
 @property (strong, nonatomic) UISwitch *commentSwitch;
@@ -42,14 +42,16 @@
 
 - (void)viewDidLoad
 {
-    [[FDAPIClient sharedClient] getUserSettingsSuccess:^(FDUser *resultUser) {
-        self.user = resultUser;
-        [self.tableView reloadData];
-    } failure:^(NSError *error) {
-        
-    }];
+    
     [super viewDidLoad];
-
+    self.user.pushComment = YES;
+    self.featuredFeedSwitch = [[UISwitch alloc] init];
+    self.followSwitch = [[UISwitch alloc] init];
+    self.emailSwitch = [[UISwitch alloc] init];
+    self.featureSwitch = [[UISwitch alloc] init];
+    self.smileSwitch = [[UISwitch alloc] init];
+    self.commentSwitch = [[UISwitch alloc] init];
+    
     // Uncomment the following line to preserve selection between presentations.
     // self.clearsSelectionOnViewWillAppear = NO;
  
@@ -70,6 +72,16 @@
     UIImageView *backgroundView = [[UIImageView alloc] init];
     [backgroundView setBackgroundColor:[UIColor whiteColor]];
     self.tableView.backgroundView = backgroundView;
+}
+
+- (void)viewWillAppear:(BOOL)animated {
+    [[FDAPIClient sharedClient] getUserSettingsSuccess:^(FDUser *resultUser) {
+        self.user = resultUser;
+        [self.tableView reloadData];
+    } failure:^(NSError *error) {
+        
+    }];
+    [super viewWillAppear:animated];
 }
 
 - (void)didReceiveMemoryWarning
@@ -116,7 +128,7 @@
             case 1:
                 [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
                 cell.textLabel.text = @"Show featured first?";
-                self.featuredFeedSwitch = [[UISwitch alloc] init];
+                
                 if ([[NSUserDefaults standardUserDefaults] objectForKey:kShouldShowFeaturedFirst]){
                     [self.featuredFeedSwitch setOn:[[NSUserDefaults standardUserDefaults] boolForKey:kShouldShowFeaturedFirst]];
                 } else {
@@ -132,31 +144,28 @@
         switch (indexPath.row) {
             case 0:
                 cell.textLabel.text = @"Smile notifications";
-                self.smileSwitch = [[UISwitch alloc] init];
-                if (self.user.pushSmile) [self.smileSwitch setOn:YES animated:YES];
-                else [self.smileSwitch setOn:NO animated:YES];
                 cell.accessoryView = self.smileSwitch;
+                if (self.user.pushSmile) [self.smileSwitch setOn:YES animated:NO];
+                else [self.smileSwitch setOn:NO animated:NO];
                 break;
             case 1:
                 cell.textLabel.text = @"Follow notifications";
-                self.followSwitch = [[UISwitch alloc] init];
-                if (self.user.pushFollow) [self.followSwitch setOn:YES animated:YES];
-                else [self.followSwitch setOn:NO animated:YES];
                 cell.accessoryView = self.followSwitch;
+                if (self.user.pushFollow) [self.followSwitch setOn:YES animated:NO];
+                else [self.followSwitch setOn:NO animated:NO];
                 break;
             case 2:
                 cell.textLabel.text = @"Comment notifications";
-                self.commentSwitch = [[UISwitch alloc] init];
-                if (self.user.pushComment) [self.commentSwitch setOn:YES animated:YES];
-                else [self.commentSwitch setOn:NO animated:YES];
                 cell.accessoryView = self.commentSwitch;
+                if (self.user.pushComment) [self.commentSwitch setOn:YES animated:NO];
+                else [self.commentSwitch setOn:NO animated:NO];
                 break;
             case 3:
                 cell.textLabel.text = @"Post feature notifications";
-                self.featureSwitch = [[UISwitch alloc] init];
+                
                 cell.accessoryView = self.featureSwitch;
-                if (self.user.pushFeature) [self.featureSwitch setOn:YES animated:YES];
-                else [self.featureSwitch setOn:NO animated:YES];
+                if (self.user.pushFeature) [self.featureSwitch setOn:YES animated:NO];
+                else [self.featureSwitch setOn:NO animated:NO];
                 
                 break;
             /*case 4:
@@ -168,11 +177,9 @@
                 break;*/
             case 4:
                 cell.textLabel.text = @"Email notifications";
-                self.emailSwitch = [[UISwitch alloc] init];
-                if (self.user.emailNotifications) [self.emailSwitch setOn:YES animated:YES];
-                else [self.emailSwitch setOn:NO animated:YES];
                 cell.accessoryView = self.emailSwitch;
-                
+                if (self.user.emailNotifications) [self.emailSwitch setOn:YES animated:NO];
+                else [self.emailSwitch setOn:NO animated:NO];
             default:
                 break;
         }
@@ -247,7 +254,7 @@
     }
     
     self.user.pushSmile = self.smileSwitch.isOn;
-    self.user.pushGeofence = self.geofenceSwitch.isOn;
+    //self.user.pushGeofence = self.geofenceSwitch.isOn;
     self.user.pushComment = self.commentSwitch.isOn;
     self.user.pushFeature = self.featureSwitch.isOn;
     self.user.pushFollow = self.followSwitch.isOn;

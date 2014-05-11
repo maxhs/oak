@@ -9,12 +9,7 @@
 #import "FDClipView.h"
 //#import "GAITrackedViewController.h"
 
-@interface FDFeedViewController : UIViewController {
-	IBOutlet UIScrollView	*_scrollView;
-    IBOutlet UIView *clipView;
-}
-@property (nonatomic, weak) IBOutlet UIImageView *clipViewBackground;
-@property (weak, nonatomic) IBOutlet UIView             *feedContainerView;
+@interface FDFeedViewController : UIViewController @property (weak, nonatomic) IBOutlet UIView             *feedContainerView;
 @property (strong, nonatomic) UISearchDisplayController *searchDisplay;
 @property (strong, nonatomic) UISearchBar *searchBar;
 @property (nonatomic, assign) int lastContentOffsetX;
@@ -22,6 +17,5 @@
 @property BOOL goToComment;
 @property (nonatomic, strong) NSMutableArray *swipedCells;
 
-- (void)hideSlider;
 - (IBAction)rightBarButtonAction;
 @end

@@ -9,6 +9,10 @@
 #define kUserDefaultsUserName @"UserName"
 #define kUserDefaultsAvatarUrl @"AvatarUrl"
 
+//search constants
+#define kSearchBarPlaceholder @"Search for food and drink"
+#define kLocationSearchBarPlaceholder @"Filter by venue (e.g. Mission Chinese, Home, etc.)"
+
 //Program and posting constants
 #define kIsPosting @"IsPosting"
 #define kIsEditingPost @"IsEditingPosting"
@@ -38,6 +42,8 @@
 #define kIsFollwedBy @"is_followed_by_user?"
 #define kSendText @"Send a Text"
 #define kSendEmail @"Send an Email"
+#define kRecommendOnFoodia @"Recommend on FOODIA"
+#define kRecommendViaFacebook @"Recommend via Facebook"
 #define kFollow @"Follow"
 #define kFollowing @"Following"
 

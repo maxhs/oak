@@ -246,6 +246,7 @@ NSString* const theirLocationBarPlaceholder = @"Search the places they've been";
         if ([subView isKindOfClass:[UITextField class]]) {
             UITextField *searchField = (UITextField *)subView;
             searchField.font = [UIFont fontWithName:kHelveticaNeueThin size:15];
+            searchField.textColor = [UIColor darkGrayColor];
         }
     }
     //set custom font in searchBar
@@ -253,6 +254,7 @@ NSString* const theirLocationBarPlaceholder = @"Search the places they've been";
         if ([subView isKindOfClass:[UITextField class]]) {
             UITextField *searchField = (UITextField *)subView;
             searchField.font = [UIFont fontWithName:kHelveticaNeueThin size:15];
+            searchField.textColor = [UIColor darkGrayColor];
         }
     }
     
@@ -806,13 +808,28 @@ NSString* const theirLocationBarPlaceholder = @"Search the places they've been";
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     if (tableView == self.locationSearchDisplayController.searchResultsTableView) {
+        [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
         selectedVenue = [filteredUserVenues objectAtIndex:indexPath.row];
+        [self.postList setContentOffset:CGPointMake(0, 48) animated:YES];
+        [self.view endEditing:YES];
         [self.locationSearchDisplayController.searchBar setText:selectedVenue];
+        self.postSearchRequestOperation = [[FDAPIClient sharedClient] getUserPosts:self.userId forQuery:self.searchBar.text withVenue:[NSString stringWithFormat:@"%%%@%%",selectedVenue] nearCoordinate:nil success:^(NSMutableArray *result) {
+            
+            if (result.count == 0) noSearchResults = YES;
+            else {
+                noSearchResults = NO;
+                filteredPosts = result;
+                [self.postList setAlpha:1.0];
+            }
+            
+            [self.postList reloadData];
+            self.postSearchRequestOperation = nil;
+        } failure:^(NSError *error) {
+            self.postSearchRequestOperation = nil;
+        }];
         [UIView animateWithDuration:.25 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
             [self.locationSearchDisplayController.searchResultsTableView setAlpha:0.0];
-        } completion:^(BOOL finished) {
-            
-        }];
+        } completion:^(BOOL finished) {}];
         
     } else if (filteredPosts.count) {
         FDPost *selectedPost = (FDPost *)[filteredPosts objectAtIndex:indexPath.row];
@@ -1161,26 +1178,26 @@ NSString* const theirLocationBarPlaceholder = @"Search the places they've been";
     }
 }
 
-/*- (void)searchDisplayControllerDidBeginSearch:(UISearchDisplayController *)controller {
-    [self.locationSearchDisplayController.searchResultsTableView setHidden:NO];
+- (void)searchDisplayControllerDidBeginSearch:(UISearchDisplayController *)controller {
+    /*[self.locationSearchDisplayController.searchResultsTableView setHidden:NO];
     [UIView animateWithDuration:.25 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
         [self.locationSearchDisplayController.searchResultsTableView setAlpha:1.0];
     } completion:^(BOOL finished) {
         
-    }];
+    }];*/
     
 }
 
 - (void)searchBar:(UISearchBar *)searchBar textDidChange:(NSString *)searchText {
-    if (searchBar == self.locationSearchDisplayController.searchBar) {
+    /*if (searchBar == self.locationSearchDisplayController.searchBar) {
         [self.locationSearchDisplayController.searchResultsTableView setHidden:NO];
         [UIView animateWithDuration:.25 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
             [self.locationSearchDisplayController.searchResultsTableView setAlpha:1.0];
         } completion:^(BOOL finished) {
             
         }];
-    }
-}*/
+    }*/
+}
 
 #pragma mark UISearchDisplayController Delegate Methods
 

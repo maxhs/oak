@@ -222,9 +222,9 @@
         cell.textLabel.numberOfLines = 0;
         cell.selectionStyle = UITableViewCellSelectionStyleNone;
         if (self.shouldShowKeepers){
-            [cell.textLabel setText:@"Tap and hold any post photo to KEEP it on this list."];
+            [cell.textLabel setText:@"This is your \"Keepers\" list.\nTap and hold any post photo to save it here."];
         } else {
-            [cell.textLabel setText:@"Follow and be followed.\nSmile at posts and make RECOMMENDATIONS.\n\nSoon enough, they'll be made for you."];
+            [cell.textLabel setText:@"This is your \"Recommended\" list.\nRec's from friends will appear here."];
         }
         
         return cell;

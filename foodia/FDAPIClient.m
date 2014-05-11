@@ -70,6 +70,7 @@
 #define FOLLOWING_PATH @"follows/following.json"
 #define FOLLOWING_IDS_PATH @"follows/following_ids.json"
 #define RECOMMEND_PATH @"recommendations"
+#define RECOMMEND_FB_PATH @"recommendations/facebook_rec.json"
 
 typedef void(^OperationSuccess)(AFHTTPRequestOperation *operation, id result);
 typedef void(^OperationFailure)(AFHTTPRequestOperation *operation, NSError *error);
@@ -714,10 +715,15 @@ AFJSONRequestOperation *op = (AFJSONRequestOperation *)[self HTTPRequestOperatio
 #pragma mark - FREE search Post Methods
 
 - (AFHTTPRequestOperation *)getPostsForQuery:(NSString*)query
+                                 andLocation:(NSString*)locationQuery
                                      Success:(RequestSuccess)success
                                      failure:(RequestFailure)failure
 {
-    NSDictionary *parameters = @{@"search":query};
+    NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
+    
+    if (query.length && ![query isEqualToString:kSearchBarPlaceholder]) [parameters setObject:query forKey:@"search"];
+    if (locationQuery.length && ![locationQuery isEqualToString:kLocationSearchBarPlaceholder]) [parameters setObject:locationQuery forKey:@"location_name"];
+    
     OperationSuccess opSuccess = ^(AFHTTPRequestOperation *operation, id responseObject) {
         success([self postsFromJSONArray:[responseObject objectForKey:@"posts"]]);
     };
@@ -1682,6 +1688,11 @@ AFJSONRequestOperation *op = (AFJSONRequestOperation *)[self HTTPRequestOperatio
         [parameters setObject:@"false" forKey:@"post[private]"];
     }
     
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"OpenGraph"]) {
+        [parameters setObject:post.foodiaObject
+                       forKey:@"post[og]"];
+    }
+    
     if (post.tagArray) {
         NSMutableArray *tempTagArray = [NSMutableArray array];
         for (FDFoodiaTag *tag in post.tagArray){
@@ -1914,14 +1925,8 @@ AFJSONRequestOperation *op = (AFJSONRequestOperation *)[self HTTPRequestOperatio
 - (AFJSONRequestOperation *)recommendPost:(FDPost *)post onFacebook:(BOOL)facebook toRecommendees:(NSSet *)recommendees withMessage:(NSString *)message success:(RequestSuccess)success failure:(RequestFailure)failure {
     
     NSMutableArray *dict = [NSMutableArray array];
-    if (facebook){
-        for(FDUser *obj in [recommendees allObjects]) {
-            [dict addObject:obj.facebookId];
-        }
-    } else {
-        for(FDUser *obj in [recommendees allObjects]) {
-            if (obj.userId) [dict addObject:obj.userId];
-        }
+    for(FDUser *obj in [recommendees allObjects]) {
+        if (obj.userId) [dict addObject:obj.userId];
     }
     NSDictionary *parameters = [NSDictionary dictionaryWithObjectsAndKeys:dict,@"recommendees",post.identifier,@"identifier", message, @"message", nil];
     return [self requestOperationWithMethod:@"POST" path:RECOMMEND_PATH parameters:parameters success:^(AFHTTPRequestOperation *operation, id result) {
@@ -1931,6 +1936,19 @@ AFJSONRequestOperation *op = (AFJSONRequestOperation *)[self HTTPRequestOperatio
         NSLog(@"couldnt post the recommendation. here's why: %@", error.description);
         failure(error);
     }];
+}
+
+- (AFJSONRequestOperation *)recommendPostOnFacebook:(FDPost *)post
+                                            success:(RequestSuccess)success
+                                            failure:(RequestFailure)failure {
+    NSDictionary *parameters = @{@"identifier":post.identifier};
+    return [self requestOperationWithMethod:@"POST"
+                                       path:RECOMMEND_FB_PATH
+                                 parameters:parameters success:^(AFHTTPRequestOperation *operation, id result) {
+                                     success(result);
+                                 } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+                                     
+                                 }];
 }
 
 #pragma mark - Private Methods

@@ -8,7 +8,8 @@
 
 #import "AFNetworking.h"
 
-@interface FDMenuViewController : UITableViewController
+@interface FDMenuViewController : UIViewController <UITableViewDataSource, UITableViewDelegate>
+@property (weak, nonatomic) IBOutlet UITableView *tableView;
 @property (nonatomic,strong) NSMutableArray *notifications;
 @property (nonatomic,strong) AFJSONRequestOperation *feedRequestOperation;
 - (void)refresh;

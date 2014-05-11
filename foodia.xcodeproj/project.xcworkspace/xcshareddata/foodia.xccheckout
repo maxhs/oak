@@ -2,8 +2,10 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
+	<false/>
 	<key>IDESourceControlProjectIdentifier</key>
-	<string>D8DE3D7C-86DF-43C9-9FB4-65FB485386E6</string>
+	<string>3192F820-8C45-47DD-9A0C-5C0C2E134BF5</string>
 	<key>IDESourceControlProjectName</key>
 	<string>foodia</string>
 	<key>IDESourceControlProjectOriginsDictionary</key>
@@ -38,17 +40,17 @@
 			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
 			<string>public.vcs.git</string>
 			<key>IDESourceControlWCCIdentifierKey</key>
-			<string>FB7A6B8B-7E4D-4D0B-95B8-53D6197D929D</string>
+			<string>D729A935-8A08-414E-9BB3-B8C7791BB884</string>
 			<key>IDESourceControlWCCName</key>
-			<string>oak</string>
+			<string>GPUImage</string>
 		</dict>
 		<dict>
 			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
 			<string>public.vcs.git</string>
 			<key>IDESourceControlWCCIdentifierKey</key>
-			<string>D729A935-8A08-414E-9BB3-B8C7791BB884</string>
+			<string>FB7A6B8B-7E4D-4D0B-95B8-53D6197D929D</string>
 			<key>IDESourceControlWCCName</key>
-			<string>GPUImage</string>
+			<string>oak</string>
 		</dict>
 		<dict>
 			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>

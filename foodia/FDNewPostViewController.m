@@ -30,7 +30,7 @@
 #import "FDFoodiaTag.h"
 #import "FDPostViewController.h"
 
-NSString *const kPlaceholderAddPostCommentPrompt = @"I'M THINKING...";
+NSString *const kPlaceholderAddPostCommentPrompt = @"I'm thinking...";
 
 @interface FDNewPostViewController () <UITextViewDelegate, UITextFieldDelegate, UIActionSheetDelegate, UIImagePickerControllerDelegate, CLLocationManagerDelegate, UINavigationControllerDelegate, UIAlertViewDelegate, UIWebViewDelegate, UIScrollViewDelegate, UITableViewDataSource, UITableViewDelegate> {
     BOOL iPhone5;
@@ -140,10 +140,6 @@ static NSDictionary *categoryImages = nil;
     [super viewWillAppear:animated];
     if ([self.navigationItem.rightBarButtonItem.title isEqualToString:kSave] || _isEditingPost){
         [self.deleteButton setHidden:NO];
-        [self.facebookButton setHidden:YES];
-        [self.foursquareButton setHidden:YES];
-        [self.twitterButton setHidden:YES];
-        [self.instagramButton setHidden:YES];
         if (FDPost.userPost.isPrivate || self.post.isPrivate){
             [self.lockButton setImage:[UIImage imageNamed:@"locked"] forState:UIControlStateNormal];
         } else {
@@ -288,9 +284,9 @@ static NSDictionary *categoryImages = nil;
     if (self.photoButton.imageView.image) [self.photoBackgroundView setAlpha:1.0];
     
     if (self.post.category){
-        [self.foodiaObjectButton setTitle:[NSString stringWithFormat:@"I'M %@", self.post.category.uppercaseString] forState:UIControlStateNormal];
+        [self.foodiaObjectButton setTitle:[NSString stringWithFormat:@"I'm %@", self.post.category.lowercaseString] forState:UIControlStateNormal];
     } else {
-        [self.foodiaObjectButton setTitle:@"I'M..." forState:UIControlStateNormal];
+        [self.foodiaObjectButton setTitle:@"I'm..." forState:UIControlStateNormal];
     }
     
     //location section
@@ -768,6 +764,12 @@ static NSDictionary *categoryImages = nil;
 }
 
 - (IBAction)submitPost:(id)sender {
+    
+    //adjust for non-fb users
+    if (![[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookAccessToken] && [[[UIDevice currentDevice] systemVersion] floatValue] >= 6) {
+        [[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"OpenGraph"];
+    }
+    
     if ([self.postButtonItem.title isEqualToString:kPost]){
         [self.navigationController dismissViewControllerAnimated:YES completion:^{
         //[self.postButtonItem setEnabled:NO];
@@ -785,11 +787,7 @@ static NSDictionary *categoryImages = nil;
         } else {
             FDPost.userPost.isPrivate = NO;
         }
-        
-            //adjust for non-fb users
-            if (![[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookAccessToken] && [[[UIDevice currentDevice] systemVersion] floatValue] >= 6) {
-                [[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"OpenGraph"];
-            }
+            
             [[FDAPIClient sharedClient] submitPost:FDPost.userPost success:^(id result) {
                 //if posting to Facebook from an email sign-in account
                 if ([[NSUserDefaults standardUserDefaults] boolForKey:kDefaultsFacebookActive] && ![[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookAccessToken]) {
@@ -822,6 +820,25 @@ static NSDictionary *categoryImages = nil;
             [destinationVC setShouldReframe:YES];
             [[NSNotificationCenter defaultCenter] postNotificationName:@"RefreshPostView" object:nil];
             [self.navigationController popViewControllerAnimated:YES];
+            
+            //gratuitious sharing section
+            if ([[NSUserDefaults standardUserDefaults] boolForKey:kDefaultsFacebookActive] && ![[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookAccessToken]) {
+                NSDictionary *userInfo = @{@"identifier":[[result objectForKey:@"post"] objectForKey:@"id"]};
+                [[NSNotificationCenter defaultCenter] postNotificationName:@"PostToFacebook" object:nil userInfo:userInfo];
+            }
+            
+            //if posting to Foursquare
+            if ([[NSUserDefaults standardUserDefaults] boolForKey:kDefaultsFoursquareActive]) {
+                [[FDFoursquareAPIClient sharedClient] checkInVenue:FDPost.userPost.foursquareid postCaption:FDPost.userPost.caption withPostId:[[result objectForKey:@"post"] objectForKey:@"id"]];
+            }
+            //if posting to Instagram
+            if ([[NSUserDefaults standardUserDefaults] boolForKey:kDefaultsInstagramActive] && ![[NSUserDefaults standardUserDefaults] boolForKey:kDefaultsTwitterActive]) {
+                [[NSNotificationCenter defaultCenter] postNotificationName:@"PostToInstagram" object:nil];
+            } else if ([[NSUserDefaults standardUserDefaults] boolForKey:kDefaultsTwitterActive]){
+                NSDictionary *userInfo = @{@"identifier":[[result objectForKey:@"post"] objectForKey:@"id"]};
+                [[NSNotificationCenter defaultCenter] postNotificationName:@"PostToTwitter" object:nil userInfo:userInfo];
+            }
+
         } failure:^(NSError *error) {
             NSLog(@"error editing post: %@",error.description);
         }];

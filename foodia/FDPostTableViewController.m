@@ -333,7 +333,7 @@
 - (void)recommend:(id)sender {
     UIButton *button = (UIButton *)sender;
     FDPost *post = [self.posts objectAtIndex:button.tag];
-    post.recCount = [NSNumber numberWithInt:[post.recCount integerValue] +1];
+    /*post.recCount = [NSNumber numberWithInt:[post.recCount integerValue] +1];
     [self.posts replaceObjectAtIndex:button.tag withObject:post];
     if (self.tableView.numberOfSections < 2) {
         NSIndexPath *path = [NSIndexPath indexPathForRow:button.tag inSection:0];
@@ -341,12 +341,12 @@
     } else {
         NSIndexPath *path = [NSIndexPath indexPathForRow:button.tag inSection:1];
         [self.tableView reloadRowsAtIndexPaths:[NSArray arrayWithObject:path] withRowAnimation:UITableViewRowAnimationFade];
-    }
+    }*/
     FDCustomSheet *actionSheet;
-    if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookAccessToken]){
-        actionSheet = [[FDCustomSheet alloc] initWithTitle:nil delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:@"Recommend on FOODIA",@"Recommend via Facebook",@"Send a Text", @"Send an Email", nil];
+    if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFacebookId]){
+        actionSheet = [[FDCustomSheet alloc] initWithTitle:nil delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:kRecommendOnFoodia,kRecommendViaFacebook,kSendText, kSendEmail, nil];
     } else {
-        actionSheet = [[FDCustomSheet alloc] initWithTitle:nil delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:@"Recommend on FOODIA",@"Send a Text", @"Send an Email", nil];
+        actionSheet = [[FDCustomSheet alloc] initWithTitle:nil delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:kRecommendOnFoodia,kSendText, kSendEmail, nil];
     }
     [actionSheet setFoodiaObject:post.foodiaObject];
     [actionSheet setPost:post];
@@ -355,7 +355,6 @@
 }
 
 - (void) actionSheet:(FDCustomSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
-    
     UIStoryboard *storyboard;
     if (([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone && [UIScreen mainScreen].bounds.size.height == 568.0)){
         storyboard = [UIStoryboard storyboardWithName:@"iPhone5"
@@ -367,11 +366,11 @@
     FDRecommendViewController *vc = [storyboard instantiateViewControllerWithIdentifier:@"RecommendView"];
     [vc setPost:actionSheet.post];
     
-    if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Recommend on FOODIA"]) {
+    if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:kRecommendOnFoodia]) {
         //Recommending via FOODIA only
         [vc setPostingToFacebook:NO];
         [self.navigationController pushViewController:vc animated:YES];
-    } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Recommend via Facebook"]) {
+    } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:kRecommendViaFacebook]) {
         //Recommending via Facebook
         [vc setPostingToFacebook:YES];
         if ([FBSession.activeSession.permissions
@@ -394,7 +393,7 @@
                     indexOfObject:@"publish_actions"] != NSNotFound) {
             [self.navigationController pushViewController:vc animated:YES];
         }
-    } else if([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Send a Text"]) {
+    } else if([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:kSendText]) {
         //Recommending via text
         MFMessageComposeViewController *viewController = [[MFMessageComposeViewController alloc] init];
         if ([MFMessageComposeViewController canSendText]){
@@ -403,7 +402,7 @@
             [viewController setBody:textBody];
             [self.delegate presentModalViewController:viewController animated:YES];
         }
-    } else if([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Send an Email"]) {
+    } else if([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:kSendEmail]) {
         //Recommending via mail
         if ([MFMailComposeViewController canSendMail]) {
             MFMailComposeViewController* controller = [[MFMailComposeViewController alloc] init];
@@ -415,16 +414,6 @@
         } else {
             UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Sorry" message:@"But we weren't able to email your recommendation. Please try again..." delegate:self cancelButtonTitle:@"" otherButtonTitles:nil];
             [alert show];
-        }
-    } else {
-        actionSheet.post.recCount = [NSNumber numberWithInt:[actionSheet.post.recCount integerValue] -1];
-        [self.posts replaceObjectAtIndex:actionSheet.buttonTag withObject:actionSheet.post];
-        if (self.tableView.numberOfSections < 2) {
-            NSIndexPath *path = [NSIndexPath indexPathForRow:actionSheet.buttonTag inSection:0];
-            [self.tableView reloadRowsAtIndexPaths:[NSArray arrayWithObject:path] withRowAnimation:UITableViewRowAnimationFade];
-        } else {
-            NSIndexPath *path = [NSIndexPath indexPathForRow:actionSheet.buttonTag inSection:1];
-            [self.tableView reloadRowsAtIndexPaths:[NSArray arrayWithObject:path] withRowAnimation:UITableViewRowAnimationFade];
         }
     }
 }
@@ -616,7 +605,7 @@
 }
 
 - (void)didShowLastRow {
-    NSLog(@"you've hit the last row");
+    
 }
 
 - (void)revealMenu {
@@ -641,10 +630,8 @@
     CGFloat prevDelta = self.previousContentDelta;
     CGFloat delta = scrollView.contentOffset.y - _lastContentOffsetY;
     if (delta > 0.f && prevDelta <= 0.f) {
-        [[NSNotificationCenter defaultCenter] postNotificationName:@"HideSlider" object:self];
-    } else if (delta < -5.f && prevDelta >= 0.f) {
-        //[[NSNotificationCenter defaultCenter] postNotificationName:@"RevealSlider" object:self];
-    }
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"HideTabs" object:self];
+    } 
     self.previousContentDelta = delta;
 }
 
@@ -656,6 +643,7 @@
 
 - (void)egoRefreshTableHeaderDidTriggerRefresh:(EGORefreshTableHeaderView*)view {
     self.isRefreshing = YES;
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"HideTabs" object:self];
     if (self.notificationRequestOperation == nil) {
         self.notificationRequestOperation = (AFJSONRequestOperation *)[[FDAPIClient sharedClient] getActivityCountSuccess:^(NSString *notifications) {
             self.notificationsPending = [notifications integerValue];

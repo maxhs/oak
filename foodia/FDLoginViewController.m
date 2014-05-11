@@ -64,14 +64,14 @@ static NSArray *tagLines;
     self.loginButton.alpha = 0.0f;
     self.loginButton.layer.shadowColor = [UIColor blackColor].CGColor;
     self.loginButton.layer.shadowOffset = CGSizeMake(0,0);
-    self.loginButton.layer.shadowOpacity = .2;
-    self.loginButton.layer.shadowRadius = 2.0;
+    self.loginButton.layer.shadowOpacity = .1;
+    self.loginButton.layer.shadowRadius = 3.0;
+    
     self.emailButton.alpha = 0.0f;
-    self.emailButton.layer.cornerRadius = 5.0f;
-    self.emailButton.layer.shadowColor = [UIColor blackColor].CGColor;
+    /*self.emailButton.layer.shadowColor = [UIColor blackColor].CGColor;
     self.emailButton.layer.shadowOffset = CGSizeMake(0,0);
     self.emailButton.layer.shadowOpacity = .2;
-    self.emailButton.layer.shadowRadius = 2.0;
+    self.emailButton.layer.shadowRadius = 1.0;*/
 
     self.signupEmailButton.layer.shadowColor = [UIColor blackColor].CGColor;
     self.signupEmailButton.layer.shadowOffset = CGSizeMake(0,0);

@@ -78,6 +78,7 @@
         }
         self.tableView.tableHeaderView = emptyCell;
     }
+    
 }
 
 - (NSDate*)egoRefreshTableHeaderDataSourceLastUpdated:(EGORefreshTableHeaderView*)view{
@@ -87,6 +88,7 @@
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     [self getNotificationCount];
+    
 }
 
 - (void)viewWillDisappear:(BOOL)animated {
@@ -153,38 +155,37 @@
         cell.selectionStyle = UITableViewCellSelectionStyleNone;
         return cell;
     } else {
-    
-    static NSString *PostGridCellIdentifier = @"PostGridCell";
-    FDPostGridCell *cell = (FDPostGridCell *)[tableView dequeueReusableCellWithIdentifier:PostGridCellIdentifier];
-    if (cell == nil) {
-        NSArray *nib = [[NSBundle mainBundle] loadNibNamed:@"FDPostGridCell" owner:self options:nil];
-        cell = (FDPostGridCell *)[nib objectAtIndex:0];
-    }
-    
-    FDPost *post = [self.posts objectAtIndex:(indexPath.row*3)];
-        UIButton *postButton = [UIButton buttonWithType:UIButtonTypeCustom];
-        [postButton setFrame:CGRectMake(5,0,100,100)];
-        [postButton addTarget:self action:@selector(selectPost:) forControlEvents:UIControlEventTouchUpInside];
-        postButton.tag=(indexPath.row*3);
-        [cell addSubview:postButton];
-    
-    FDPost *post1 = [self.posts objectAtIndex:(indexPath.row*3)+1];
-        UIButton *postButton1 = [UIButton buttonWithType:UIButtonTypeCustom];
-        [postButton1 setFrame:CGRectMake(110,0,100,100)];
-        [postButton1 addTarget:self action:@selector(selectPost:) forControlEvents:UIControlEventTouchUpInside];
-    postButton1.tag=(indexPath.row*3)+1;
-        [cell addSubview:postButton1];
-    
-    FDPost *post2 = [self.posts objectAtIndex:(indexPath.row*3)+2];
-        UIButton *postButton2 = [UIButton buttonWithType:UIButtonTypeCustom];
-        [postButton2 setFrame:CGRectMake(215,0,100,100)];
-        [postButton2 addTarget:self action:@selector(selectPost:) forControlEvents:UIControlEventTouchUpInside];
-    postButton2.tag=(indexPath.row*3)+2;
-        [cell addSubview:postButton2];
-    cellPosts = [NSMutableArray arrayWithObjects:post, post1, post2, nil];
-    
-    [cell configureForPost:cellPosts];
-    return cell;
+        static NSString *PostGridCellIdentifier = @"PostGridCell";
+        FDPostGridCell *cell = (FDPostGridCell *)[tableView dequeueReusableCellWithIdentifier:PostGridCellIdentifier];
+        if (cell == nil) {
+            NSArray *nib = [[NSBundle mainBundle] loadNibNamed:@"FDPostGridCell" owner:self options:nil];
+            cell = (FDPostGridCell *)[nib objectAtIndex:0];
+        }
+        
+        FDPost *post = [self.posts objectAtIndex:(indexPath.row*3)];
+            UIButton *postButton = [UIButton buttonWithType:UIButtonTypeCustom];
+            [postButton setFrame:CGRectMake(5,0,100,100)];
+            [postButton addTarget:self action:@selector(selectPost:) forControlEvents:UIControlEventTouchUpInside];
+            postButton.tag=(indexPath.row*3);
+            [cell addSubview:postButton];
+        
+        FDPost *post1 = [self.posts objectAtIndex:(indexPath.row*3)+1];
+            UIButton *postButton1 = [UIButton buttonWithType:UIButtonTypeCustom];
+            [postButton1 setFrame:CGRectMake(110,0,100,100)];
+            [postButton1 addTarget:self action:@selector(selectPost:) forControlEvents:UIControlEventTouchUpInside];
+        postButton1.tag=(indexPath.row*3)+1;
+            [cell addSubview:postButton1];
+        
+        FDPost *post2 = [self.posts objectAtIndex:(indexPath.row*3)+2];
+            UIButton *postButton2 = [UIButton buttonWithType:UIButtonTypeCustom];
+            [postButton2 setFrame:CGRectMake(215,0,100,100)];
+            [postButton2 addTarget:self action:@selector(selectPost:) forControlEvents:UIControlEventTouchUpInside];
+        postButton2.tag=(indexPath.row*3)+2;
+            [cell addSubview:postButton2];
+        cellPosts = [NSMutableArray arrayWithObjects:post, post1, post2, nil];
+        
+        [cell configureForPost:cellPosts];
+        return cell;
     }
 }
 
@@ -256,7 +257,6 @@
 #pragma mark - private methods
 
 - (void)reloadData {
-    
     self.isRefreshing = NO;
     [self.refreshHeaderView egoRefreshScrollViewDataSourceDidFinishedLoading:self.tableView];
     [self.tableView reloadData];
@@ -278,9 +278,7 @@
     CGFloat prevDelta = self.previousContentDelta;
     CGFloat delta = scrollView.contentOffset.y - _lastContentOffsetY;
     if (delta > 0.f && prevDelta <= 0.f) {
-        [[NSNotificationCenter defaultCenter] postNotificationName:@"HideSlider" object:self];
-    } else if (delta < -5.f && prevDelta >= 0.f) {
-        //[[NSNotificationCenter defaultCenter] postNotificationName:@"RevealSlider" object:self];
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"HideTabs" object:self];
     }
     self.previousContentDelta = delta;
     
@@ -299,6 +297,7 @@
 
 - (void)egoRefreshTableHeaderDidTriggerRefresh:(EGORefreshTableHeaderView*)view{
 	self.isRefreshing = YES;
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"HideTabs" object:self];
     [self refresh];
 	
 }

@@ -21,6 +21,7 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     [Flurry logPageView];
+
 }
 
 
@@ -51,6 +52,10 @@
                 self.posts = [[newPosts arrayByAddingObjectsFromArray:self.posts] mutableCopy];
             }
             [self reloadData];
+            if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 7.0f){
+                NSLog(@"ios7 device");
+                [self.tableView setContentInset:UIEdgeInsetsMake(100, 0, 0, 0)];
+            }
             self.feedRequestOperation = nil;
         } failure:^(NSError *error) {
             NSLog(@"Failure...");

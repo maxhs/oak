@@ -225,6 +225,8 @@ static FDPost *userPost;
         self.locationName = value;
     } else if([key isEqualToString:@"isfeatured"]) {
         self.featured = value;
+    } else if([key isEqualToString:@"foursquareid"]) {
+        self.foursquareid = value;
     } else {
         [super setValue:value forKey:key];
         

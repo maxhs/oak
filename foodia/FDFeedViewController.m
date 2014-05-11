@@ -32,17 +32,16 @@
 #import "FDCustomSheet.h"
 #import "FDRecommendViewController.h"
 #import <Crashlytics/Crashlytics.h>
-#define kSearchBarPlaceholder @"Find food, drinks or places"
+#import "UIView+MWParallax.h"
+
 #define kInitialSliderHideConstant 150
 
 @interface FDFeedViewController () <FDPostTableViewControllerDelegate, FDPostGridViewControllerDelegate, UIScrollViewDelegate, UISearchDisplayDelegate, UISearchBarDelegate, UIActionSheetDelegate, UITableViewDataSource, UITableViewDelegate, MFMailComposeViewControllerDelegate, MFMessageComposeViewControllerDelegate, CLLocationManagerDelegate, UIAlertViewDelegate> {
     BOOL isSearching;
     BOOL shouldBeginEditing;
     BOOL showingDistance;
-    BOOL sliderRevealed;
-    BOOL movedRight;
+    BOOL tabsRevealed;
     int page;
-    UIImage *originalShadowImage;
     CLLocation *currentLocation;
     NSString *noPostSearchString;
 }
@@ -54,14 +53,14 @@
 
 @property (weak, nonatomic) IBOutlet UIBarButtonItem *sliderButtonItem;
 @property (weak, nonatomic) IBOutlet UIBarButtonItem *menuButtonItem;
-@property (retain, nonatomic) IBOutlet UIButton *addPostButton;
-@property (weak, nonatomic) IBOutlet UILabel *feedLabel;
-@property (weak, nonatomic) IBOutlet UILabel *featuredLabel;
-@property (weak, nonatomic) IBOutlet UILabel *keepersLabel;
-@property (weak, nonatomic) IBOutlet UILabel *nearbyLabel;
-@property (weak, nonatomic) IBOutlet UILabel *recLabel;
+@property (weak, nonatomic) IBOutlet UIButton *addPostButton;
+@property (weak, nonatomic) IBOutlet UIButton *featuredButton;
+@property (weak, nonatomic) IBOutlet UIButton *feedButton;
+@property (weak, nonatomic) IBOutlet UIButton *keepersButton;
+@property (weak, nonatomic) IBOutlet UIButton *recommendedButton;
 @property (weak, nonatomic) IBOutlet UITableView *resultsTableView;
-@property (strong, nonatomic) UIButton *logoImageButton;
+@property (weak, nonatomic) IBOutlet UIView *blackView;
+
 @property (nonatomic, weak) UIViewController *currentChildViewController;
 @property (strong, nonatomic) UIDocumentInteractionController *documentInteractionController;
 @property (nonatomic, strong) ACAccountStore *accountStore;
@@ -69,13 +68,17 @@
 @property (nonatomic, strong) NSArray *accounts;
 @property (strong, nonatomic) UIActionSheet *twitterActionSheet;
 @property (strong, nonatomic) SLComposeViewController *tweetSheet;
-
+@property (strong, nonatomic) UISearchBar *locationSearchBar;
 @property (strong, nonatomic) NSMutableArray *searchPosts;
 @property (strong, nonatomic) UIView *editContainerView;
 @property (strong, nonatomic) UIButton *sortByDistanceButton;
 @property (strong, nonatomic) UIButton *sortByPopularityButton;
 @property (strong, nonatomic) CLLocationManager *locationManager;
 - (IBAction)revealMenu:(UIBarButtonItem *)sender;
+- (IBAction)selectFeatured;
+- (IBAction)selectFeed;
+- (IBAction)selectKeepers;
+- (IBAction)selectRecommended;
 @end
 
 @implementation FDFeedViewController
@@ -98,10 +101,6 @@
     self.sliderButtonItem.tintColor = [UIColor blackColor];
     _accountStore = [[ACAccountStore alloc] init];
     _apiManager = [[TWAPIManager alloc] init];
-    if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 6) {
-        originalShadowImage = self.navigationController.navigationBar.shadowImage;
-    }
-    [self.navigationItem.rightBarButtonItem setBackgroundImage:[UIImage imageNamed:@"emptyBarButton"] forState:UIControlStateNormal barMetrics:UIBarMetricsDefault];
     
     [(FDMenuViewController*)self.slidingViewController.underLeftViewController shrink];
     
@@ -122,66 +121,61 @@
     self.locationManager.delegate = self;
     [self.locationManager startUpdatingLocation];
     
-    //hide slider without animations
-    [self.feedContainerView setFrame:CGRectMake(0,0,320,self.feedContainerView.frame.size.height)];
-    _scrollView.transform = CGAffineTransformMakeTranslation(0, -kInitialSliderHideConstant);
-    self.clipViewBackground.transform = CGAffineTransformMakeTranslation(0, -kInitialSliderHideConstant);
-    clipView.transform = CGAffineTransformMakeTranslation(0, -kInitialSliderHideConstant);
-    self.clipViewBackground.layer.rasterizationScale = [UIScreen mainScreen].scale;
-    self.clipViewBackground.layer.shouldRasterize = YES;
-    [self.clipViewBackground setAlpha:0.0];
-    [clipView setAlpha:0.0];
-    [_scrollView setAlpha:0.0];
-    _scrollView.scrollEnabled = NO;
+    //like this effect, but way too crashy
+    /*self.featuredButton.iOS6ParallaxIntensity = 15;
+    self.feedButton.iOS6ParallaxIntensity = 15;
+    self.recommendedButton.iOS6ParallaxIntensity = 15;
+    self.keepersButton.iOS6ParallaxIntensity = 15;*/
     
-    self.logoImageButton = [UIButton buttonWithType:UIButtonTypeCustom];
-    [self.logoImageButton setImage:[UIImage imageNamed:@"upsideDownIcon"] forState:UIControlStateNormal];
-    [self.logoImageButton addTarget:self action:@selector(revealSlider) forControlEvents:UIControlEventTouchUpInside];
-    [self.logoImageButton setFrame:CGRectMake(87,-1,41,64)];
-    //[self.logoImageView setFrame:CGRectMake(61,31,94,25)];
+    self.locationSearchBar = [[UISearchBar alloc] initWithFrame:CGRectMake(0, 0, 320, 44)];
+    self.locationSearchBar.delegate = self;
+    
+    //customize the searchbar
     self.searchBar = [[UISearchBar alloc] init];
     self.searchBar.delegate = self;
     self.searchPosts = [NSMutableArray array];
-    self.resultsTableView.delegate = self;
-    self.resultsTableView.dataSource = self;
-    //customize the searchbar
+    [self.searchBar setFrame:CGRectMake(0, 0, 320, 44)];
     self.searchBar.placeholder = kSearchBarPlaceholder;
     self.searchBar.autocapitalizationType = UITextAutocapitalizationTypeNone;
-
-    for (UIView *view in self.searchBar.subviews) {
+     
+    for(UIView *subView in self.searchBar.subviews) {
+        if ([subView isKindOfClass:[UITextField class]]) {
+            UITextField *searchField = (UITextField *)subView;
+            [searchField setFont:[UIFont fontWithName:kHelveticaNeueThin size:13]];
+            break;
+        }
+    }
+    for(UIView *subView in self.locationSearchBar.subviews) {
+        if ([subView isKindOfClass:[UITextField class]]) {
+            UITextField *searchField = (UITextField *)subView;
+            [searchField setFont:[UIFont fontWithName:kHelveticaNeueThin size:13]];
+            break;
+        }
+    }
+    
+    //replace ugly background
+    for (UIView *view in self.locationSearchBar.subviews) {
         if ([view isKindOfClass:NSClassFromString(@"UISearchBarBackground")]){
-            UIImageView *header = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"thinSearchBackground"]];
+            UIImageView *header = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"newFoodiaHeader.png"]];
             [view addSubview:header];
             break;
         }
     }
-    for(UIView *subView in self.searchBar.subviews) {
-        if ([subView isKindOfClass:[UITextField class]]) {
-            UITextField *searchField = (UITextField *)subView;
-            //searchField.layer.cornerRadius = 5.0f;
-            [searchField.layer setBackgroundColor:[UIColor clearColor].CGColor];
-            searchField.layer.shadowColor = [UIColor blackColor].CGColor;
-            searchField.layer.shadowOpacity = .5f;
-            searchField.layer.shadowRadius = 2.25f;
-            searchField.layer.shadowOffset = CGSizeMake(0,0);
-            searchField.clipsToBounds = NO;
-            [searchField setFont:[UIFont fontWithName:kHelveticaNeueThin size:13]];
-        }
-    }
     
     self.slidingViewController.panGesture.enabled = YES;
+    [self.blackView setBackgroundColor:[UIColor colorWithWhite:.1 alpha:.85]];
     
     //set up swiped cells thing
     self.swipedCells = [NSMutableArray array];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(swipedCells:) name:@"CellOpened" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(swipedCells:) name:@"CellClosed" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(hideSlider)
-                                                 name:@"HideSlider"
+                                             selector:@selector(callHideTabs)
+                                                 name:@"HideTabs"
                                                object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(revealSlider)
-                                                 name:@"RevealSlider"
+                                             selector:@selector(showTabs)
+                                                 name:@"ShowTabs"
                                                object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(hideKeyboard)
@@ -204,22 +198,21 @@
                                                  name:@"RefreshFeed" object:nil];
     
     UIImage *emptyBarButton = [UIImage imageNamed:@"emptyBarButton.png"];
-    //[self.searchButtonItem setBackgroundImage:emptyBarButton forState:UIControlStateNormal barMetrics:UIBarMetricsDefault];
-    [self.menuButtonItem setBackgroundImage:emptyBarButton forState:UIControlStateNormal barMetrics:UIBarMetricsDefault];
-    _scrollView.clipsToBounds = NO;
-	_scrollView.pagingEnabled = YES;
-	_scrollView.showsHorizontalScrollIndicator = NO;
-    _scrollView.delegate = self;
-    [_scrollView setContentSize:CGSizeMake(352,78)];    
-    
-    UIView *navigationView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 220, 88)];
-    [self.searchBar setTintColor:[UIColor whiteColor]];
-    [self.searchBar setFrame:CGRectMake(0, -44, 220, 44)];
-    [self.searchBar setAlpha:0.0];
-    [navigationView addSubview:self.logoImageButton];
-    [navigationView addSubview:self.searchBar];
 
-    self.navigationItem.titleView = navigationView;
+    [self.menuButtonItem setBackgroundImage:emptyBarButton forState:UIControlStateNormal barMetrics:UIBarMetricsDefault];
+    
+    self.navigationItem.titleView = self.searchBar;
+    
+    //style buttons
+    [self styleNavigationButton:self.featuredButton];
+    [self styleNavigationButton:self.feedButton];
+    [self styleNavigationButton:self.keepersButton];
+    [self styleNavigationButton:self.recommendedButton];
+    
+    [self.featuredButton addTarget:self action:@selector(showFeatured) forControlEvents:UIControlEventTouchUpInside];
+    [self.feedButton addTarget:self action:@selector(showFeed) forControlEvents:UIControlEventTouchUpInside];
+    [self.keepersButton addTarget:self action:@selector(showKeepers) forControlEvents:UIControlEventTouchUpInside];
+    [self.recommendedButton addTarget:self action:@selector(showRecommended) forControlEvents:UIControlEventTouchUpInside];
     
     //optionally show featured or feed sections first. this boolean is controlled through the settings view
     if ([[NSUserDefaults standardUserDefaults] boolForKey:kShouldShowFeaturedFirst]){
@@ -227,22 +220,22 @@
     } else {
         if ([[NSUserDefaults standardUserDefaults] objectForKey:kShouldShowFeaturedFirst]){
             [self showFeed];
-            [_scrollView setContentOffset:CGPointMake(88,0)];
         } else {
             [self showFeatured];
         }
     }
+    
+    if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 7.0f){
+        NSLog(@"ios7 device");
+        [self.feedContainerView setFrame:CGRectMake(0, 0, 320, self.view.frame.size.height)];
+    }
 }
 
-- (void)viewWillAppear:(BOOL)animated {
-    [super viewWillAppear:animated];
-    if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 6) {
-        if (sliderRevealed) {
-            self.navigationController.navigationBar.shadowImage = [[UIImage alloc] init];
-        } else {
-            self.navigationController.navigationBar.shadowImage = originalShadowImage;
-        }
-    }
+- (void)styleNavigationButton:(UIButton*)button {
+    button.transform = CGAffineTransformMakeTranslation(200, 0);
+    button.contentVerticalAlignment = UIControlContentVerticalAlignmentBottom;
+    button.contentHorizontalAlignment = UIControlContentHorizontalAlignmentCenter;
+    [button setBackgroundColor:[UIColor clearColor]];
 }
 
 - (void) locationManager:(CLLocationManager *)manager didFailWithError:(NSError *)error {
@@ -260,67 +253,99 @@
     [self.resultsTableView reloadData];
 }
 
-- (void)scrollViewDidScroll:(UIScrollView *)scrollView {
-    CGFloat pageWidth = scrollView.frame.size.width;
-    int currentPage = floor((scrollView.contentOffset.x - pageWidth / 2) / pageWidth) + 1;
-    if (currentPage != page && scrollView.contentOffset.x) [self hideKeyboard];
-    if (page < currentPage) movedRight = YES;
-    else movedRight = NO;
-    switch (currentPage) {
-        case 0:
-            [self showFeatured];
-            [self.addPostButton setFrame:CGRectMake(self.addPostButton.frame.origin.x,self.view.frame.size.height-55,55,55)];
-            [self hideLabelsExcept:self.featuredLabel];
-            break;
-        case 1:
-            [self showFeed];
-            [self.addPostButton setFrame:CGRectMake(self.addPostButton.frame.origin.x,self.view.frame.size.height-55,55,55)];
-            [self hideLabelsExcept:self.feedLabel];
-            break;
-        case 2:
-            [self showRecommended];
-            [self.addPostButton setFrame:CGRectMake(self.addPostButton.frame.origin.x,self.view.frame.size.height,55,55)];
-            [self hideLabelsExcept:self.recLabel];
-            break;
-        case 3:
-            [self showKeepers];
-            [self.addPostButton setFrame:CGRectMake(self.addPostButton.frame.origin.x,self.view.frame.size.height,55,55)];
-            [self hideLabelsExcept:self.keepersLabel];
-            break;
-        default:
-            break;
-    }
-    page = currentPage;
-}
-
-- (void)hideLabelsExcept:(UILabel *)feed{
-    for (UIView *view in _scrollView.subviews) {
-        if ([view isMemberOfClass:[UILabel class]]){
-            UILabel *label = (UILabel *)view;
-            if (label.text != feed.text) {
-                [UIView animateWithDuration:.25f animations:^{
-                    label.alpha = 0.0;
-                    feed.alpha = 1.0;
-                }];
-            }
-        }
-    }
-}
-
-- (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView {
-    _lastContentOffsetX = scrollView.contentOffset.x;
-    _lastContentOffsetY = scrollView.contentOffset.y;
-}
-
 - (IBAction)rightBarButtonAction {
-    if (self.feedContainerView.frame.origin.y == 0){
-        [self revealSlider];
+    if (self.blackView.isHidden){
+        [self showTabs];
     } else {
-        [self hideSlider];
+        [self removeBlackView];
     }
 }
 
-- (void)revealSlider {
+- (IBAction)selectFeatured {
+    [self showFeatured];
+}
+
+- (IBAction)selectFeed {
+    [self showFeed];
+}
+
+- (IBAction)selectKeepers {
+    [self showKeepers];
+}
+
+- (IBAction)selectRecommended {
+    [self showRecommended];
+}
+
+
+- (void)showTabs {
+    if (self.blackView.isHidden) {
+        [self.blackView setHidden:NO];
+    }
+    UIButton *removeBlackViewButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    [removeBlackViewButton setFrame:self.blackView.frame];
+    [self.blackView insertSubview:removeBlackViewButton belowSubview:self.featuredButton];
+    [removeBlackViewButton addTarget:self action:@selector(removeBlackView) forControlEvents:UIControlEventTouchUpInside];
+    
+    [UIView animateWithDuration:0.15f delay:0.0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        [self.blackView setAlpha:1.0];
+    } completion:^(BOOL finished) {
+        
+    }];
+    [self showIndividualButton:self.feedButton withDelay:0.2];
+    [self showIndividualButton:self.featuredButton withDelay:0.15];
+    [self showIndividualButton:self.keepersButton withDelay:0.1];
+    [self showIndividualButton:self.recommendedButton withDelay:0.05];
+    [self.navigationItem.rightBarButtonItem setImage:[UIImage imageNamed:@"up_arrow"]];
+    [self hideKeyboard];
+}
+
+- (void)removeBlackView {
+    [self callHideTabs];
+    [UIView animateWithDuration:0.25f delay:0.0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+        [self.blackView setAlpha:0.0];
+    } completion:^(BOOL finished) {
+        [self.blackView setHidden:YES];
+    }];
+}
+
+- (void)showIndividualButton:(UIButton*)button withDelay:(NSTimeInterval)delay {
+    [UIView animateWithDuration:.2 delay:delay options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        button.transform = CGAffineTransformMakeTranslation(-6, 0);
+        button.alpha = 1.0;
+    } completion:^(BOOL finished) {
+        [UIView animateWithDuration:.1 delay:0.0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+            button.transform = CGAffineTransformMakeTranslation(3, 0);
+        } completion:^(BOOL finished) {
+            [UIView animateWithDuration:.1 animations:^{
+                button.transform = CGAffineTransformIdentity;
+            }];
+        }];
+    }];
+}
+
+- (void)callHideTabs {
+    [self hideTabsWithDelay:0.0];
+}
+
+- (void)hideTabsWithDelay:(NSTimeInterval)optionalDelay {
+    [self.navigationItem.rightBarButtonItem setImage:[UIImage imageNamed:@"down_arrow"]];
+    [self hideIndividualButton:self.featuredButton withDelay:0.0 + optionalDelay];
+    [self hideIndividualButton:self.feedButton withDelay:0.025 + optionalDelay];
+    [self hideIndividualButton:self.keepersButton withDelay:0.05 + optionalDelay];
+    [self hideIndividualButton:self.recommendedButton withDelay:0.075 + optionalDelay];
+}
+
+- (void)hideIndividualButton:(UIButton*)button withDelay:(NSTimeInterval)delay {
+    [UIView animateWithDuration:.2 delay:delay options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        button.transform = CGAffineTransformMakeTranslation(200, 0);
+        button.alpha = 0.0;
+    } completion:^(BOOL finished) {
+        
+    }];
+}
+
+/*- (void)revealSlider {
     if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 6) {
         self.navigationController.navigationBar.shadowImage = [[UIImage alloc] init];
     }
@@ -387,7 +412,7 @@
         showingDistance = NO;
         sliderRevealed = NO;
     }];
-}
+}*/
 
 - (void)hideSearchBar {
     [UIView animateWithDuration:.25 delay:0.0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
@@ -398,43 +423,8 @@
     }];
 }
 
-- (void) hideLabels{
-    switch (page) {
-        case 0:
-            [self hideLabelsExcept:self.featuredLabel];
-            break;
-        case 1:
-            [self hideLabelsExcept:self.feedLabel];
-            break;
-        /*case 2:
-            [self hideLabelsExcept:self.nearbyLabel];
-            break;*/
-        case 2:
-            [self hideLabelsExcept:self.recLabel];
-            break;
-        case 3:
-            [self hideLabelsExcept:self.keepersLabel];
-            break;
-        default:
-            break;
-    }
-}
-- (void) showAllLabels {
-    [UIView animateWithDuration:.4f delay:.1f options:UIViewAnimationOptionCurveEaseInOut animations:^{
-        self.feedLabel.alpha = 1.0;
-        self.featuredLabel.alpha = 1.0;
-        self.keepersLabel.alpha = 1.0;
-        self.recLabel.alpha = 1.0;
-    }completion:^(BOOL finished) {
-        
-    }];
-}
-
 - (void)viewWillDisappear:(BOOL)animated {
     self.slidingViewController.panGesture.enabled = NO;
-    if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 6) {
-        self.navigationController.navigationBar.shadowImage = originalShadowImage;
-    }
     [super viewWillDisappear:animated];
 }
 
@@ -476,62 +466,126 @@
 #pragma mark - Private Methods
 
 - (void)showFeed {
-    //self.title = @"FRIENDS";
     [self showPostViewController:self.feedTableViewController];
+    UILabel *navTitle = [[UILabel alloc] init];
+    navTitle.frame = CGRectMake(0,0,180,44);
+    navTitle.text = @"Feed";
+    navTitle.font = [UIFont fontWithName:kHelveticaNeueThin size:20];
+    navTitle.backgroundColor = [UIColor clearColor];
+    navTitle.textColor = [UIColor blackColor];
+    navTitle.textAlignment = NSTextAlignmentCenter;
+    [navTitle setAlpha:0.0];
+    
+    [UIView animateWithDuration:.2f delay:0.01 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        self.navigationItem.titleView = navTitle;
+        [self.searchBar setAlpha:0.0];
+        [navTitle setAlpha:1.0];
+    } completion:^(BOOL finished) {
+        [self performSelector:@selector(addSearchBar) withObject:nil afterDelay:3.0];
+    }];
 }
 
 - (void)showFeatured {
-    //self.title = @"FEATURED";
     [self showPostViewController:self.featuredGridViewController];
+    UILabel *navTitle = [[UILabel alloc] init];
+    navTitle.frame = CGRectMake(0,0,180,44);
+    navTitle.text = @"Featured";
+    navTitle.font = [UIFont fontWithName:kHelveticaNeueThin size:20];
+    navTitle.backgroundColor = [UIColor clearColor];
+    navTitle.textColor = [UIColor blackColor];
+    navTitle.textAlignment = NSTextAlignmentCenter;
+    [navTitle setAlpha:0.0];
+    
+    [UIView animateWithDuration:.2f delay:0.01 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        self.navigationItem.titleView = navTitle;
+        [self.searchBar setAlpha:0.0];
+        [navTitle setAlpha:1.0];
+    } completion:^(BOOL finished) {
+        [self performSelector:@selector(addSearchBar) withObject:nil afterDelay:2.0];
+    }];
+}
+
+- (void)addSearchBar {
+    [UIView animateWithDuration:.2f delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        [self.searchBar setAlpha:1.0];
+        
+    } completion:^(BOOL finished) {
+        self.navigationItem.titleView = self.searchBar;
+    }];
 }
 
 - (void)showRecommended {
-    //self.title = @"RECOMMENDED";
     [self.recommendedTableViewController setShouldShowKeepers:NO];
     if (self.recommendedTableViewController.feedRequestOperation == nil) [self.recommendedTableViewController refresh];
     [self showPostViewController:self.recommendedTableViewController];
+    UILabel *navTitle = [[UILabel alloc] init];
+    navTitle.frame = CGRectMake(0,0,180,44);
+    navTitle.text = @"Recommended";
+    navTitle.font = [UIFont fontWithName:kHelveticaNeueThin size:20];
+    navTitle.backgroundColor = [UIColor clearColor];
+    navTitle.textColor = [UIColor blackColor];
+    navTitle.textAlignment = NSTextAlignmentCenter;
+    [navTitle setAlpha:0.0];
+    
+    [UIView animateWithDuration:.2f delay:0.01 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        self.navigationItem.titleView = navTitle;
+        [self.searchBar setAlpha:0.0];
+        [navTitle setAlpha:1.0];
+    } completion:^(BOOL finished) {
+        [self performSelector:@selector(addSearchBar) withObject:nil afterDelay:2.0];
+    }];
 }
 
 - (void)showKeepers {
     [self.keepersViewController setShouldShowKeepers:YES];
     if (self.keepersViewController.feedRequestOperation == nil) [self.keepersViewController refresh];
     [self showPostViewController:self.keepersViewController];
+    UILabel *navTitle = [[UILabel alloc] init];
+    navTitle.frame = CGRectMake(0,0,180,44);
+    navTitle.text = @"Keepers";
+    navTitle.font = [UIFont fontWithName:kHelveticaNeueThin size:20];
+    navTitle.backgroundColor = [UIColor clearColor];
+    navTitle.textColor = [UIColor blackColor];
+    navTitle.textAlignment = NSTextAlignmentCenter;
+    [navTitle setAlpha:0.0];
+    // Set label as titleView
+    
+    [UIView animateWithDuration:.15f delay:0.01 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        self.navigationItem.titleView = navTitle;
+        [self.searchBar setAlpha:0.0];
+        [navTitle setAlpha:1.0];
+    } completion:^(BOOL finished) {
+        [self performSelector:@selector(addSearchBar) withObject:nil afterDelay:2.0];
+    }];
 }
 
 - (void)showPostViewController:(UIViewController *)toViewController {
-    if (toViewController == self.currentChildViewController) return;
-    else if (self.currentChildViewController == nil) {
-        
+    if (toViewController == self.currentChildViewController) {
+        [self removeBlackView];
+    } else if (self.currentChildViewController == nil) {
         [toViewController willMoveToParentViewController:self];
         [self addChildViewController:toViewController];
         toViewController.view.frame = self.feedContainerView.bounds;
         [self.feedContainerView addSubview:toViewController.view];
         self.currentChildViewController = toViewController;
     } else {
+        [self removeBlackView];
+        
         [self.currentChildViewController willMoveToParentViewController:nil];
         [self addChildViewController:toViewController];
         toViewController.view.frame = self.feedContainerView.bounds;
+        [toViewController.view setAlpha:0.0];
+        toViewController.view.transform = CGAffineTransformMakeScale(.9, .9);
         
-        if (movedRight) {
-            toViewController.view.transform = CGAffineTransformMakeTranslation(self.feedContainerView.bounds.size.width, 0);
-        } else {
-            toViewController.view.transform = CGAffineTransformMakeTranslation(-self.feedContainerView.bounds.size.width, 0);
-        }
-            
         [self transitionFromViewController:self.currentChildViewController
                           toViewController:toViewController
-                                  duration:0.175f
-                                   options:0
+                                  duration:0.18
+                                   options:UIViewAnimationOptionCurveEaseInOut
                                 animations:^{
-                                    CGAffineTransform hiddenTransform;
-                                    if (movedRight) {
-                                        hiddenTransform = CGAffineTransformMakeTranslation(-self.feedContainerView.bounds.size.width, 0);
-                                    } else {
-                                        hiddenTransform = CGAffineTransformMakeTranslation(self.feedContainerView.bounds.size.width, 0);
-                                    }
-                                    hiddenTransform = CGAffineTransformScale(hiddenTransform, 0.4, 0.4);
-                                    self.currentChildViewController.view.transform = hiddenTransform;
+                                    self.currentChildViewController.view.transform = CGAffineTransformMakeScale(.9, .9);
+                                    [self.currentChildViewController.view setAlpha:0.0];
                                     toViewController.view.transform = CGAffineTransformIdentity;
+                                    [toViewController.view setAlpha:1.0];
                                 }
                                 completion:^(BOOL finished) {
                                     //[self.currentChildViewController removeFromParentViewController];
@@ -633,6 +687,7 @@
         [cell.textLabel setTextColor:[UIColor lightGrayColor]];
         [cell.textLabel setTextAlignment:NSTextAlignmentCenter];
         cell.selectionStyle = UITableViewCellSelectionStyleNone;
+        [cell setBackgroundColor:[UIColor clearColor]];
         return cell;
     }
 }
@@ -759,19 +814,24 @@
 
 - (void)searchBarTextDidBeginEditing:(UISearchBar *)searchBar {
     isSearching = YES;
-    [self hideSlider];
+    [self hideTabsWithDelay:0.0];
+    self.navigationItem.leftBarButtonItem = nil;
     [UIView animateWithDuration:.25 animations:^{
         [self.resultsTableView setAlpha:.85];
     }];
+    [self.resultsTableView addSubview:self.locationSearchBar];
+    
+    self.locationSearchBar.placeholder = kLocationSearchBarPlaceholder;
 }
+
 
 - (void)setUpRankControls {
     //set up editcontainer stuff
     if (self.editContainerView == nil){
         self.editContainerView = [[UIView alloc] initWithFrame:CGRectMake(0,-44,320,44)];
-        [self.editContainerView setBackgroundColor:[UIColor colorWithPatternImage:[UIImage imageNamed:@"newFoodiaHeader"]]];
+        [self.editContainerView setBackgroundColor:[UIColor clearColor]/*[UIColor colorWithPatternImage:[UIImage imageNamed:@"newFoodiaHeader"]]*/];
         
-        self.sortByDistanceButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        /*self.sortByDistanceButton = [UIButton buttonWithType:UIButtonTypeCustom];
         [self.sortByPopularityButton setBackgroundImage:[UIImage imageNamed:@"commentBubble"] forState:UIControlStateNormal];
         [self.sortByDistanceButton setFrame:CGRectMake(170, 2, 140, 44)];
         [self.sortByDistanceButton setTitle:@"Distance" forState:UIControlStateNormal];
@@ -779,7 +839,6 @@
         self.sortByDistanceButton.layer.cornerRadius = 17.0;
         self.sortByDistanceButton.clipsToBounds = YES;
         [self.sortByDistanceButton addTarget:self action:@selector(sortSearchByDistance) forControlEvents:UIControlEventTouchUpInside];
-        
         
         self.sortByPopularityButton = [UIButton buttonWithType:UIButtonTypeCustom];
         [self.sortByPopularityButton setBackgroundImage:[UIImage imageNamed:@"commentBubble"] forState:UIControlStateNormal];
@@ -794,7 +853,7 @@
         [self.sortByDistanceButton.titleLabel setFont:[UIFont fontWithName:kHelveticaNeueThin size:14]];
         [self resetButtonColors];
         [self.editContainerView addSubview:self.sortByDistanceButton];
-        [self.editContainerView addSubview:self.sortByPopularityButton];
+        [self.editContainerView addSubview:self.sortByPopularityButton];*/
         
         self.resultsTableView.tableHeaderView = self.editContainerView;
     }
@@ -813,19 +872,34 @@
     isSearching = NO;
 }
 
+- (void)searchBarCancelButtonClicked:(UISearchBar *)searchBar {
+    [self.navigationController setNavigationBarHidden:NO animated:YES];
+
+    [self hideKeyboard];
+    [UIView animateWithDuration:UINavigationControllerHideShowBarDuration delay:0.0 options:UIViewAnimationOptionAllowAnimatedContent animations:^{
+        [self.searchBar setAlpha:0.0];
+        [self.feedContainerView setFrame:self.view.frame];
+    } completion:^(BOOL finished) {
+    }];
+}
+
 - (void)searchBarSearchButtonClicked:(UISearchBar *)searchBar {
     [(FDAppDelegate *)[UIApplication sharedApplication].delegate showLoadingOverlay];
     showingDistance = NO;
-    [[FDAPIClient sharedClient] getPostsForQuery:searchBar.text Success:^(id result) {
+    [[FDAPIClient sharedClient] getPostsForQuery:self.searchBar.text
+                                     andLocation:self.locationSearchBar.text
+                                         Success:^(id result) {
         self.searchPosts = result;
         noPostSearchString = [NSString stringWithFormat:@"Sorry, but we couldn't find any posts with %@ in them",self.searchBar.text];
+        [self setUpRankControls];
         [self.resultsTableView reloadData];
         [UIView animateWithDuration:.25 animations:^{
             [self.resultsTableView setAlpha:1.0];
+            [self.resultsTableView setBackgroundColor:[UIColor whiteColor]];
         }];
         self.resultsTableView.separatorStyle = UITableViewCellSeparatorStyleSingleLine;
         [(FDAppDelegate *)[UIApplication sharedApplication].delegate hideLoadingOverlay];
-        [self setUpRankControls];
+        
     } failure:^(NSError *error) {
         NSLog(@"error from search method: %@",error.description);
     }];
@@ -878,14 +952,20 @@
     [UIView animateWithDuration:.25 delay:0.0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
         [self.resultsTableView setAlpha:0.0];
         [self.searchBar setText:@""];
+        [self.searchBar endEditing:YES];
+        [self.searchBar resignFirstResponder];
+        [self.locationSearchBar endEditing:YES];
+        [self.locationSearchBar resignFirstResponder];
+        if (!self.navigationItem.leftBarButtonItem) {
+            UIBarButtonItem *menuButtonItem = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"menuBarButtonImage"] style:UIBarButtonItemStyleBordered target:self action:@selector(revealMenu:)];
+            self.navigationItem.leftBarButtonItem = menuButtonItem;
+        }
     } completion:^(BOOL finished) {
         [self.searchPosts removeAllObjects];
         [self.resultsTableView reloadData];
         [self.resultsTableView setSeparatorStyle:UITableViewCellSeparatorStyleNone];
         noPostSearchString = @"";
-        [self.searchBar endEditing:YES];
-        [self.searchBar resignFirstResponder];
-        
+        [self.resultsTableView setBackgroundColor:[UIColor blackColor]];
     }];
 }
 

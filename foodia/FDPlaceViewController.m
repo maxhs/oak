@@ -158,7 +158,7 @@
     //if (self.place.reservationsUrl) [self.reservationsLink setHidden:NO];
     //if (self.place.menuUrl)[self.menuLink setHidden:NO];
     if (self.place.url) {
-        UIBarButtonItem *websiteButton = [[UIBarButtonItem alloc] initWithTitle:@"WEBSITE" style:UIBarButtonItemStyleBordered target:self action:@selector(viewWebsite)];
+        UIBarButtonItem *websiteButton = [[UIBarButtonItem alloc] initWithTitle:@"Website" style:UIBarButtonItemStyleBordered target:self action:@selector(viewWebsite)];
         self.navigationItem.rightBarButtonItem = websiteButton;
     }
     if (self.place.totalCheckins) self.totalCheckinsLabel.text = [NSString stringWithFormat:@"%@ checkins",self.place.totalCheckins];

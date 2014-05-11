@@ -121,7 +121,6 @@
                 [self.taggedFriendFacebookIds addObject:friend.fbid];
             }
         }
-        [tableView reloadData];
     } else {
         friend = [self.filteredPeople objectAtIndex:indexPath.row];
         if ([self.taggedFriendFacebookIds containsObject:friend.fbid]) {
@@ -129,21 +128,22 @@
         } else if ([self.taggedFriendIds containsObject:friend.userId]) {
             [self.taggedFriendIds removeObject:friend.userId];
         } else {
-            
             if (friend.userId.length) {
                 [self.taggedFriendIds addObject:friend.userId];
             } else {
                 [self.taggedFriendFacebookIds addObject:friend.fbid];
             }
-            [self.searchDisplayController setActive:NO animated:YES];
         }
-        [self.searchDisplayController.searchResultsTableView reloadData];
     }
+    [self.filteredPeople removeAllObjects];
+    [self.searchDisplayController setActive:NO animated:YES];
+    [tableView reloadData];
     return indexPath;
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
+    
 }
 
 @end

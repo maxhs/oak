@@ -134,10 +134,11 @@ static FDFoursquareAPIClient *singleton;
                               path:CHECKIN_PATH
                         parameters:parameters
                            success:^(AFHTTPRequestOperation *operation, id result) {
-                               NSLog(@"success checking in with foursquare");
+                               
                            }
                            failure:^(AFHTTPRequestOperation *operation, NSError *error) {
                                [[NSUserDefaults standardUserDefaults] setObject:nil forKey:@"foursquare_access_token"];
+                               NSLog(@"Error checking in via Foursquare: %@",error.description);
                                [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"But we couldn't connect to Foursquare. Your authorization to connect with FOODIA may have expired. Please try again." delegate:self cancelButtonTitle:@"Okay" otherButtonTitles: nil] show];
                            }
             ];

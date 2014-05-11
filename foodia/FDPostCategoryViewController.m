@@ -92,7 +92,14 @@
     self.drinkingTitleView.clipsToBounds = YES;
     self.eatingTitleView.layer.cornerRadius = 2.0f;
     self.eatingTitleView.clipsToBounds = YES;
-    
+    self.textFieldImageView.layer.cornerRadius = 3.0f;
+    self.textFieldImageView.clipsToBounds = YES;
+    if ([[[UIDevice currentDevice] systemVersion] floatValue] < 7.0f) {
+        
+    } else {
+        self.eatingContainerView.transform = CGAffineTransformMakeTranslation(0, 44);
+        self.eatingTitleView.transform = CGAffineTransformMakeTranslation(0, 44);
+    }
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -115,6 +122,8 @@
     } else {
         [self showCategories];
     }
+    
+   
 }
 
 - (void)viewDidAppear:(BOOL)animated {

@@ -209,6 +209,7 @@ typedef void(^RequestSuccess)(id result);
                                                failure:(RequestFailure)failure;
 
 - (AFHTTPRequestOperation *)getPostsForQuery:(NSString*)query
+                                 andLocation:(NSString*)locationQuery
                                      Success:(RequestSuccess)success
                                      failure:(RequestFailure)failure;
 - (AFHTTPRequestOperation *)getPopularPostsForQuery:(NSString*)query
@@ -297,6 +298,9 @@ typedef void(^RequestSuccess)(id result);
 
 - (AFJSONRequestOperation *)getPeopleListSuccess:(RequestSuccess)success failure:(RequestFailure)failure;
 - (AFJSONRequestOperation *)recommendPost:(FDPost *)post onFacebook:(BOOL)facebook toRecommendees:(NSSet *)recommendes withMessage:(NSString *)message success:(RequestSuccess)success failure:(RequestFailure)failure;
+- (AFJSONRequestOperation *)recommendPostOnFacebook:(FDPost *)post
+                                            success:(RequestSuccess)success
+                                            failure:(RequestFailure)failure;
 
 - (AFJSONRequestOperation *)addCommentWithBody:(NSString *)body
                                        forPost:(FDPost *)post

@@ -46,11 +46,9 @@
     [Flurry logEvent:@"ViewingMenu" timed:YES];
     [self.slidingViewController setAnchorRightRevealAmount:272.0f];
     self.slidingViewController.underLeftWidthLayout = ECFullWidth;
-    self.tableView.separatorColor = [UIColor colorWithWhite:.1 alpha:.1];
-    self.tableView.backgroundColor = [UIColor whiteColor];
-    self.tableView.backgroundView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"feedTypeMenuBackground4@2x.png"]];
-    self.tableView.delegate = self;
-    self.tableView.dataSource = self;
+    [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleNone];
+    //self.tableView.backgroundColor = [UIColor whiteColor];
+    //self.tableView.backgroundView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"feedTypeMenuBackground4@2x.png"]];
     self.tableView.scrollEnabled = YES;
     canLoadAdditionalNotifications = YES;
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(shrink) name:@"ShrinkMenuView" object:nil];
@@ -112,23 +110,25 @@
         static NSString *CellIdentifier = @"MenuCell";
         UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
         UIView *cellbg = [[UIView alloc] init];
-        [cellbg setBackgroundColor:kColorLightBlack];
+        [cellbg setBackgroundColor:[UIColor colorWithWhite:0.1 alpha:0.5]];
         cell.selectedBackgroundView = cellbg;
+        [cell.textLabel setFont:[UIFont fontWithName:kHelveticaNeueThin size:17]];
+        [cell.textLabel setTextColor:[UIColor whiteColor]];
             switch (indexPath.row) {
                 case 0:
-                    cell.textLabel.text = @"HOME";
+                    cell.textLabel.text = @"Home";
                 break;
                 case 1:
-                    cell.textLabel.text = @"MY PROFILE";
+                    cell.textLabel.text = @"Profile";
                     break;
                 case 2:
-                    cell.textLabel.text = @"DIGEST";
+                    cell.textLabel.text = @"Digest";
                     break;
                 case 3:
-                    cell.textLabel.text = @"FRIENDS";
+                    cell.textLabel.text = @"Friends";
                     break;
                 case 4:
-                    cell.textLabel.text = @"SETTINGS";
+                    cell.textLabel.text = @"Settings";
                 default:
                 break;
         }
@@ -138,7 +138,7 @@
         static NSString *CellIdentifier = @"NotificationCell";
         UITableViewCell *cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CellIdentifier];
         UIView *cellbg = [[UIView alloc] init];
-        [cellbg setBackgroundColor:kColorLightBlack];
+        [cellbg setBackgroundColor:[UIColor colorWithWhite:0.1 alpha:0.5]];
         cell.selectedBackgroundView = cellbg;
         FDNotification *notification = [self.notifications objectAtIndex:indexPath.row];
         UIButton *profileButton = [UIButton buttonWithType:UIButtonTypeCustom];
@@ -155,11 +155,11 @@
         profileButton.imageView.layer.cornerRadius = 20.0;
         [profileButton.imageView setBackgroundColor:[UIColor clearColor]];
         [profileButton.imageView.layer setBackgroundColor:[UIColor clearColor].CGColor];
-        
         profileButton.imageView.layer.shouldRasterize = YES;
         profileButton.imageView.layer.rasterizationScale = [UIScreen mainScreen].scale;
+        
         UILabel *messageLabel = [[UILabel alloc] initWithFrame:CGRectMake(50,4,180,40)];
-        [messageLabel setTextColor:[UIColor darkGrayColor]];
+        [messageLabel setTextColor:[UIColor whiteColor]];
         [messageLabel setFont:[UIFont fontWithName:kHelveticaNeueThin size:14]];
         messageLabel.numberOfLines = 2;
         messageLabel.backgroundColor = [UIColor clearColor];
@@ -193,7 +193,7 @@
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    if (indexPath.section == 0) return 54.0f;
+    if (indexPath.section == 0) return 62.0f;
     else return 50.0f;
 }
 

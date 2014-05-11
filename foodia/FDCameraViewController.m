@@ -109,14 +109,10 @@ static void *AVCamFocusModeObserverContext = &AVCamFocusModeObserverContext;
     [singleTap requireGestureRecognizerToFail:doubleTap];
     [self.view addGestureRecognizer:doubleTap];
     
-    [self.cancelButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
     [self.useButton setTitle:@"Use" forState:UIControlStateNormal];
-    [self.useButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
     self.useButton.clipsToBounds = YES;
     [self.useButton addTarget:self action:@selector(useImage) forControlEvents:UIControlEventTouchUpInside];
     [self.useButton setAlpha:0.0];
-    [self.cancelButton.titleLabel setFont:[UIFont fontWithName:kHelveticaNeueThin size:14]];
-    [self.useButton.titleLabel setFont:[UIFont fontWithName:kHelveticaNeueThin size:14]];
     
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(cleanupCameraCapture)
@@ -346,43 +342,43 @@ static void *AVCamFocusModeObserverContext = &AVCamFocusModeObserverContext;
     
     switch (x) {
         case 0:
-            [filterLabel setText:@"NONE"];
+            [filterLabel setText:@"None"];
             [filterButton setBackgroundImage:[UIImage imageNamed:@"grapes.jpg"] forState:UIControlStateNormal];
             break;
         case 1:
-            [filterLabel setText:@"CRISP"];
+            [filterLabel setText:@"Crisp"];
             [filterButton setBackgroundImage:[UIImage imageNamed:@"crisp.jpg"] forState:UIControlStateNormal];
             break;
         case 2:
-            [filterLabel setText:@"ALE"];
+            [filterLabel setText:@"Ale"];
             [filterButton setBackgroundImage:[UIImage imageNamed:@"ale.jpg"] forState:UIControlStateNormal];
             break;
         case 3:
-            [filterLabel setText:@"BRIGHT"];
+            [filterLabel setText:@"Bright"];
             [filterButton setBackgroundImage:[UIImage imageNamed:@"bright.jpg"] forState:UIControlStateNormal];
             break;
         case 4:
-            [filterLabel setText:@"CHARRED"];
+            [filterLabel setText:@"Charred"];
             [filterButton setBackgroundImage:[UIImage imageNamed:@"charred.jpg"] forState:UIControlStateNormal];
             break;
         case 5:
-            [filterLabel setText:@"MEYER"];
+            [filterLabel setText:@"Meyer"];
             [filterButton setBackgroundImage:[UIImage imageNamed:@"meyer.jpg"] forState:UIControlStateNormal];
             break;
         case 6:
-            [filterLabel setText:@"SAUCED"];
+            [filterLabel setText:@"Sauced"];
             [filterButton setBackgroundImage:[UIImage imageNamed:@"sauced.jpg"] forState:UIControlStateNormal];
             break;
         case 7:
-            [filterLabel setText:@"SPRING"];
+            [filterLabel setText:@"Spring"];
             [filterButton setBackgroundImage:[UIImage imageNamed:@"spring.jpg"] forState:UIControlStateNormal];
             break;
         case 8:
-            [filterLabel setText:@"GLAZED"];
+            [filterLabel setText:@"Glazed"];
             [filterButton setBackgroundImage:[UIImage imageNamed:@"glazed.jpg"] forState:UIControlStateNormal];
             break;
         case 9:
-            [filterLabel setText:@"HONEY"];
+            [filterLabel setText:@"Honey"];
             [filterButton setBackgroundImage:[UIImage imageNamed:@"honey.jpg"] forState:UIControlStateNormal];
             break;
         case 10:

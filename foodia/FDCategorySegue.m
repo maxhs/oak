@@ -19,10 +19,18 @@
     UINavigationController *sourceViewController = [(UIViewController *)self.sourceViewController navigationController];
     UINavigationController *destinationNavController = (UINavigationController *)self.destinationViewController;
     FDPostCategoryViewController *destinationViewController = (FDPostCategoryViewController *)[destinationNavController.viewControllers objectAtIndex:0];
-    UIGraphicsBeginImageContextWithOptions(sourceViewController.view.bounds.size, NO, 0.0f);
-    [sourceViewController.view.layer renderInContext:UIGraphicsGetCurrentContext()];
-    UIImage *resultingImage = UIGraphicsGetImageFromCurrentImageContext();
-    UIGraphicsEndImageContext();
+    UIImage *resultingImage;
+    if ([[[UIDevice currentDevice] systemVersion] floatValue] < 7.0){
+        UIGraphicsBeginImageContextWithOptions(sourceViewController.view.bounds.size, NO, 0.0f);
+        [sourceViewController.view.layer renderInContext:UIGraphicsGetCurrentContext()];
+        resultingImage = UIGraphicsGetImageFromCurrentImageContext();
+        UIGraphicsEndImageContext();
+    } else {
+        UIGraphicsBeginImageContextWithOptions(sourceViewController.view.window.bounds.size, NO, [UIScreen mainScreen].scale);
+        [sourceViewController.view.window.layer renderInContext:UIGraphicsGetCurrentContext()];
+        UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
+        UIGraphicsEndImageContext();;
+    }
     
     destinationViewController.dummyImage = resultingImage;
     
